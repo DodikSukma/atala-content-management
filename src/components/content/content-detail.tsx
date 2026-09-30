@@ -7,10 +7,15 @@ import { Archive, ArchiveRestore, ArrowLeft, CalendarClock, Lightbulb, Palette, 
 import { Button, ButtonLink, ConfirmDialog, InlineAlert, PageHeader, StatusBadge, useToast } from "@/components/ui";
 import { archiveContentAction, restoreContentAction } from "@/app/(app)/content/actions";
 import { CHANNEL_LABELS, FORMAT_LABELS } from "@/lib/constants";
-import { formatDateTime, formatRelative } from "@/lib/time";
+import { isActive } from "@/lib/planning";
+import type { SeriesPosition } from "@/lib/series";
+import { formatDateTime, formatRelative, toLocalDate, toLocalTime } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
 import { ContentForm } from "./content-form";
 import { toFormValues } from "./form-values";
+import { CreateSeriesButton } from "./series-dialog";
+import { SeriesMarker } from "./series-marker";
+import { SeriesPanel } from "./series-panel";
 import { StatusPanel } from "./status-panel";
 
 export interface DesignSummary {
@@ -39,6 +44,8 @@ export interface ContentDetailProps {
   /** Status desain gagal dimuat; tidak memblokir halaman. */
   designUnavailable?: boolean;
   sourceIdea: { id: string; title: string } | null;
+  /** Posisi dalam seri (F2-07); null bila bukan bagian seri. */
+  series?: SeriesPosition | null;
 }
 
 function MetaRow({ term, children }: { term: string; children: React.ReactNode }) {
@@ -56,7 +63,15 @@ function MetaRow({ term, children }: { term: string; children: React.ReactNode }
  * selalu mutakhir setelah simpan/ubah status, dan mengikuti versi server
  * setelah `router.refresh()`.
  */
-export function ContentDetail({ content: serverContent, contents, pillars, design, designUnavailable, sourceIdea }: ContentDetailProps) {
+export function ContentDetail({
+  content: serverContent,
+  contents,
+  pillars,
+  design,
+  designUnavailable,
+  sourceIdea,
+  series = null,
+}: ContentDetailProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [content, setContent] = useState(serverContent);
@@ -135,6 +150,7 @@ export function ContentDetail({ content: serverContent, contents, pillars, desig
         description={
           <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <StatusBadge status={content.status} />
+            {series ? <SeriesMarker index={series.index} total={series.total} /> : null}
             <span className="text-sm">{FORMAT_LABELS[content.format]}</span>
             <span className="inline-flex items-center gap-1.5 text-sm">
               {content.status === "published" ? (
@@ -151,6 +167,21 @@ export function ContentDetail({ content: serverContent, contents, pillars, desig
             <ButtonLink href={`/studio/${content.id}`} variant="secondary" icon={Palette}>
               Buka Studio
             </ButtonLink>
+            {!series && !archived ? (
+              <CreateSeriesButton
+                variant="ghost"
+                pillars={pillars}
+                existing={contents.filter((c) => isActive(c) && c.scheduledAt)}
+                defaults={{
+                  title: content.title,
+                  pillar: content.pillar,
+                  format: content.format,
+                  channels: content.channels,
+                  startDate: content.scheduledAt ? toLocalDate(content.scheduledAt) : undefined,
+                  time: content.scheduledAt ? toLocalTime(content.scheduledAt) : undefined,
+                }}
+              />
+            ) : null}
             {archived ? (
               <Button variant="secondary" icon={ArchiveRestore} loading={pending} onClick={runRestore}>
                 Pulihkan
@@ -195,6 +226,7 @@ export function ContentDetail({ content: serverContent, contents, pillars, desig
         />
 
         <aside aria-label="Informasi tambahan" className="grid gap-5 md:grid-cols-2 xl:grid-cols-1">
+          {series ? <SeriesPanel series={series} contentId={content.id} /> : null}
           <section className="rounded-card border border-line bg-surface p-5 shadow-card">
             <div className="flex items-start gap-3">
               <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">

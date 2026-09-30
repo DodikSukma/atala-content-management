@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -100,6 +100,72 @@ describe("khusus Google Sheets (HTTP mock)", () => {
       expect(info).toHaveBeenCalledTimes(1);
     } finally {
       info.mockRestore();
+    }
+  });
+
+  it("tab Contents lama tanpa kolom seri terbaca null; kolom seri ditambahkan di akhir header (tanpa migrasi)", async () => {
+    const fake = createFakeSheets();
+    const id = "33333333-3333-4333-8333-333333333333";
+    const legacyHeaders = [
+      "id", "title", "pillar", "status", "format", "channels", "scheduledAt", "publishedAt", "publishedUrl", "summary", "hook",
+      "caption", "cta", "tags", "trendSourceUrl", "trendCheckedAt", "notes", "designId", "sourceIdeaId", "createdAt", "updatedAt",
+      "archivedAt", "Catatan admin",
+    ];
+    const legacyRow: Record<string, string> = {
+      id,
+      title: "Konten lama",
+      pillar: "Edukasi",
+      status: "draft",
+      format: "feed",
+      channels: '["instagram_feed"]',
+      tags: "[]",
+      createdAt: "2026-09-01T00:00:00.000Z",
+      updatedAt: "2026-09-01T00:00:00.000Z",
+      "Catatan admin": "jangan dihapus",
+    };
+    // Salinan: server palsu mengubah baris header di tempat saat kolom baru ditambahkan.
+    fake.tabs.set("Contents", [[...legacyHeaders], legacyHeaders.map((h) => legacyRow[h] ?? "")]);
+    fake.tabs.set("Settings", [["key", "value"], ["schemaVersion", "2"]]);
+    const make = () => createSheetsStore("sheet-seri-lama", FAKE_CREDENTIALS, { fetch: fake.fetch, getToken: fake.getToken });
+    const store = make();
+    expect(await store.contents.get(id)).toMatchObject({ id, seriesId: null, seriesIndex: null });
+
+    const series = "44444444-4444-4444-8444-444444444444";
+    const part = await store.contents.create({
+      title: "Seri — Bagian 2", pillar: "Edukasi", summary: "", hook: "", caption: "", cta: "", tags: [], channels: ["instagram_feed"],
+      format: "feed", status: "draft", scheduledAt: null, publishedAt: null, publishedUrl: "", trendSourceUrl: "", trendCheckedAt: null,
+      notes: "", sourceIdeaId: null, seriesId: series, seriesIndex: 2,
+    });
+    const [header, oldRow, newRow] = fake.tabs.get("Contents")!;
+    expect(header.slice(-2)).toEqual(["seriesId", "seriesIndex"]);
+    expect(header.indexOf("Catatan admin")).toBe(legacyHeaders.length - 1);
+    expect(newRow[header.indexOf("seriesIndex")]).toBe(2);
+    expect(newRow[header.indexOf("seriesId")]).toBe(series);
+    expect(oldRow[header.indexOf("Catatan admin")]).toBe("jangan dihapus");
+    expect(await make().contents.get(part.id)).toEqual(part);
+    // Skema data tidak dinaikkan: kolom nullable baru tidak butuh migrasi.
+    expect((await make().settings.get()).schemaVersion).toBe(2);
+  });
+
+  it("fixture.json lama tanpa kunci seri terbaca null dan tetap schemaVersion 2", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "atala-seri-lama-"));
+    try {
+      const id = "55555555-5555-4555-8555-555555555555";
+      const row = {
+        id, title: "Konten lama", pillar: "Tips", summary: "", hook: "", caption: "", cta: "", tags: [], channels: ["instagram_feed"],
+        format: "feed", status: "draft", scheduledAt: null, publishedAt: null, publishedUrl: "", trendSourceUrl: "",
+        trendCheckedAt: null, notes: "", designId: null, sourceIdeaId: null, createdAt: "2026-09-01T00:00:00.000Z",
+        updatedAt: "2026-09-01T00:00:00.000Z", archivedAt: null,
+      };
+      await writeFile(
+        path.join(dir, "fixture.json"),
+        JSON.stringify({ schemaVersion: "2", contents: [row], ideas: [], designs: [], assets: [], integrationLogs: [], settings: { schemaVersion: "2" } }),
+      );
+      const store = createFixtureStore({ dir });
+      expect(await store.contents.get(id)).toEqual({ ...row, seriesId: null, seriesIndex: null });
+      expect((await store.settings.get()).schemaVersion).toBe(2);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
     }
   });
 

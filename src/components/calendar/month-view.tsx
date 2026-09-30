@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatLongDate, formatShortWeekday, fromLocal, type LocalDate } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
-import { CalendarCard } from "./calendar-card";
+import { CalendarCard, type CardSeries } from "./calendar-card";
 import type { CalendarDay } from "./calendar-utils";
 
 const MAX_VISIBLE = 3;
@@ -24,9 +24,11 @@ interface MonthViewProps {
   addHref: (date: LocalDate) => string;
   /** Pesan halus di dalam grid saat bulan tidak berisi konten. */
   notice?: ReactNode;
+  /** Penanda bagian seri per konten (F2-07). */
+  seriesFor?: (c: Content) => CardSeries | null;
 }
 
-export function MonthView({ cells, isOverdue, onOpenContent, onOpenDay, addHref, notice }: MonthViewProps) {
+export function MonthView({ cells, isOverdue, onOpenContent, onOpenDay, addHref, notice, seriesFor }: MonthViewProps) {
   const weekdays = cells.slice(0, 7).map((c) => formatShortWeekday(c.date));
 
   return (
@@ -100,6 +102,7 @@ export function MonthView({ cells, isOverdue, onOpenContent, onOpenDay, addHref,
                         overdue={isOverdue(c)}
                         onOpen={onOpenContent}
                         dimmed={!cell.inMonth}
+                        series={seriesFor?.(c) ?? null}
                       />
                     </li>
                   ))}

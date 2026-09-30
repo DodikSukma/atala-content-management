@@ -6,6 +6,7 @@ import { CalendarPlus, FilterX, ListTodo } from "lucide-react";
 import { ButtonLink } from "@/components/ui";
 import type { ContentFormat } from "@/lib/constants";
 import { groupByLocalDate, isOverdue as isOverdueAt } from "@/lib/planning";
+import { buildSeriesIndex, seriesPosition } from "@/lib/series";
 import type { LocalDate } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
 import {
@@ -70,6 +71,15 @@ export function CalendarBoard({
     [view, date, filtered, today],
   );
   const grouped = useMemo(() => groupByLocalDate(filtered), [filtered]);
+  // Seri dihitung dari semua konten (bukan hasil filter) agar N = jumlah bagian aktif sebenarnya.
+  const seriesIndex = useMemo(() => buildSeriesIndex(contents), [contents]);
+  const seriesFor = useCallback(
+    (c: Content) => {
+      const pos = seriesPosition(c, seriesIndex);
+      return pos ? { index: pos.index, total: pos.total } : null;
+    },
+    [seriesIndex],
+  );
 
   // Saran slot dihitung dari semua konten (bukan hasil filter) agar sesuai target sebenarnya.
   const slotHints = useMemo(() => {
@@ -128,11 +138,19 @@ export function CalendarBoard({
           onOpenDay={openDay}
           addHref={addHref}
           notice={notice}
+          seriesFor={seriesFor}
         />
       ) : (
         <>
           {notice ? <div className="rounded-card border border-line bg-brand-soft/40 px-4 py-3">{notice}</div> : null}
-          <WeekView columns={days} slotHints={slotHints} isOverdue={isOverdue} onOpenContent={openContent} addHref={addHref} />
+          <WeekView
+            columns={days}
+            slotHints={slotHints}
+            isOverdue={isOverdue}
+            onOpenContent={openContent}
+            addHref={addHref}
+            seriesFor={seriesFor}
+          />
         </>
       )}
 
@@ -157,6 +175,8 @@ export function CalendarBoard({
         onClose={close}
         backLabel={fromDay ? longDateLabel(fromDay) : null}
         onBack={fromDay ? () => openDay(fromDay) : undefined}
+        series={selected ? seriesPosition(selected, seriesIndex) : null}
+        onOpenContent={openContent}
       />
       <DayDrawer
         date={dayDate}
@@ -166,6 +186,7 @@ export function CalendarBoard({
         onClose={close}
         onOpenContent={openContent}
         addHref={addHref}
+        seriesFor={seriesFor}
       />
     </div>
   );

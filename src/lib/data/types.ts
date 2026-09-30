@@ -2,6 +2,7 @@ import type {
   Asset,
   Content,
   ContentInputParsed,
+  ContentSeriesFields,
   Design,
   Idea,
   IdeaInputParsed,
@@ -19,12 +20,18 @@ export interface ContentRepository {
   /** Termasuk arsip bila includeArchived=true. Urutan: updatedAt terbaru. */
   list(opts?: { includeArchived?: boolean }): Promise<Content[]>;
   get(id: string): Promise<Content | null>;
-  create(input: ContentInputParsed): Promise<Content>;
+  /** `seriesId`/`seriesIndex` opsional (bawaan null) — hanya diisi alur "Buat seri" (F2-07). */
+  create(input: ContentInputParsed & Partial<ContentSeriesFields>): Promise<Content>;
   /**
    * Perbarui konten. Jika `expectedUpdatedAt` diberikan dan berbeda dengan
-   * data tersimpan, lempar `ConflictError`.
+   * data tersimpan, lempar `ConflictError`. Kunci yang tidak dikirim (undefined) tidak diubah,
+   * sehingga formulir konten tidak pernah menghapus keanggotaan seri.
    */
-  update(id: string, input: Partial<ContentInputParsed> & { designId?: string | null }, expectedUpdatedAt?: string): Promise<Content>;
+  update(
+    id: string,
+    input: Partial<ContentInputParsed> & { designId?: string | null } & Partial<ContentSeriesFields>,
+    expectedUpdatedAt?: string,
+  ): Promise<Content>;
   archive(id: string): Promise<Content>;
   restore(id: string): Promise<Content>;
 }

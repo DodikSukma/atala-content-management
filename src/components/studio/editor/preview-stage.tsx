@@ -26,6 +26,9 @@ export function PreviewStage({
   showSafeArea,
   onToggleSafeArea,
   className,
+  pageId,
+  pageIndex,
+  pageCount,
 }: {
   template: TemplateDefinition;
   text: Record<string, string>;
@@ -33,6 +36,10 @@ export function PreviewStage({
   showSafeArea: boolean;
   onToggleSafeArea: (next: boolean) => void;
   className?: string;
+  /** ID halaman aktif: berpindah halaman memutar transisi masuk yang sama seperti ganti template. */
+  pageId?: string;
+  pageIndex?: number;
+  pageCount?: number;
 }) {
   const reduce = useReducedMotion();
   const areaRef = useRef<HTMLDivElement>(null);
@@ -68,11 +75,16 @@ export function PreviewStage({
     <div className={cn("flex min-h-0 min-w-0 flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card", className)}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2">
         <p className="min-w-0 truncate text-xs font-semibold text-ink-soft">
+          {pageCount && pageCount > 1 && pageIndex !== undefined ? (
+            <span className="text-ink">
+              Halaman {pageIndex + 1}/{pageCount} ·{" "}
+            </span>
+          ) : null}
           {template.name}
           <span className="font-normal text-ink-muted"> · {FORMAT_LABELS[template.format]} px</span>
         </p>
         <div className="flex items-center gap-1">
-          <label className="mr-1 inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-ink-soft hover:bg-slate-100">
+          <label className="mr-1 inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-ink-soft hover:bg-surface-2">
             <input
               type="checkbox"
               checked={showSafeArea}
@@ -111,14 +123,28 @@ export function PreviewStage({
       >
         <div className="flex min-h-full min-w-full items-center justify-center p-5" style={{ width: "max-content", minWidth: "100%" }}>
           <motion.div
-            key={template.id}
+            key={`${pageId ?? ""}:${template.id}`}
             initial={reduce ? false : { opacity: 0, scale: 0.97, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={reduce ? { duration: 0 } : { duration: 0.32, ease: EASE_OUT_SOFT }}
             className="shrink-0 overflow-hidden rounded-[4px] bg-white shadow-[0_18px_48px_-18px_rgba(15,23,42,0.35),0_2px_6px_rgba(15,23,42,0.08)] ring-1 ring-black/5"
           >
-            <div data-testid="studio-canvas" data-format={template.format} data-template-id={template.id}>
-              <ScaledTemplate template={template} text={text} photos={photos} scale={scale} showSafeArea={showSafeArea} />
+            <div
+              data-testid="studio-canvas"
+              data-format={template.format}
+              data-template-id={template.id}
+              data-page-id={pageId}
+              data-page-number={pageIndex !== undefined ? pageIndex + 1 : undefined}
+            >
+              <ScaledTemplate
+                template={template}
+                text={text}
+                photos={photos}
+                scale={scale}
+                showSafeArea={showSafeArea}
+                pageIndex={pageIndex}
+                pageCount={pageCount}
+              />
             </div>
           </motion.div>
         </div>

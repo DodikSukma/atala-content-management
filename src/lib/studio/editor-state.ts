@@ -1,6 +1,6 @@
 import type { ContentFormat } from "@/lib/constants";
 import type { TemplateDefinition, TemplatePhoto, TemplateRenderProps } from "@/lib/studio/types";
-import type { Crop } from "@/lib/validation/schemas";
+import { DESIGN_MAX_PAGES, type Crop } from "@/lib/validation/schemas";
 
 /**
  * State editor Studio (AT-20, Design v2 F2-06). Reducer murni tanpa React/DOM
@@ -15,6 +15,12 @@ import type { Crop } from "@/lib/validation/schemas";
  * `photoId` pada slot adalah kunci foto di pustaka editor: ID aset tersimpan
  * (UUID) atau kunci sementara "local-..." untuk pratinjau lokal yang belum
  * tersimpan. Pemetaan ke `assetId` dilakukan saat menyimpan.
+ *
+ * Carousel (F2-07): addPage/duplicatePage/removePage/movePage/retemplatePages/
+ * replacePages mengubah daftar halaman lewat `commit` yang sama, jadi semuanya
+ * masuk riwayat undo/redo dan indikator "belum disimpan". ID halaman baru =
+ * `nextPageId` (p<maks+1>), tidak pernah indeks, sehingga tetap stabil saat
+ * halaman diurutkan ulang. Maksimal MAX_PAGES (10) halaman.
  */
 
 export const HISTORY_LIMIT = 50;
@@ -25,6 +31,9 @@ export const DEFAULT_CROP: Crop = { x: 50, y: 50, zoom: 1 };
 
 /** ID halaman pertama (desain baru dan hasil migrasi v1 -> v2). */
 export const FIRST_PAGE_ID = "p1";
+
+/** Batas halaman carousel (Instagram maksimal 10 slide); sama dengan DESIGN_MAX_PAGES. */
+export const MAX_PAGES = DESIGN_MAX_PAGES;
 
 export type TemplateShape = Pick<TemplateDefinition, "id" | "format" | "slots" | "fields">;
 
@@ -88,8 +97,39 @@ export type EditorAction =
   | { type: "swapSlots"; a: string; b: string }
   | { type: "removePhoto"; photoId: string }
   | { type: "renamePhoto"; from: string; to: string }
+  /** Sisipkan halaman baru (bawaan: setelah halaman aktif) lalu pilih halaman itu. */
+  | { type: "addPage"; template: TemplateShape; text: Record<string, string>; index?: number }
+  /** Salin halaman (bawaan: halaman aktif) tepat setelahnya dengan ID baru, lalu pilih salinannya. */
+  | { type: "duplicatePage"; index?: number }
+  /** Hapus halaman; halaman terakhir yang tersisa tidak dapat dihapus. */
+  | { type: "removePage"; index: number }
+  /** Pindahkan halaman `from` ke posisi `to`; halaman aktif tetap halaman yang sama. */
+  | { type: "movePage"; from: number; to: number }
+  /**
+   * Ganti template beberapa halaman sekaligus dalam satu langkah undo (salin gaya ke semua
+   * halaman, ganti format). Halaman yang tidak disebut di `changes` tidak berubah; pemanggil
+   * bertanggung jawab agar semua halaman berakhir dengan format `format`.
+   */
+  | { type: "retemplatePages"; format: ContentFormat; changes: Record<string, PageRetemplate> }
+  /**
+   * Ganti seluruh daftar halaman dalam satu langkah undo (mis. set carousel MT-09 membuat
+   * sampul, isi, dan penutup sekaligus). Ditolak bila kosong, > MAX_PAGES, atau ID ganda.
+   */
+  | { type: "replacePages"; format: ContentFormat; pages: EditorPage[]; selectIndex?: number }
   | { type: "undo" }
   | { type: "redo" };
+
+/** Perubahan template satu halaman (dipakai applyTemplate, salin gaya, ganti format). */
+export interface PageRetemplate {
+  template: TemplateShape;
+  /** Teks awal template baru (resolveText tanpa nilai tersimpan). */
+  defaults: Record<string, string>;
+  /**
+   * Teks awal template lama halaman itu. Bila diberikan, bidang yang nilainya masih sama
+   * dengan teks awal lama (belum diedit) atau kosong memakai teks awal template baru.
+   */
+  previousDefaults?: Record<string, string>;
+}
 
 // ---------- helper murni ----------
 
@@ -137,6 +177,59 @@ export function createSnapshot(
   savedSlots: { slotId: string; photoId: string | null; crop?: Partial<Crop> }[] = [],
 ): EditorSnapshot {
   return { format: template.format, pages: [createPage(template, text, savedSlots)] };
+}
+
+/**
+ * ID halaman baru: "p<angka terbesar + 1>" dari ID berpola p<n>; tidak pernah indeks halaman
+ * sehingga tetap stabil saat halaman diurutkan ulang. Selalu unik dan <= 40 karakter.
+ */
+export function nextPageId(pages: Pick<EditorPage, "id">[]): string {
+  const used = new Set(pages.map((p) => p.id));
+  let max = 0;
+  for (const { id } of pages) {
+    const match = /^p(\d{1,9})$/.exec(id);
+    if (match) max = Math.max(max, Number(match[1]));
+  }
+  let n = max + 1;
+  while (used.has(`p${n}`)) n += 1;
+  return `p${n}`;
+}
+
+/** Salinan halaman dengan ID baru (teks dan slot disalin, bukan dibagi referensinya). */
+export function clonePage(page: EditorPage, id: string): EditorPage {
+  return {
+    id,
+    templateId: page.templateId,
+    textFields: { ...page.textFields },
+    slots: page.slots.map((s) => ({ ...s, crop: { ...s.crop } })),
+  };
+}
+
+/**
+ * Ganti template satu halaman: teks dengan kunci sama dipertahankan (kecuali teks awal template
+ * lama yang belum diedit), foto dibawa per slotId atau per indeks. Template sama -> halaman sama.
+ */
+export function retemplatePage(page: EditorPage, change: PageRetemplate): EditorPage {
+  const { template, defaults, previousDefaults } = change;
+  if (template.id === page.templateId) return page;
+  const textFields: Record<string, string> = {};
+  for (const f of template.fields) {
+    const kept = page.textFields[f.key];
+    const edited =
+      kept !== undefined && (!previousDefaults || (kept.trim() !== "" && kept !== previousDefaults[f.key]));
+    textFields[f.key] = edited ? kept : (defaults[f.key] ?? f.defaultValue);
+  }
+  return { ...page, templateId: template.id, textFields, slots: slotsForTemplate(template, page.slots) };
+}
+
+/** Pindahkan satu elemen array (murni). */
+export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
+  const out = list.slice();
+  if (from < 0 || from >= out.length) return out;
+  const target = Math.min(out.length - 1, Math.max(0, to));
+  const [item] = out.splice(from, 1);
+  out.splice(target, 0, item);
+  return out;
 }
 
 /** Halaman yang sedang disunting. */
@@ -262,8 +355,14 @@ function mapAllSlots(snapshot: EditorSnapshot, patch: (slot: EditorSlot) => Edit
   return changed ? { ...snapshot, pages } : snapshot;
 }
 
-/** Pindah ke snapshot riwayat; indeks halaman aktif dijaga tetap dalam rentang. */
+/**
+ * Pindah ke snapshot riwayat. Halaman aktif tetap halaman yang sama (berdasarkan ID) bila masih
+ * ada — mis. mengurungkan "pindah halaman" tidak membuat pilihan melompat; selain itu indeks
+ * dijaga tetap dalam rentang.
+ */
 function travel(state: EditorState, present: EditorSnapshot, past: EditorSnapshot[], future: EditorSnapshot[]): EditorState {
+  const activeId = currentPage(state).id;
+  const sameIndex = present.pages.findIndex((p) => p.id === activeId);
   return {
     ...state,
     present,
@@ -271,8 +370,15 @@ function travel(state: EditorState, present: EditorSnapshot, past: EditorSnapsho
     future,
     dirty: !snapshotsEqual(present, state.saved),
     lastEdit: null,
-    currentPageIndex: clampPageIndex(present, state.currentPageIndex),
+    currentPageIndex: sameIndex >= 0 ? sameIndex : clampPageIndex(present, state.currentPageIndex),
   };
+}
+
+/** Commit daftar halaman baru lalu pilih `select` (indeks halaman aktif bukan bagian riwayat). */
+function commitPages(state: EditorState, next: EditorSnapshot, select: number): EditorState {
+  const committed = commit(state, next);
+  if (committed === state) return state;
+  return { ...committed, currentPageIndex: clampPageIndex(next, select) };
 }
 
 export function editorReducer(state: EditorState, action: EditorAction): EditorState {
@@ -291,25 +397,70 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     }
 
     case "applyTemplate": {
-      // Format dokumen mengikuti template. Untuk desain multi-halaman, pemanggil (F2-07)
-      // bertanggung jawab agar semua halaman memakai template berformat sama.
+      // Format dokumen mengikuti template. Untuk desain multi-halaman, ganti format memakai
+      // retemplatePages (semua halaman sekaligus); galeri hanya menawarkan template format aktif.
       const { template, defaults, previousDefaults } = action;
       const page = currentPage(state);
       if (template.id === page.templateId) return state;
-      const textFields: Record<string, string> = {};
-      for (const f of template.fields) {
-        const kept = page.textFields[f.key];
-        const edited =
-          kept !== undefined && (!previousDefaults || (kept.trim() !== "" && kept !== previousDefaults[f.key]));
-        textFields[f.key] = edited ? kept : (defaults[f.key] ?? f.defaultValue);
-      }
-      const next = updateCurrentPage(state, (p) => ({
-        ...p,
-        templateId: template.id,
-        textFields,
-        slots: slotsForTemplate(template, p.slots),
-      }));
+      const next = updateCurrentPage(state, (p) => retemplatePage(p, { template, defaults, previousDefaults }));
       return commit(state, { ...next, format: template.format });
+    }
+
+    case "addPage": {
+      const { pages, format } = state.present;
+      if (pages.length >= MAX_PAGES || action.template.format !== format) return state;
+      const after = clampPageIndex(state.present, state.currentPageIndex) + 1;
+      const at = Math.min(pages.length, Math.max(0, action.index ?? after));
+      const page = createPage(action.template, action.text, [], nextPageId(pages));
+      return commitPages(state, { format, pages: [...pages.slice(0, at), page, ...pages.slice(at)] }, at);
+    }
+
+    case "duplicatePage": {
+      const { pages, format } = state.present;
+      const index = action.index ?? clampPageIndex(state.present, state.currentPageIndex);
+      if (pages.length >= MAX_PAGES || !Number.isInteger(index) || index < 0 || index >= pages.length) return state;
+      const copy = clonePage(pages[index], nextPageId(pages));
+      return commitPages(state, { format, pages: [...pages.slice(0, index + 1), copy, ...pages.slice(index + 1)] }, index + 1);
+    }
+
+    case "removePage": {
+      const { pages, format } = state.present;
+      const { index } = action;
+      if (pages.length <= 1 || !Number.isInteger(index) || index < 0 || index >= pages.length) return state;
+      const current = clampPageIndex(state.present, state.currentPageIndex);
+      const select = index < current ? current - 1 : index === current ? Math.min(current, pages.length - 2) : current;
+      return commitPages(state, { format, pages: pages.filter((_, i) => i !== index) }, select);
+    }
+
+    case "movePage": {
+      const { pages, format } = state.present;
+      const { from } = action;
+      if (!Number.isInteger(from) || from < 0 || from >= pages.length || !Number.isInteger(action.to)) return state;
+      const to = Math.min(pages.length - 1, Math.max(0, action.to));
+      if (to === from) return state;
+      const activeId = currentPage(state).id;
+      const moved = moveItem(pages, from, to);
+      return commitPages(state, { format, pages: moved }, moved.findIndex((p) => p.id === activeId));
+    }
+
+    case "retemplatePages": {
+      let changed = false;
+      const pages = state.present.pages.map((page) => {
+        const change = action.changes[page.id];
+        if (!change) return page;
+        const next = retemplatePage(page, change);
+        if (next !== page) changed = true;
+        return next;
+      });
+      if (!changed && action.format === state.present.format) return state;
+      return commit(state, { format: action.format, pages });
+    }
+
+    case "replacePages": {
+      const { pages } = action;
+      if (pages.length === 0 || pages.length > MAX_PAGES) return state;
+      if (new Set(pages.map((p) => p.id)).size !== pages.length) return state;
+      return commitPages(state, { format: action.format, pages }, action.selectIndex ?? 0);
     }
 
     case "resetTemplate": {
@@ -459,15 +610,39 @@ export function renderText(template: TemplateShape, textFields: Record<string, s
   return out;
 }
 
-/** Props render satu halaman (pratinjau, ekspor PNG, dan kelak thumbnail halaman). */
+/** Posisi halaman dalam carousel (0-based) dan jumlah halaman. */
+export interface PagePosition {
+  index: number;
+  count: number;
+}
+
+export type PageRenderProps = Pick<TemplateRenderProps, "text" | "photos" | "pageIndex" | "pageCount">;
+
+/**
+ * Props render satu halaman (pratinjau, thumbnail strip halaman, ekspor PNG/ZIP). Dengan
+ * `position`, template menerima `pageIndex`/`pageCount` untuk nomor halaman ("2/7").
+ */
 export function pageRenderProps(
   template: TemplateShape,
   page: EditorPage,
   photoSrc: (photoId: string | null) => string | null,
-): Pick<TemplateRenderProps, "text" | "photos"> {
+  position?: PagePosition,
+): PageRenderProps {
   const photos: Record<string, TemplatePhoto> = {};
   for (const slot of page.slots) photos[slot.slotId] = { src: photoSrc(slot.photoId), crop: slot.crop };
-  return { text: renderText(template, page.textFields), photos };
+  const props: PageRenderProps = { text: renderText(template, page.textFields), photos };
+  if (position) {
+    props.pageIndex = position.index;
+    props.pageCount = position.count;
+  }
+  return props;
+}
+
+/** "2/7" dari props template; null bila posisi halaman tidak ada atau desain hanya satu halaman. */
+export function pageNumberLabel(props: Pick<TemplateRenderProps, "pageIndex" | "pageCount">): string | null {
+  const { pageIndex, pageCount } = props;
+  if (typeof pageIndex !== "number" || typeof pageCount !== "number" || pageCount < 2) return null;
+  return `${pageIndex + 1}/${pageCount}`;
 }
 
 // ---------- pengelompokan galeri ----------

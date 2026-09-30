@@ -1,6 +1,13 @@
 import type { ContentFormat } from "@/lib/constants";
-import { createPage, type EditorPage, type EditorSnapshot } from "@/lib/studio/editor-state";
-import { defaultTemplateFor, getTemplate, resolveText } from "@/lib/studio/registry";
+import {
+  createPage,
+  templateGroup,
+  type EditorAction,
+  type EditorPage,
+  type EditorSnapshot,
+  type PageRetemplate,
+} from "@/lib/studio/editor-state";
+import { defaultTemplateFor, getTemplate, resolveText, templatesFor } from "@/lib/studio/registry";
 import type { TemplateDefinition } from "@/lib/studio/types";
 import type { DesignPage } from "@/lib/validation/schemas";
 
@@ -81,4 +88,79 @@ export function designPagesFromDocument(
       crop: s.crop,
     })),
   }));
+}
+
+// ---------- carousel (F2-07) ----------
+
+/**
+ * Template padanan pada format lain: kategori dan kelompok galeri sama (mis. infografis
+ * statistik Feed -> infografis statistik Story), lalu kategori sama, lalu kelompok sama,
+ * selain itu template bawaan format tersebut.
+ */
+export function compatibleTemplate(templateId: string, format: ContentFormat): TemplateDefinition {
+  const current = getTemplate(templateId);
+  if (current?.format === format) return current;
+  const list = templatesFor(format);
+  if (current) {
+    const group = templateGroup(current);
+    const match =
+      list.find((t) => t.category === current.category && templateGroup(t) === group) ??
+      list.find((t) => t.category === current.category) ??
+      list.find((t) => templateGroup(t) === group);
+    if (match) return match;
+  }
+  return defaultTemplateFor(format);
+}
+
+function retemplateTo(from: TemplateDefinition, to: TemplateDefinition, content: ContentTextSource): PageRetemplate {
+  return {
+    template: to,
+    defaults: resolveText(to, undefined, content),
+    // Teks bawaan template lama yang belum diedit tidak terbawa ke template baru.
+    previousDefaults: resolveText(from, undefined, content),
+  };
+}
+
+/**
+ * Ganti format seluruh desain: setiap halaman dipetakan ke template padanan format baru
+ * (compatibleTemplate), teks dengan kunci sama dipertahankan. Satu langkah undo.
+ */
+export function planFormatChange(snapshot: EditorSnapshot, format: ContentFormat, content: ContentTextSource): EditorAction | null {
+  if (format === snapshot.format) return null;
+  const changes: Record<string, PageRetemplate> = {};
+  for (const page of snapshot.pages) {
+    const from = templateForPage(page, snapshot.format);
+    changes[page.id] = retemplateTo(from, compatibleTemplate(from.id, format), content);
+  }
+  return { type: "retemplatePages", format, changes };
+}
+
+/**
+ * "Salin gaya ke semua halaman": semua halaman lain memakai template halaman `sourceIndex`,
+ * teks masing-masing halaman dengan kunci sama tetap. null bila semua sudah sama.
+ */
+export function planCopyStyle(snapshot: EditorSnapshot, sourceIndex: number, content: ContentTextSource): EditorAction | null {
+  const source = snapshot.pages[sourceIndex];
+  if (!source) return null;
+  const to = templateForPage(source, snapshot.format);
+  const changes: Record<string, PageRetemplate> = {};
+  for (const page of snapshot.pages) {
+    if (page.id === source.id || page.templateId === to.id) continue;
+    changes[page.id] = retemplateTo(templateForPage(page, snapshot.format), to, content);
+  }
+  return Object.keys(changes).length ? { type: "retemplatePages", format: snapshot.format, changes } : null;
+}
+
+/** Jumlah halaman yang templatenya berbeda dari halaman `sourceIndex`. */
+export function pagesWithOtherStyle(snapshot: EditorSnapshot, sourceIndex: number): number {
+  const source = snapshot.pages[sourceIndex];
+  if (!source) return 0;
+  return snapshot.pages.filter((p) => p.templateId !== source.templateId).length;
+}
+
+/** Aksi "Tambah halaman" dengan template pilihan; teks awal diisi dari bidang konten. */
+export function planAddPage(templateId: string, content: ContentTextSource, index?: number): EditorAction | null {
+  const template = getTemplate(templateId);
+  if (!template) return null;
+  return { type: "addPage", template, text: resolveText(template, undefined, content), index };
 }

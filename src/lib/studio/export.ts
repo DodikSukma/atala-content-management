@@ -35,9 +35,18 @@ export function slugify(value: string, max = 48): string {
   return slug || "konten";
 }
 
-/** Nama unduhan: "atala-<slug judul>-<templateId>.png" (ID template sudah memuat format). */
-export function exportFileName(title: string, templateId: string): string {
-  return `atala-${slugify(title)}-${slugify(templateId, 60)}.png`;
+/** Nomor urut berlapis nol: 1 dari 10 -> "01"; minimal dua digit. */
+export function pageNumber(index: number, count: number): string {
+  return String(index + 1).padStart(Math.max(2, String(count).length), "0");
+}
+
+/**
+ * Nama unduhan: "atala-<slug judul>-<templateId>.png" (ID template sudah memuat format).
+ * Desain multi-halaman menambah nomor halaman: "atala-<slug>-hal-02-<templateId>.png".
+ */
+export function exportFileName(title: string, templateId: string, page?: { index: number; count: number }): string {
+  const part = page && page.count > 1 ? `-hal-${pageNumber(page.index, page.count)}` : "";
+  return `atala-${slugify(title)}${part}-${slugify(templateId, 60)}.png`;
 }
 
 function waitForImage(img: HTMLImageElement, timeoutMs: number): Promise<void> {
@@ -80,7 +89,11 @@ function measureDataUrl(dataUrl: string): Promise<{ width: number; height: numbe
 }
 
 async function triggerDownload(dataUrl: string, fileName: string): Promise<void> {
-  const blob = await (await fetch(dataUrl)).blob();
+  downloadBlob(await (await fetch(dataUrl)).blob(), fileName);
+}
+
+/** Unduh Blob lewat tautan sementara (PNG tunggal atau ZIP carousel). */
+export function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

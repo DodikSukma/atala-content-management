@@ -5,7 +5,7 @@ import { CalendarPlus, Plus } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { formatDayMonth, formatShortWeekday, type LocalDate } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
-import { CalendarCard } from "./calendar-card";
+import { CalendarCard, type CardSeries } from "./calendar-card";
 import type { CalendarDay } from "./calendar-utils";
 import { longDateLabel } from "./month-view";
 
@@ -15,9 +15,10 @@ interface WeekViewProps {
   isOverdue: (c: Content) => boolean;
   onOpenContent: (id: string) => void;
   addHref: (date: LocalDate) => string;
+  seriesFor?: (c: Content) => CardSeries | null;
 }
 
-export function WeekView({ columns, slotHints, isOverdue, onOpenContent, addHref }: WeekViewProps) {
+export function WeekView({ columns, slotHints, isOverdue, onOpenContent, addHref, seriesFor }: WeekViewProps) {
   return (
     <ol className="grid grid-cols-7 overflow-hidden rounded-card border border-line bg-surface shadow-card" aria-label="Hari dalam pekan">
       {columns.map((day, index) => {
@@ -56,7 +57,13 @@ export function WeekView({ columns, slotHints, isOverdue, onOpenContent, addHref
                 <ul className="flex min-w-0 flex-col gap-2">
                   {day.items.map((c) => (
                     <li key={c.id} className="min-w-0">
-                      <CalendarCard content={c} variant="full" overdue={isOverdue(c)} onOpen={onOpenContent} />
+                      <CalendarCard
+                        content={c}
+                        variant="full"
+                        overdue={isOverdue(c)}
+                        onOpen={onOpenContent}
+                        series={seriesFor?.(c) ?? null}
+                      />
                     </li>
                   ))}
                 </ul>

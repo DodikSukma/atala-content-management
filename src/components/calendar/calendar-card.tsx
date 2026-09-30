@@ -4,8 +4,16 @@ import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { FORMAT_SHORT_LABELS, STATUS_LABELS, STATUS_TONES, type ContentStatus } from "@/lib/constants";
 import { planDateOf } from "@/lib/planning";
+import { seriesSpokenLabel } from "@/lib/series";
 import { formatTime } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
+import { SeriesMarker } from "@/components/content/series-marker";
+
+/** Posisi bagian seri untuk penanda "Bagian i/N" (F2-07). */
+export interface CardSeries {
+  index: number;
+  total: number;
+}
 
 type Tone = (typeof STATUS_TONES)[ContentStatus];
 
@@ -29,8 +37,9 @@ export function cardTimeLabel(c: Content): string {
   return when ? formatTime(when) : "--.--";
 }
 
-function accessibleLabel(c: Content, overdue: boolean): string {
+function accessibleLabel(c: Content, overdue: boolean, series: CardSeries | null): string {
   const parts = [c.title, `${cardTimeLabel(c)} WITA`, `status ${STATUS_LABELS[c.status]}`, FORMAT_SHORT_LABELS[c.format]];
+  if (series) parts.push(seriesSpokenLabel(series.index, series.total));
   if (overdue) parts.push("terlambat");
   return `${parts.join(", ")}. Buka detail`;
 }
@@ -42,12 +51,14 @@ interface CalendarCardProps {
   variant: "compact" | "full";
   onOpen: (id: string) => void;
   dimmed?: boolean;
+  /** Bagian seri (null = bukan seri). */
+  series?: CardSeries | null;
 }
 
-export function CalendarCard({ content, overdue, variant, onOpen, dimmed }: CalendarCardProps) {
+export function CalendarCard({ content, overdue, variant, onOpen, dimmed, series = null }: CalendarCardProps) {
   const tone = toneOf(content.status);
   const time = cardTimeLabel(content);
-  const label = accessibleLabel(content, overdue);
+  const label = accessibleLabel(content, overdue, series);
 
   const base = cn(
     "block w-full min-w-0 rounded-lg border border-line border-l-[3px] bg-surface text-left",
@@ -64,7 +75,8 @@ export function CalendarCard({ content, overdue, variant, onOpen, dimmed }: Cale
         <span className="flex min-w-0 items-center gap-1 text-[11px] leading-4">
           {overdue ? <AlertTriangle aria-hidden size={12} className="shrink-0 text-danger" /> : null}
           <span className="shrink-0 tabular-nums text-ink-muted">{time}</span>
-          <span className="min-w-0 truncate font-medium text-ink">{content.title}</span>
+          <span className="min-w-0 flex-1 truncate font-medium text-ink">{content.title}</span>
+          {series ? <SeriesMarker variant="compact" index={series.index} total={series.total} className="text-[10px]" /> : null}
         </span>
         <span className="mt-0.5 hidden min-w-0 items-center gap-1 text-[11px] leading-4 lg:flex">
           <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone.dot)} />
@@ -83,6 +95,7 @@ export function CalendarCard({ content, overdue, variant, onOpen, dimmed }: Cale
         <span className="tabular-nums font-medium text-ink-soft">{time}</span>
         <span>· {FORMAT_SHORT_LABELS[content.format]}</span>
       </span>
+      {series ? <SeriesMarker variant="inline" index={series.index} total={series.total} className="mt-1 text-xs leading-4" /> : null}
       <span className="mt-1 block text-sm font-semibold leading-5 text-ink [overflow-wrap:anywhere] line-clamp-3">
         {content.title}
       </span>

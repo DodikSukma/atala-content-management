@@ -46,6 +46,7 @@ import {
   type ContentFilters,
 } from "./filters";
 import { IconLink } from "./icon-link";
+import { SeriesMarker } from "./series-marker";
 
 const STATUS_OPTIONS: ContentStatus[] = [...STATUS_FLOW, "cancelled"];
 const SEARCH_DEBOUNCE_MS = 350;
@@ -58,10 +59,12 @@ export interface ContentListViewProps {
   scopeTotal: number;
   /** Waktu server saat halaman dirender, agar status "terlambat" konsisten SSR/klien. */
   nowIso: string;
+  /** Penanda "Bagian i/N" per ID konten (F2-07). */
+  series?: Record<string, { index: number; total: number }>;
 }
 
 /** Filter URL + tabel konten + aksi arsip/pulihkan. */
-export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: ContentListViewProps) {
+export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso, series = {} }: ContentListViewProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [navigating, startNavigation] = useTransition();
@@ -388,6 +391,7 @@ export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: 
                 <ContentRow
                   key={c.id}
                   content={c}
+                  series={series[c.id] ?? null}
                   index={index}
                   now={now}
                   busy={busyId === c.id && mutating}
@@ -452,6 +456,7 @@ function ScheduleCell({ content, overdue }: { content: Content; overdue: boolean
 
 function ContentRow({
   content: c,
+  series,
   index,
   now,
   busy,
@@ -460,6 +465,7 @@ function ContentRow({
   onRestore,
 }: {
   content: Content;
+  series: { index: number; total: number } | null;
   index: number;
   now: Date;
   busy: boolean;
@@ -487,6 +493,7 @@ function ContentRow({
           >
             {c.title}
           </Link>
+          {series ? <SeriesMarker index={series.index} total={series.total} className="mt-px" /> : null}
           {archived ? (
             <Badge tone="slate" icon={Archive} className="mt-px">
               Arsip

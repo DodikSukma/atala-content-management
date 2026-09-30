@@ -7,7 +7,7 @@ import { endOfWeek, isWithin, startOfWeek, toLocalDate, type LocalDate } from "@
  */
 
 /** Konten aktif = belum diarsipkan dan tidak dibatalkan. */
-export function isActive(c: Content): boolean {
+export function isActive(c: Pick<Content, "archivedAt" | "status">): boolean {
   return !c.archivedAt && c.status !== "cancelled";
 }
 
@@ -71,8 +71,11 @@ export function upcomingContents(contents: Content[], limit = 3, now: Date = new
     .slice(0, limit);
 }
 
+/** Bidang minimum untuk deteksi bentrok (klien dapat mengirim daftar ringkas). */
+export type ScheduleSlotItem = Pick<Content, "id" | "title" | "status" | "scheduledAt" | "archivedAt">;
+
 /** Konten yang berbagi tanggal+jam yang sama (peringatan bentrok, tidak diblokir). */
-export function findScheduleConflicts(contents: Content[], scheduledAt: string | null, excludeId?: string): Content[] {
+export function findScheduleConflicts<T extends ScheduleSlotItem>(contents: T[], scheduledAt: string | null, excludeId?: string): T[] {
   if (!scheduledAt) return [];
   const key = new Date(scheduledAt).getTime();
   return contents.filter(

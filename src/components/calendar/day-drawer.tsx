@@ -4,7 +4,7 @@ import { CalendarPlus } from "lucide-react";
 import { Button, ButtonLink, Drawer } from "@/components/ui";
 import type { LocalDate } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
-import { CalendarCard } from "./calendar-card";
+import { CalendarCard, type CardSeries } from "./calendar-card";
 import { longDateLabel } from "./month-view";
 
 interface DayDrawerProps {
@@ -15,9 +15,10 @@ interface DayDrawerProps {
   onClose: () => void;
   onOpenContent: (id: string) => void;
   addHref: (date: LocalDate) => string;
+  seriesFor?: (c: Content) => CardSeries | null;
 }
 
-export function DayDrawer({ date, items, open, isOverdue, onClose, onOpenContent, addHref }: DayDrawerProps) {
+export function DayDrawer({ date, items, open, isOverdue, onClose, onOpenContent, addHref, seriesFor }: DayDrawerProps) {
   return (
     <Drawer
       open={open && date !== null}
@@ -42,7 +43,13 @@ export function DayDrawer({ date, items, open, isOverdue, onClose, onOpenContent
         <ul className="space-y-2">
           {items.map((c) => (
             <li key={c.id}>
-              <CalendarCard content={c} variant="full" overdue={isOverdue(c)} onOpen={onOpenContent} />
+              <CalendarCard
+                content={c}
+                variant="full"
+                overdue={isOverdue(c)}
+                onOpen={onOpenContent}
+                series={seriesFor?.(c) ?? null}
+              />
             </li>
           ))}
         </ul>

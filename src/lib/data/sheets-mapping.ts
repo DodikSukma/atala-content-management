@@ -49,10 +49,13 @@ export const TABLES: Record<TableName, TableSpec> = {
       "createdAt",
       "updatedAt",
       "archivedAt",
+      // F2-07: kolom baru ditambahkan di akhir header; sel kosong / kolom belum ada = null.
+      "seriesId",
+      "seriesIndex",
     ],
     json: { tags: [], channels: [] },
-    numbers: [],
-    nullable: ["scheduledAt", "publishedAt", "trendCheckedAt", "designId", "sourceIdeaId", "archivedAt"],
+    numbers: ["seriesIndex"],
+    nullable: ["scheduledAt", "publishedAt", "trendCheckedAt", "designId", "sourceIdeaId", "archivedAt", "seriesId", "seriesIndex"],
   },
   ideas: {
     tab: "Ideas",
@@ -138,15 +141,16 @@ export function deserializeCell(spec: TableSpec, column: string, value: unknown)
       return INVALID_JSON;
     }
   }
-  if (spec.nullable.includes(column)) {
-    return isEmptyCell(value) ? null : String(value).trim();
-  }
+  const nullable = spec.nullable.includes(column);
+  if (nullable && isEmptyCell(value)) return null;
   if (spec.numbers.includes(column)) {
     if (typeof value === "number") return value;
     if (isEmptyCell(value)) return undefined;
     const n = Number(String(value).trim());
-    return Number.isFinite(n) ? n : undefined;
+    // Angka rusak pada kolom nullable dibiarkan sebagai teks agar skema menolak baris itu (bukan diam-diam null).
+    return Number.isFinite(n) ? n : nullable ? String(value).trim() : undefined;
   }
+  if (nullable) return String(value).trim();
   if (value === undefined || value === null) return "";
   return typeof value === "string" ? value : String(value);
 }

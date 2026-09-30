@@ -8,6 +8,7 @@ import {
   CircleCheck,
   CircleDot,
   Download,
+  FileArchive,
   Images,
   Keyboard,
   LayoutTemplate,
@@ -20,6 +21,7 @@ import {
   Type,
   Undo2,
   Redo2,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { saveDesignAction } from "@/app/(app)/studio/actions";
@@ -46,15 +48,35 @@ import {
   studioStepStatus,
   STUDIO_STEPS,
   textWarnings,
+  type EditorPage,
+  type EditorSnapshot,
   type StudioStepId,
 } from "@/lib/studio/editor-state";
-import { designPagesFromDocument, editorDocumentFromDesign, templateForPage } from "@/lib/studio/design-document";
-import { EXPORT_STAGE_LABELS, ExportError, exportFileName, exportNodeToPng, type ExportStage } from "@/lib/studio/export";
-import { getTemplate, resolveText, templatesFor } from "@/lib/studio/registry";
+import {
+  designPagesFromDocument,
+  editorDocumentFromDesign,
+  pagesWithOtherStyle,
+  planAddPage,
+  planCopyStyle,
+  planFormatChange,
+  templateForPage,
+} from "@/lib/studio/design-document";
+import {
+  EXPORT_STAGE_LABELS,
+  ExportError,
+  downloadBlob,
+  exportFileName,
+  exportNodeToPng,
+  type ExportStage,
+} from "@/lib/studio/export";
+import { ExportCancelledError, ZIP_MIME, carouselZipFileName, exportCarouselZip } from "@/lib/studio/export-zip";
+import { getTemplate, resolveText } from "@/lib/studio/registry";
 import { formatDateTime } from "@/lib/time";
 import type { DesignInput, DesignPage } from "@/lib/validation/schemas";
+import { AddPageDialog } from "./add-page-dialog";
 import { CropPanel } from "./crop-panel";
 import { PhotoPanel } from "./photo-panel";
+import { PageStrip } from "./page-strip";
 import { PreviewStage } from "./preview-stage";
 import { TemplateErrorBoundary } from "./scaled-template";
 import { StudioSteps } from "./studio-steps";
@@ -77,7 +99,7 @@ export interface StudioContent {
   cta: string;
 }
 
-/** Desain tersimpan (Design v2): semua halaman, walau editor saat ini menyunting halaman aktif saja. */
+/** Desain tersimpan (Design v2): semua halaman carousel; editor menyunting satu halaman aktif pada satu waktu. */
 export interface StudioDesign {
   format: ContentFormat;
   pages: DesignPage[];
@@ -131,6 +153,16 @@ type ExportState =
   | { status: "done"; fileName: string }
   | { status: "error"; message: string };
 
+type ZipState =
+  | { status: "idle" }
+  | { status: "running"; current: number; total: number }
+  | { status: "done"; fileName: string; count: number }
+  | { status: "cancelled" }
+  | { status: "error"; message: string };
+
+/** Halaman yang sedang dirender di node ekspor ukuran asli (snapshot dibekukan saat ekspor dimulai). */
+type Offscreen = { snapshot: EditorSnapshot; index: number };
+
 function SectionTitle({ icon: Icon, children, id }: { icon: LucideIcon; children: string; id?: string }) {
   return (
     <h2 id={id} className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.06em] text-ink-soft">
@@ -162,8 +194,10 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
   const [savedAt, setSavedAt] = useState<string | null>(design?.updatedAt ?? null);
 
   const present = state.present;
-  // Editor menyunting satu halaman (halaman aktif); strip halaman carousel menyusul di F2-07.
+  // Editor menyunting satu halaman (halaman aktif); strip halaman memilih/mengurutkan halaman (F2-07).
   const page = currentPage(state);
+  const pageIndex = Math.max(0, present.pages.indexOf(page));
+  const pageCount = present.pages.length;
   const template = templateForPage(page, present.format);
   const missingSavedTemplate = loaded.missingTemplatePageIds.includes(page.id);
 
@@ -185,6 +219,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     () => pageRenderProps(template, page, photoSrc),
     [template, page, photoSrc],
   );
+  const templateFor = useCallback((p: EditorPage) => templateForPage(p, present.format), [present.format]);
   const warnings = useMemo(() => textWarnings(template, page.textFields), [template, page.textFields]);
 
   const addFiles = useCallback(
@@ -224,12 +259,54 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     [contentText, template],
   );
 
+  // Ganti format: setiap halaman dipetakan ke template padanan format baru (teks per kunci tetap).
+  const [pendingFormat, setPendingFormat] = useState<ContentFormat | null>(null);
+  const doChangeFormat = (format: ContentFormat) => {
+    const action = planFormatChange(state.present, format, contentText);
+    if (action) dispatch(action);
+    setPendingFormat(null);
+  };
   const changeFormat = (format: ContentFormat) => {
     if (format === present.format) return;
-    const candidates = templatesFor(format);
-    if (!candidates.length) return;
-    applyTemplate(candidates[0].id);
+    if (present.pages.length > 1) setPendingFormat(format);
+    else doChangeFormat(format);
   };
+
+  // ---------- halaman carousel (F2-07) ----------
+  const [addAt, setAddAt] = useState<number | null>(null);
+  const [addDialogKey, setAddDialogKey] = useState(0);
+  const [removeAt, setRemoveAt] = useState<number | null>(null);
+  const [confirmCopyStyle, setConfirmCopyStyle] = useState(false);
+  const otherStyleCount = pagesWithOtherStyle(present, pageIndex);
+
+  const openAddPage = useCallback((index: number) => {
+    setAddDialogKey((k) => k + 1);
+    setAddAt(index);
+  }, []);
+  const doAddPage = (templateId: string) => {
+    const action = planAddPage(templateId, contentText, addAt ?? undefined);
+    setAddAt(null);
+    if (!action) return;
+    dispatch(action);
+  };
+  const doRemovePage = () => {
+    if (removeAt !== null) dispatch({ type: "removePage", index: removeAt });
+    setRemoveAt(null);
+  };
+  const doCopyStyle = () => {
+    const action = planCopyStyle(state.present, pageIndex, contentText);
+    setConfirmCopyStyle(false);
+    if (!action) return;
+    dispatch(action);
+    toast({
+      tone: "success",
+      title: "Gaya disalin ke semua halaman",
+      description: `Semua halaman memakai ${template.name}. Teks tiap halaman tetap; urungkan dengan Ctrl+Z.`,
+    });
+  };
+  const selectPage = useCallback((index: number) => dispatch({ type: "selectPage", index }), []);
+  const movePage = useCallback((from: number, to: number) => dispatch({ type: "movePage", from, to }), []);
+  const duplicatePage = useCallback((index: number) => dispatch({ type: "duplicatePage", index }), []);
 
   const [confirmReset, setConfirmReset] = useState(false);
   const doResetTemplate = () => {
@@ -328,23 +405,36 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     window.location.reload();
   };
 
-  // ---------- ekspor PNG ----------
+  // ---------- ekspor PNG (halaman aktif) dan ZIP (semua halaman) ----------
   const [exportState, setExportState] = useState<ExportState>({ status: "idle" });
-  const [renderOffscreen, setRenderOffscreen] = useState(false);
+  const [zipState, setZipState] = useState<ZipState>({ status: "idle" });
+  const [offscreen, setOffscreen] = useState<Offscreen | null>(null);
   const [exported, setExported] = useState(false);
   const offscreenRef = useRef<HTMLDivElement>(null);
-  const { width: exportWidth, height: exportHeight } = FORMAT_DIMENSIONS[template.format];
+  const zipAbort = useRef<AbortController | null>(null);
+  const { width: exportWidth, height: exportHeight } = FORMAT_DIMENSIONS[present.format];
+  const exportBusy = exportState.status === "running" || zipState.status === "running";
+
+  /** Render halaman `index` dari `snapshot` di node ukuran asli lalu kembalikan akar templatenya. */
+  const mountOffscreen = (snapshot: EditorSnapshot, index: number): HTMLElement => {
+    flushSync(() => setOffscreen({ snapshot, index }));
+    const host = offscreenRef.current;
+    const node = host?.querySelector<HTMLElement>("[data-template-root]");
+    if (!host || !node || host.dataset.pageId !== snapshot.pages[index]?.id) {
+      throw new ExportError("Template gagal dirender sehingga PNG tidak dibuat. Pilih template lain atau muat ulang.");
+    }
+    return node;
+  };
 
   const runExport = async () => {
-    if (exportState.status === "running") return;
-    flushSync(() => {
-      setExportState({ status: "running", stage: "preparing" });
-      setRenderOffscreen(true);
-    });
+    if (exportBusy) return;
+    const snapshot = state.present;
+    const index = pageIndex;
+    flushSync(() => setExportState({ status: "running", stage: "preparing" }));
     try {
-      const node = offscreenRef.current?.querySelector<HTMLElement>("[data-template-root]");
-      if (!node) throw new ExportError("Template gagal dirender sehingga PNG tidak dibuat. Pilih template lain atau muat ulang.");
-      const fileName = exportFileName(content.title, template.id);
+      const node = mountOffscreen(snapshot, index);
+      const exportTemplate = templateForPage(snapshot.pages[index], snapshot.format);
+      const fileName = exportFileName(content.title, exportTemplate.id, { index, count: snapshot.pages.length });
       await exportNodeToPng(node, {
         width: exportWidth,
         height: exportHeight,
@@ -361,9 +451,67 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
         message: error instanceof ExportError ? error.message : "PNG gagal dibuat. Coba lagi; bila berulang, muat ulang halaman.",
       });
     } finally {
-      setRenderOffscreen(false);
+      setOffscreen(null);
     }
   };
+
+  const runZipExport = async () => {
+    if (exportBusy) return;
+    const snapshot = state.present;
+    const count = snapshot.pages.length;
+    const controller = new AbortController();
+    zipAbort.current = controller;
+    setExportState({ status: "idle" });
+    setZipState({ status: "running", current: 1, total: count });
+    try {
+      const result = await exportCarouselZip({
+        count,
+        width: exportWidth,
+        height: exportHeight,
+        signal: controller.signal,
+        onProgress: (current, total) => setZipState({ status: "running", current, total }),
+        renderPage: (index) =>
+          exportNodeToPng(mountOffscreen(snapshot, index), {
+            width: exportWidth,
+            height: exportHeight,
+            fileName: "",
+            download: false,
+          }),
+      });
+      const fileName = carouselZipFileName(content.title);
+      downloadBlob(new Blob([result.bytes], { type: ZIP_MIME }), fileName);
+      setZipState({ status: "done", fileName, count });
+      setExported(true);
+      toast({
+        tone: "success",
+        title: "ZIP carousel diunduh",
+        description: `${fileName} · ${count} PNG ${exportWidth} × ${exportHeight} px`,
+      });
+    } catch (error) {
+      if (error instanceof ExportCancelledError) {
+        setZipState({ status: "cancelled" });
+        toast({ tone: "info", title: "Ekspor ZIP dibatalkan", description: "Tidak ada berkas yang diunduh." });
+      } else {
+        console.error("[studio] ekspor ZIP gagal", error);
+        setZipState({
+          status: "error",
+          message: error instanceof ExportError ? error.message : "ZIP gagal dibuat. Coba lagi; bila berulang, muat ulang halaman.",
+        });
+      }
+    } finally {
+      zipAbort.current = null;
+      setOffscreen(null);
+    }
+  };
+  const cancelZipExport = () => zipAbort.current?.abort();
+
+  // Node ekspor: halaman dari snapshot yang dibekukan, dengan nomor halaman untuk template.
+  const offscreenPage = offscreen ? (offscreen.snapshot.pages[offscreen.index] ?? null) : null;
+  const offscreenTemplate = offscreen && offscreenPage ? templateForPage(offscreenPage, offscreen.snapshot.format) : null;
+  const offscreenProps =
+    offscreen && offscreenPage && offscreenTemplate
+      ? pageRenderProps(offscreenTemplate, offscreenPage, photoSrc, { index: offscreen.index, count: offscreen.snapshot.pages.length })
+      : null;
 
   // ---------- papan ketik, penjaga keluar ----------
   const saveRef = useRef(save);
@@ -470,7 +618,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
   const templateSection = (
     <section aria-labelledby="studio-sec-template-title" id="studio-sec-template" tabIndex={-1} className="flex flex-col gap-2.5 focus:outline-none">
       <SectionTitle icon={LayoutTemplate} id="studio-sec-template-title">
-        Template
+        {pageCount > 1 ? `Template halaman ${pageIndex + 1}` : "Template"}
       </SectionTitle>
       <TemplateGallery format={present.format} selectedId={page.templateId} onSelect={applyTemplate} />
     </section>
@@ -553,7 +701,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
         </InlineAlert>
       ) : null}
       {!missingSavedTemplate && !emptySlots.length && !warnings.length ? (
-        <p className="flex items-center gap-2 rounded-control border border-emerald-200 bg-success-soft px-3 py-2 text-xs font-medium text-emerald-800">
+        <p className="flex items-center gap-2 rounded-control border border-tone-emerald-ring bg-success-soft px-3 py-2 text-xs font-medium text-tone-emerald-fg">
           <CircleCheck size={14} aria-hidden="true" />
           Semua slot berfoto dan teks sesuai batas.
         </p>
@@ -561,6 +709,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     </div>
   );
 
+  // Tinggi pratinjau menyisakan ruang untuk strip halaman di bawahnya (terlihat tanpa menggulir).
   const preview = (
     <PreviewStage
       template={template}
@@ -568,13 +717,33 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
       photos={renderPhotos}
       showSafeArea={showSafeArea}
       onToggleSafeArea={setShowSafeArea}
+      pageId={page.id}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
       className={
         isDesktop
-          ? "h-[calc(100dvh-15rem)] min-h-[440px]"
+          ? "h-[calc(100dvh-24.5rem)] min-h-[340px]"
           : isTablet
-            ? "h-[min(68dvh,720px)] min-h-[380px]"
-            : "h-[60dvh] min-h-[320px]"
+            ? "h-[clamp(320px,calc(100dvh-26rem),680px)]"
+            : "h-[50dvh] min-h-[300px]"
       }
+    />
+  );
+
+  const pageStrip = (
+    <PageStrip
+      pages={present.pages}
+      format={present.format}
+      currentIndex={pageIndex}
+      templateFor={templateFor}
+      photoSrc={photoSrc}
+      onSelect={selectPage}
+      onMove={movePage}
+      onAdd={openAddPage}
+      onDuplicate={duplicatePage}
+      onRemove={setRemoveAt}
+      onCopyStyle={() => setConfirmCopyStyle(true)}
+      otherStyleCount={otherStyleCount}
     />
   );
 
@@ -648,10 +817,34 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
               data-testid="export-png"
               icon={Download}
               loading={exportState.status === "running"}
+              disabled={zipState.status === "running"}
+              title={pageCount > 1 ? `Unduh halaman ${pageIndex + 1} sebagai PNG` : undefined}
               onClick={() => void runExport()}
             >
-              {exportState.status === "running" ? EXPORT_STAGE_LABELS[exportState.stage] : "Unduh PNG"}
+              {exportState.status === "running"
+                ? EXPORT_STAGE_LABELS[exportState.stage]
+                : pageCount > 1
+                  ? `Unduh PNG hal. ${pageIndex + 1}`
+                  : "Unduh PNG"}
             </Button>
+            {pageCount > 1 || zipState.status === "running" ? (
+              <Button
+                data-testid="export-zip"
+                variant={zipState.status === "running" ? "secondary" : "primary"}
+                icon={FileArchive}
+                loading={zipState.status === "running"}
+                disabled={exportState.status === "running"}
+                title={`Unduh ${pageCount} halaman sebagai ZIP (01.png … ${String(pageCount).padStart(2, "0")}.png)`}
+                onClick={() => void runZipExport()}
+              >
+                {zipState.status === "running" ? `Halaman ${zipState.current} dari ${zipState.total}` : "Unduh ZIP"}
+              </Button>
+            ) : null}
+            {zipState.status === "running" ? (
+              <Button variant="ghost" icon={X} onClick={cancelZipExport} data-testid="export-zip-cancel">
+                Batalkan
+              </Button>
+            ) : null}
           </div>
         </div>
 
@@ -719,9 +912,47 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
           </InlineAlert>
         ) : null}
         {exportState.status === "done" ? (
-          <p className="flex items-center gap-2 text-xs font-medium text-emerald-800" role="status">
+          <p className="flex items-center gap-2 text-xs font-medium text-tone-emerald-fg" role="status">
             <CircleCheck size={14} aria-hidden="true" />
             {exportState.fileName} diunduh ({exportWidth} × {exportHeight} px).
+          </p>
+        ) : null}
+        {zipState.status === "running" ? (
+          <div role="status" className="flex flex-col gap-1.5 rounded-control border border-line bg-surface px-3 py-2">
+            <p className="flex items-center justify-between gap-3 text-xs font-medium text-ink-soft">
+              <span className="flex items-center gap-2">
+                <FileArchive size={14} aria-hidden="true" className="text-brand" />
+                Membuat ZIP: halaman {zipState.current} dari {zipState.total}
+              </span>
+              <span className="tabular-nums text-ink-muted">
+                {Math.round(((zipState.current - 1) / zipState.total) * 100)}%
+              </span>
+            </p>
+            <div className="h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+              <div
+                className="h-full rounded-full bg-brand transition-[width] duration-200 ease-out"
+                style={{ width: `${Math.max(4, ((zipState.current - 1) / zipState.total) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
+        {zipState.status === "error" ? (
+          <InlineAlert
+            tone="error"
+            title="ZIP gagal dibuat"
+            action={
+              <Button size="sm" variant="secondary" icon={RefreshCw} onClick={() => void runZipExport()}>
+                Coba lagi
+              </Button>
+            }
+          >
+            {zipState.message} Tidak ada berkas yang diunduh.
+          </InlineAlert>
+        ) : null}
+        {zipState.status === "done" ? (
+          <p className="flex items-center gap-2 text-xs font-medium text-tone-emerald-fg" role="status" data-testid="export-zip-done">
+            <CircleCheck size={14} aria-hidden="true" />
+            {zipState.fileName} diunduh ({zipState.count} PNG, masing-masing {exportWidth} × {exportHeight} px).
           </p>
         ) : null}
       </header>
@@ -737,7 +968,10 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
             {templateSection}
             {photoSection}
           </aside>
-          <div className="sticky top-20 flex min-w-0 flex-col gap-3">{preview}</div>
+          <div className="sticky top-20 flex min-w-0 flex-col gap-3">
+            {preview}
+            {pageStrip}
+          </div>
           <aside
             aria-label="Teks, crop, dan peringatan"
             className="sticky top-20 flex max-h-[calc(100dvh-6rem)] min-w-0 flex-col gap-6 overflow-y-auto rounded-card border border-line bg-surface p-4 shadow-card [scrollbar-width:thin]"
@@ -751,8 +985,9 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
         </div>
       ) : (
         <div className={cn("grid items-start gap-4", isTablet && "grid-cols-[minmax(0,1fr)_minmax(300px,352px)]")}>
-          <div className={cn("flex min-w-0 flex-col gap-3", isTablet && "sticky top-20")}>
+          <div className="flex min-w-0 flex-col gap-3">
             {preview}
+            {pageStrip}
             {warningList}
           </div>
           <div className="flex min-w-0 flex-col rounded-card border border-line bg-surface shadow-card">
@@ -784,11 +1019,12 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
       )}
 
       {/* ---------- node ekspor ukuran asli (di luar layar, tanpa area aman) ---------- */}
-      {renderOffscreen ? (
+      {offscreenPage && offscreenTemplate && offscreenProps ? (
         <div
           ref={offscreenRef}
           aria-hidden="true"
           inert
+          data-page-id={offscreenPage.id}
           style={{
             position: "fixed",
             top: 0,
@@ -799,11 +1035,58 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
             zIndex: -1,
           }}
         >
-          <TemplateErrorBoundary resetKey={template.id}>
-            <template.Component text={renderedText} photos={renderPhotos} showSafeArea={false} />
+          <TemplateErrorBoundary key={offscreenPage.id} resetKey={offscreenTemplate.id}>
+            <offscreenTemplate.Component
+              text={offscreenProps.text}
+              photos={offscreenProps.photos}
+              pageIndex={offscreenProps.pageIndex}
+              pageCount={offscreenProps.pageCount}
+              showSafeArea={false}
+            />
           </TemplateErrorBoundary>
         </div>
       ) : null}
+
+      <AddPageDialog
+        key={addDialogKey}
+        open={addAt !== null}
+        format={present.format}
+        initialTemplateId={page.templateId}
+        position={addAt ?? pageCount}
+        count={pageCount}
+        onCancel={() => setAddAt(null)}
+        onConfirm={doAddPage}
+      />
+      <ConfirmDialog
+        open={removeAt !== null}
+        onCancel={() => setRemoveAt(null)}
+        onConfirm={doRemovePage}
+        title={removeAt !== null ? `Hapus halaman ${removeAt + 1}?` : "Hapus halaman?"}
+        description={
+          removeAt !== null && present.pages[removeAt]
+            ? `Halaman ${removeAt + 1} (${templateFor(present.pages[removeAt]).name}) beserta teks dan crop-nya dihapus dari carousel. Foto tetap ada di pustaka. Anda masih bisa mengurungkan dengan Ctrl+Z sebelum menyimpan.`
+            : ""
+        }
+        confirmLabel="Hapus halaman"
+      />
+      <ConfirmDialog
+        open={confirmCopyStyle}
+        onCancel={() => setConfirmCopyStyle(false)}
+        onConfirm={doCopyStyle}
+        title="Salin gaya ke semua halaman?"
+        description={`${otherStyleCount} halaman lain akan memakai template ${template.name} seperti halaman ${pageIndex + 1}. Teks tiap halaman dengan bidang yang sama dipertahankan dan foto tetap per slot. Anda masih bisa mengurungkan dengan Ctrl+Z.`}
+        confirmLabel="Salin gaya"
+        tone="primary"
+      />
+      <ConfirmDialog
+        open={pendingFormat !== null}
+        onCancel={() => setPendingFormat(null)}
+        onConfirm={() => pendingFormat && doChangeFormat(pendingFormat)}
+        title={pendingFormat ? `Ganti semua halaman ke ${FORMAT_SHORT_LABELS[pendingFormat]}?` : "Ganti format?"}
+        description={`Ke-${pageCount} halaman memakai template padanan format baru (kategori sama bila tersedia). Teks dengan bidang yang sama dipertahankan. Anda masih bisa mengurungkan dengan Ctrl+Z.`}
+        confirmLabel="Ganti format"
+        tone="primary"
+      />
 
       <ConfirmDialog
         open={confirmReset}
