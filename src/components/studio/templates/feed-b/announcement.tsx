@@ -311,6 +311,8 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const announcementTemplate: TemplateDefinition = {
   id: "feed-announcement",
+  tags: ["pengumuman", "acara", "jadwal"],
+  pack: "dasar",
   name: "Announcement",
   description: "Pengumuman acara + tanggal + tempat",
   category: "pengumuman",

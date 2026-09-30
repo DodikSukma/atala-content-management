@@ -295,6 +295,8 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const programHighlightTemplate: TemplateDefinition = {
   id: "feed-program-highlight",
+  tags: ["program", "kelas", "manfaat"],
+  pack: "dasar",
   name: "Program Highlight",
   description: "Foto program + tiga manfaat + jadwal",
   category: "program",

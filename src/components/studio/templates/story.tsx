@@ -962,6 +962,8 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
 export const STORY_TEMPLATES: TemplateDefinition[] = [
   {
     id: "story-frame",
+    tags: ["story", "foto", "bingkai"],
+    pack: "story",
     name: "Story Frame",
     description: "Foto penuh dalam bingkai merek dengan pita keterangan",
     category: "frame",
@@ -972,6 +974,8 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "story-quick-tip",
+    tags: ["story", "tips", "cepat"],
+    pack: "story",
     name: "Quick Tip",
     description: "Judul tips, tiga poin singkat, dan foto",
     category: "tips",
@@ -982,6 +986,8 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "story-question",
+    tags: ["story", "pertanyaan", "stiker"],
+    pack: "story",
     name: "Question",
     description: "Kartu pertanyaan besar dengan ruang stiker pertanyaan",
     category: "pertanyaan",
@@ -992,6 +998,8 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
   },
   {
     id: "story-announcement",
+    tags: ["story", "pengumuman", "acara"],
+    pack: "story",
     name: "Announcement",
     description: "Nama acara, tanggal, waktu, lokasi, dan ajakan daftar",
     category: "pengumuman",

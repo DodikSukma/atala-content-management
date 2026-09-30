@@ -290,6 +290,8 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
 
 export const FEED_INFO_TIMELINE: TemplateDefinition = {
   id: "feed-info-timeline",
+  tags: ["infografis", "linimasa", "tahapan"],
+  pack: "infografis",
   name: "Infografis Linimasa",
   description: "Garis waktu 4–5 tonggak dengan ikon",
   category: "langkah",

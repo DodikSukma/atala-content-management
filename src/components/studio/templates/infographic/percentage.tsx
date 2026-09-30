@@ -265,6 +265,8 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const FEED_INFO_PERCENTAGE: TemplateDefinition = {
   id: "feed-info-percentage",
+  tags: ["infografis", "persentase", "data"],
+  pack: "infografis",
   name: "Infografis Persentase",
   description: "Cincin persentase besar + penjelasan singkat",
   category: "statistik",

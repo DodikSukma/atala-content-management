@@ -170,6 +170,8 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const statisticTemplate: TemplateDefinition = {
   id: "feed-statistic",
+  tags: ["statistik", "angka", "data"],
+  pack: "dasar",
   name: "Statistic",
   description: "Angka besar + konteks + sumber",
   category: "statistik",

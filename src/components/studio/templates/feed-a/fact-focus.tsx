@@ -183,6 +183,8 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const FACT_FOCUS: TemplateDefinition = {
   id: "feed-fact-focus",
+  tags: ["fakta", "foto", "edukasi"],
+  pack: "dasar",
   name: "Fact Focus",
   description: "Fakta Utama: satu fakta kuat di atas foto penuh",
   category: "fakta",

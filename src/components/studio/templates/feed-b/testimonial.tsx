@@ -248,6 +248,8 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const testimonialTemplate: TemplateDefinition = {
   id: "feed-testimonial",
+  tags: ["testimoni", "siswa", "orang tua"],
+  pack: "dasar",
   name: "Testimonial",
   description: "Kutipan siswa/orang tua + foto bulat",
   category: "testimoni",

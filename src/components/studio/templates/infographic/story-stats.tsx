@@ -252,6 +252,8 @@ function StoryStats({ text, showSafeArea }: TemplateRenderProps) {
 
 export const STORY_INFO_STATS: TemplateDefinition = {
   id: "story-info-stats",
+  tags: ["story", "infografis", "angka"],
+  pack: "infografis",
   name: "Infografis Angka Story",
   description: "Tiga angka besar bertumpuk + ajakan",
   category: "statistik",

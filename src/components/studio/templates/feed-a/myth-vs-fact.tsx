@@ -277,6 +277,8 @@ function MythVsFact({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const MYTH_VS_FACT: TemplateDefinition = {
   id: "feed-myth-vs-fact",
+  tags: ["mitos", "fakta", "perbandingan"],
+  pack: "dasar",
   name: "Myth vs Fact",
   description: "Mitos vs Fakta: dua kolom perbandingan dengan foto bulat",
   category: "mitos",

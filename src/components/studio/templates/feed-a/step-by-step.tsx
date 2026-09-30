@@ -223,6 +223,8 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const STEP_BY_STEP: TemplateDefinition = {
   id: "feed-step-by-step",
+  tags: ["langkah", "tutorial", "cara"],
+  pack: "dasar",
   name: "Step by Step",
   description: "Langkah Bertahap: 3–4 langkah bernomor dengan kolom foto",
   category: "langkah",

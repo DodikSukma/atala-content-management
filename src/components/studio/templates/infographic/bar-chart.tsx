@@ -294,6 +294,8 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
 
 export const FEED_INFO_BAR_CHART: TemplateDefinition = {
   id: "feed-info-bar-chart",
+  tags: ["infografis", "grafik", "data"],
+  pack: "infografis",
   name: "Infografis Grafik Batang",
   description: "Grafik batang otomatis dari data Label: angka",
   category: "statistik",

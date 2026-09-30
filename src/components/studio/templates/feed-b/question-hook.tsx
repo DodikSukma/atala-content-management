@@ -236,6 +236,8 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const questionHookTemplate: TemplateDefinition = {
   id: "feed-question-hook",
+  tags: ["pertanyaan", "hook", "diskusi"],
+  pack: "dasar",
   name: "Question Hook",
   description: "Pertanyaan pemantik + bocoran jawaban",
   category: "pertanyaan",

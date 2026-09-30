@@ -323,6 +323,8 @@ function Comparison({ text, showSafeArea }: TemplateRenderProps) {
 
 export const FEED_INFO_COMPARISON: TemplateDefinition = {
   id: "feed-info-comparison",
+  tags: ["infografis", "perbandingan", "data"],
+  pack: "infografis",
   name: "Infografis Perbandingan",
   description: "Dua kolom angka + butir dengan lencana VS",
   category: "mitos",

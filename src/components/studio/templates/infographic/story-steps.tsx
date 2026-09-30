@@ -277,6 +277,8 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
 
 export const STORY_INFO_STEPS: TemplateDefinition = {
   id: "story-info-steps",
+  tags: ["story", "infografis", "langkah"],
+  pack: "infografis",
   name: "Infografis Alur Story",
   description: "Alur 4–5 langkah bernomor dengan panah",
   category: "langkah",

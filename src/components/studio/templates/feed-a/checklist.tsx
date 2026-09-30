@@ -227,6 +227,8 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const CHECKLIST: TemplateDefinition = {
   id: "feed-checklist",
+  tags: ["checklist", "daftar", "persiapan"],
+  pack: "dasar",
   name: "Checklist",
   description: "Daftar Periksa: 3–5 butir bertanda centang di atas pita foto",
   category: "checklist",

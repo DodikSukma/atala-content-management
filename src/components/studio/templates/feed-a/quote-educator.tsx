@@ -205,6 +205,8 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
 
 export const QUOTE_EDUCATOR: TemplateDefinition = {
   id: "feed-quote-educator",
+  tags: ["kutipan", "pengajar", "inspirasi"],
+  pack: "dasar",
   name: "Quote Educator",
   description: "Kutipan Pengajar: kutipan, nama, dan potret pengajar",
   category: "kutipan",
