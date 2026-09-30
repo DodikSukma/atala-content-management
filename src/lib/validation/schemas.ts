@@ -209,6 +209,25 @@ export type Asset = z.infer<typeof assetSchema>;
 
 // ---------- Settings ----------
 
+// ---------- IntegrationLog (F2-02) ----------
+
+export const INTEGRATION_LOG_OUTCOMES = ["success", "failure"] as const;
+
+/** Satu panggilan provider/uji koneksi. Pesan sudah disensor dari rahasia sebelum disimpan. */
+export const integrationLogSchema = z.object({
+  id: idSchema,
+  providerId: z.string().min(1).max(60),
+  capability: z.string().min(1).max(40),
+  operation: z.string().min(1).max(60),
+  outcome: z.enum(INTEGRATION_LOG_OUTCOMES),
+  code: z.union([z.string().max(40), z.null()]),
+  durationMs: z.number().int().min(0),
+  message: z.string().max(300),
+  simulated: z.boolean(),
+  createdAt: isoDateTime,
+});
+export type IntegrationLog = z.infer<typeof integrationLogSchema>;
+
 export const settingsSchema = z.object({
   weeklyTarget: z.union([z.literal(3), z.literal(7)]),
   pillars: z.array(trimmed(60).min(1)).min(1).max(20),

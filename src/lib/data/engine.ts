@@ -11,6 +11,7 @@ import {
   type DataStore,
   type DesignRepository,
   type IdeaRepository,
+  type IntegrationLogRepository,
   type SettingsRepository,
 } from "@/lib/data/types";
 import {
@@ -18,11 +19,13 @@ import {
   contentSchema,
   designSchema,
   ideaSchema,
+  integrationLogSchema,
   settingsInputSchema,
   type Asset,
   type Content,
   type Design,
   type Idea,
+  type IntegrationLog,
   type Settings,
 } from "@/lib/validation/schemas";
 
@@ -351,5 +354,30 @@ export function createRepositoryStore(backend: TableBackend): DataStore {
     },
   };
 
-  return { kind: backend.kind, contents, ideas, designs, assets, settings };
+  // ---------- IntegrationLogs (F2-02) ----------
+
+  const integrationLogs: IntegrationLogRepository = {
+    async append(entry) {
+      const record: IntegrationLog = integrationLogSchema.parse({
+        ...entry,
+        id: randomUUID(),
+        message: entry.message.slice(0, 300),
+        createdAt: nextTimestamp(),
+      });
+      return backend.withLock(async () => {
+        await backend.insertRow("integrationLogs", record);
+        return record;
+      });
+    },
+    async list(opts) {
+      const limit = Math.min(500, Math.max(1, Math.floor(opts?.limit ?? 50)));
+      const rows = await readTable("integrationLogs", integrationLogSchema);
+      return rows
+        .filter((row) => !opts?.providerId || row.providerId === opts.providerId)
+        .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+        .slice(0, limit);
+    },
+  };
+
+  return { kind: backend.kind, contents, ideas, designs, assets, settings, integrationLogs };
 }

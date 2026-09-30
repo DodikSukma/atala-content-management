@@ -153,7 +153,7 @@ export interface ImageAssist {
 
   **Selesai jika:** build/typecheck/lint/test lulus di baseline, PRD dan CLAUDE.md menyatakan cakupan fase 2, dan keputusan tercatat. Bergantung pada: gerbang rilis pertama atau keputusan pemilik.
 
-- [ ] **F2-02 — Lapisan integrasi (slot API).**
+- [x] **F2-02 — Lapisan integrasi (slot API).**
   - Bangun struktur `src/lib/integrations/` seperti pada [Arsitektur slot API](#arsitektur-slot-api-dibangun-di-f2-02): interface keenam kapabilitas, `env.ts` (zod, server-only), `registry.ts`, `log.ts`, `cron.ts`, dan provider mock untuk semua kapabilitas.
   - Halaman **Pengaturan › Integrasi** menampilkan per provider:
     - kapabilitas;

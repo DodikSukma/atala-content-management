@@ -35,6 +35,7 @@ function unavailableStore(): DataStore {
     designs: { getByContentId: fail, get: fail, save: fail },
     assets: { get: fail, list: fail, create: fail },
     settings: { get: fail, update: fail },
+    integrationLogs: { append: fail, list: fail },
   };
 }
 

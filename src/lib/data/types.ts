@@ -5,6 +5,7 @@ import type {
   Design,
   Idea,
   IdeaInputParsed,
+  IntegrationLog,
   Settings,
 } from "@/lib/validation/schemas";
 
@@ -58,6 +59,13 @@ export interface SettingsRepository {
   update(input: Pick<Settings, "weeklyTarget" | "pillars">): Promise<Settings>;
 }
 
+/** Log panggilan integrasi (F2-02). Append-only; tidak pernah diubah atau dihapus lewat aplikasi. */
+export interface IntegrationLogRepository {
+  append(entry: Omit<IntegrationLog, "id" | "createdAt">): Promise<IntegrationLog>;
+  /** Terbaru dulu. `limit` bawaan 50, maksimal 500. */
+  list(opts?: { limit?: number; providerId?: string }): Promise<IntegrationLog[]>;
+}
+
 export interface DataStore {
   /** "sheets" = Google Sheets produksi; "fixture" = file JSON lokal (.data/), hanya dev. */
   kind: "sheets" | "fixture";
@@ -66,6 +74,7 @@ export interface DataStore {
   designs: DesignRepository;
   assets: AssetMetaRepository;
   settings: SettingsRepository;
+  integrationLogs: IntegrationLogRepository;
 }
 
 export class ConflictError extends Error {

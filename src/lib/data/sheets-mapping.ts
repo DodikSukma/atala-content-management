@@ -8,7 +8,7 @@ import type { Settings } from "@/lib/validation/schemas";
  * Array/objek disimpan sebagai string JSON; null disimpan sebagai sel kosong.
  */
 
-export type TableName = "contents" | "ideas" | "designs" | "assets";
+export type TableName = "contents" | "ideas" | "designs" | "assets" | "integrationLogs";
 
 export interface TableSpec {
   /** Nama tab di spreadsheet. */
@@ -87,6 +87,24 @@ export const TABLES: Record<TableName, TableSpec> = {
     json: {},
     numbers: ["bytes", "width", "height"],
     nullable: [],
+  },
+  integrationLogs: {
+    tab: "IntegrationLogs",
+    columns: [
+      "id",
+      "createdAt",
+      "providerId",
+      "capability",
+      "operation",
+      "outcome",
+      "code",
+      "durationMs",
+      "simulated",
+      "message",
+    ],
+    json: { simulated: false },
+    numbers: ["durationMs"],
+    nullable: ["code"],
   },
 };
 

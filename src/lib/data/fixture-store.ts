@@ -19,11 +19,12 @@ interface FixtureFile {
   ideas: Record<string, unknown>[];
   designs: Record<string, unknown>[];
   assets: Record<string, unknown>[];
+  integrationLogs: Record<string, unknown>[];
   settings: Record<string, string>;
 }
 
 function emptyFixture(): FixtureFile {
-  return { schemaVersion: SCHEMA_VERSION, contents: [], ideas: [], designs: [], assets: [], settings: {} };
+  return { schemaVersion: SCHEMA_VERSION, contents: [], ideas: [], designs: [], assets: [], integrationLogs: [], settings: {} };
 }
 
 export function defaultDataDir(): string {
@@ -84,6 +85,7 @@ export class FixtureBackend implements TableBackend {
       ideas: asRows(obj.ideas),
       designs: asRows(obj.designs),
       assets: asRows(obj.assets),
+      integrationLogs: asRows(obj.integrationLogs),
       settings,
     };
   }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Clock, Database, ImageIcon, KeyRound, LayoutGrid, Settings2, UserRound } from "lucide-react";
+import { Clock, Database, ImageIcon, KeyRound, LayoutGrid, PlugZap, Settings2, UserRound } from "lucide-react";
 import { Badge, ButtonLink, ErrorState, PageHeader } from "@/components/ui";
 import { requireSession } from "@/lib/auth/session";
 import { getDataStore, getStorageStatus } from "@/lib/data";
@@ -109,6 +109,18 @@ export default async function SettingsPage() {
                 <p>Semua jadwal ditampilkan dan diedit dalam WITA, disimpan sebagai UTC.</p>
               </StatusRow>
             </dl>
+          </SettingsSection>
+
+          <SettingsSection id="settings-integrations" icon={PlugZap} title="Integrasi">
+            <p className="text-[13px] text-ink-soft">
+              Status slot API (AI, publikasi, metrik, tren, video, gambar), nama env yang dibutuhkan, dan uji koneksi. Tanpa kunci
+              API, setiap fitur tetap memakai jalur manual.
+            </p>
+            <div className="mt-4">
+              <ButtonLink href="/settings/integrations" variant="secondary" icon={PlugZap}>
+                Buka Integrasi
+              </ButtonLink>
+            </div>
           </SettingsSection>
 
           <SettingsSection id="settings-account" icon={UserRound} title="Akun admin">

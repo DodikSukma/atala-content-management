@@ -22,6 +22,9 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // Cron tidak memakai sesi admin; setiap route /api/cron/* memverifikasi CRON_SECRET sendiri (F2-02).
+  if (pathname.startsWith("/api/cron/")) return NextResponse.next();
   const authenticated = await hasValidSession(request);
 
   if (isLoginPath(pathname)) {
