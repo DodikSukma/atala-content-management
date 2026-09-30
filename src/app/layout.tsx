@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { getThemePreference } from "@/lib/theme";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -20,14 +21,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F8FAFC",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B1220" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Tema dari cookie dipasang di server: tidak ada kedip saat muat (MT-01).
+  const theme = await getThemePreference();
   return (
-    <html lang="id" className={jakarta.variable}>
+    <html lang="id" className={jakarta.variable} data-theme={theme} suppressHydrationWarning>
       <body className="min-h-dvh bg-canvas font-sans text-ink antialiased">{children}</body>
     </html>
   );

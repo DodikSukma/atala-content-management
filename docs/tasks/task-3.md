@@ -49,7 +49,7 @@ Tambahan khusus paket ini:
 
 ## Bagian A — Dark mode aplikasi
 
-- [ ] **MT-01 — Token semantik dan infrastruktur tema.**
+- [x] **MT-01 — Token semantik dan infrastruktur tema.**
   - Ubah token di [globals.css](../../src/app/globals.css) menjadi variabel semantik (`--color-canvas`, `surface`, `ink`, `line`, `brand`, status, bayangan) dengan nilai terang di `:root` dan nilai gelap di `[data-theme="dark"]`.
   - Mode "Ikuti sistem" ditangani `@media (prefers-color-scheme: dark)` dengan selektor `:root:not([data-theme="light"])`.
   - Tambahkan varian Tailwind v4 `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *))`.

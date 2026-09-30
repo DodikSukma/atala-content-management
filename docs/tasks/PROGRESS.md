@@ -109,3 +109,38 @@ Hasil: kriteria "Selesai jika" F2-03 terpenuhi.
 Kendala/keputusan: adapter Postgres akan memakai suite yang sama di F2-10.
 Langkah berikutnya: paket MT (MT-01 tema) dan F2-06 sesuai task-3.md.
 ```
+
+## Motion, Template, Dark Mode
+
+Ringkasan status paket ada di [task-3.md](./task-3.md). Entri memakai format yang sama dengan rilis pertama.
+
+```text
+Tanggal (Asia/Makassar): 30 September 2026
+Tugas: MT-01
+Status: selesai
+Perubahan:
+- globals.css: seluruh warna UI menjadi token semantik. Nilai terang di @theme (:root), nilai gelap di
+  :root[data-theme="dark"] dan @media (prefers-color-scheme: dark) :root:not([data-theme="light"]).
+  Token baru: surface-2, overlay, on-brand, on-danger, tone-{slate,violet,amber,sky,blue,emerald,rose}-{bg,fg,ring},
+  chart-1..6/grid/axis/track. Bayangan tema gelap diganti garis tepi halus. color-scheme dipasang per tema.
+- @custom-variant dark untuk data-theme="dark" dan mode Sistem saat OS gelap.
+- src/lib/theme.ts (server action): cookie atala-theme (light|dark|system, HttpOnly, 1 tahun). layout.tsx membaca cookie
+  di server dan memasang data-theme pada <html> (tanpa kedip); themeColor per skema warna.
+- ThemeControl (Terang/Gelap/Sistem, ikon Sun/Moon/Monitor) di menu akun dan Pengaturan > Tampilan; sinkron lewat
+  atribut data-theme (useSyncExternalStore + MutationObserver).
+- Transisi tema 150 ms hanya background-color/color; dimatikan oleh aturan reduced motion global.
+- Perbaikan kontras tema terang yang ditemukan uji: ink-muted #64748b -> #5f6f86 (4.34 -> 4.67 di surface-2),
+  success #059669 -> #047857 (3.77 -> 5.48 di putih).
+Bukti uji:
+- tests/theme-contrast.test.ts: 70 uji lulus — 23 pasangan teks/latar x (terang, gelap, sistem-gelap) >= 4.5:1,
+  dan nilai gelap eksplisit identik dengan mode sistem.
+- tests/e2e/theme.mjs (next start, Chrome, cache dimatikan lewat CDP): 10/10 lulus — bawaan Sistem ikut OS terang,
+  Sistem berubah saat OS berubah tanpa refresh, Gelap langsung diterapkan, kontrol menu akun sinkron, HTML server
+  sudah memuat data-theme=dark dan latar gelap saat DOMContentLoaded (tanpa kedip), bertahan setelah refresh dan
+  keluar/login ulang (halaman login ikut gelap), Terang tetap terang saat OS gelap, tanpa galat konsol.
+- npm run check: 22 file / 438 uji lulus, lint 0. npm run build: lulus.
+Hasil: kriteria "Selesai jika" MT-01 terpenuhi.
+Kendala/keputusan: masih ada kelas warna mentah di komponen (latar segmented control, banner, kartu sidebar) —
+  dimigrasikan di MT-02; screenshot semua halaman dua tema dicatat di MT-02.
+Langkah berikutnya: MT-02.
+```

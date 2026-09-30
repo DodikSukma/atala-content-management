@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Clock, Database, ImageIcon, KeyRound, LayoutGrid, PlugZap, Settings2, UserRound } from "lucide-react";
+import { Clock, Database, ImageIcon, KeyRound, LayoutGrid, Palette, PlugZap, Settings2, UserRound } from "lucide-react";
 import { Badge, ButtonLink, ErrorState, PageHeader } from "@/components/ui";
 import { requireSession } from "@/lib/auth/session";
+import { ThemeControl } from "@/components/layout/theme-control";
+import { getThemePreference } from "@/lib/theme";
 import { getDataStore, getStorageStatus } from "@/lib/data";
 import { StorageError } from "@/lib/data/types";
 import type { Settings } from "@/lib/validation/schemas";
@@ -67,6 +69,7 @@ export default async function SettingsPage() {
   const session = await requireSession();
   const status = getStorageStatus();
   const loaded = await loadSettings();
+  const theme = await getThemePreference();
   const dataInfo = DATA_INFO[status.data];
   const assetInfo = ASSET_INFO[status.assets];
 
@@ -109,6 +112,16 @@ export default async function SettingsPage() {
                 <p>Semua jadwal ditampilkan dan diedit dalam WITA, disimpan sebagai UTC.</p>
               </StatusRow>
             </dl>
+          </SettingsSection>
+
+          <SettingsSection id="settings-theme" icon={Palette} title="Tampilan">
+            <p className="text-[13px] text-ink-soft">
+              Tema aplikasi tersimpan di peramban ini. &ldquo;Sistem&rdquo; mengikuti pengaturan terang/gelap perangkat secara
+              otomatis. Tema tidak mengubah hasil ekspor poster atau video.
+            </p>
+            <div className="mt-4">
+              <ThemeControl initial={theme} size="md" label="Tema aplikasi" />
+            </div>
           </SettingsSection>
 
           <SettingsSection id="settings-integrations" icon={PlugZap} title="Integrasi">

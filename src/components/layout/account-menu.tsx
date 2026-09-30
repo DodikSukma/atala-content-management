@@ -6,6 +6,7 @@ import { useFormStatus } from "react-dom";
 import { ChevronDown, LoaderCircle, LogOut, Settings, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { logoutAction } from "@/lib/auth/actions";
+import { ThemeControl } from "@/components/layout/theme-control";
 
 const MENU_ITEM =
   "flex h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-medium transition-colors duration-150 " +
@@ -68,14 +69,14 @@ export function AccountMenu({ username }: { username: string }) {
         aria-label={`Menu akun ${username}`}
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "flex h-10 items-center gap-2 rounded-control pl-1 pr-2 transition-colors duration-150 hover:bg-slate-100",
+          "flex h-10 items-center gap-2 rounded-control pl-1 pr-2 transition-colors duration-150 hover:bg-surface-2",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
-          open && "bg-slate-100",
+          open && "bg-surface-2",
         )}
       >
         <span
           aria-hidden="true"
-          className="inline-flex size-8 items-center justify-center rounded-full bg-atala-navy text-sm font-bold text-white"
+          className="inline-flex size-8 items-center justify-center rounded-full bg-atala-navy text-sm font-bold text-on-brand dark:bg-brand"
         >
           {initial}
         </span>
@@ -104,8 +105,12 @@ export function AccountMenu({ username }: { username: string }) {
               <p className="truncate text-sm font-bold text-ink">{username}</p>
             </div>
           </div>
+          <div className="border-t border-line px-3 py-3">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">Tema</p>
+            <ThemeControl initial="system" />
+          </div>
           <div className="border-t border-line pt-2">
-            <Link href="/settings" onClick={() => setOpen(false)} className={cn(MENU_ITEM, "text-ink hover:bg-slate-100")}>
+            <Link href="/settings" onClick={() => setOpen(false)} className={cn(MENU_ITEM, "text-ink hover:bg-surface-2")}>
               <Settings size={18} className="text-ink-soft" aria-hidden="true" />
               Pengaturan
             </Link>

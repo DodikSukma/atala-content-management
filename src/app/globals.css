@@ -3,29 +3,87 @@
 /*
  * Token desain Atala Konten (DESIGN §2). Bahasa visual dasbor admin modern:
  * latar terang, permukaan putih, aksen biru, radius 12–16 px, bayangan lembut.
+ *
+ * Tema (MT-01): semua warna UI adalah token semantik. Nilai terang ada di @theme
+ * (dipancarkan pada :root), nilai gelap menimpanya pada :root[data-theme="dark"]
+ * dan — untuk mode "Sistem" — pada @media (prefers-color-scheme: dark) dengan
+ * :root:not([data-theme="light"]). Kanvas poster/video TIDAK memakai token ini
+ * (template memakai nada template sendiri), jadi tema aplikasi tidak mengubah ekspor.
  */
+
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]), :root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
 @theme {
   --font-sans: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   --color-canvas: #f8fafc;
   --color-surface: #ffffff;
+  /* Permukaan bertingkat: kepala tabel, hover baris, blok sekunder. */
+  --color-surface-2: #f1f5f9;
   --color-ink: #0f172a;
   --color-ink-soft: #475569;
-  --color-ink-muted: #64748b;
+  --color-ink-muted: #5f6f86;
   --color-line: #e2e8f0;
   --color-line-strong: #cbd5e1;
+  --color-overlay: rgb(15 23 42 / 0.45);
 
   --color-brand: #2563eb;
   --color-brand-hover: #1d4ed8;
   --color-brand-soft: #eff6ff;
   --color-brand-ring: #93c5fd;
+  /* Teks/ikon di atas bidang brand/danger yang solid. */
+  --color-on-brand: #ffffff;
 
   --color-danger: #dc2626;
   --color-danger-soft: #fef2f2;
-  --color-success: #059669;
+  --color-on-danger: #ffffff;
+  --color-success: #047857;
   --color-success-soft: #ecfdf5;
   --color-warning: #d97706;
   --color-warning-soft: #fffbeb;
+
+  /* Nada badge/status: latar, teks, garis. Status selalu disertai label/ikon, bukan warna saja. */
+  --color-tone-slate-bg: #f1f5f9;
+  --color-tone-slate-fg: #334155;
+  --color-tone-slate-ring: #e2e8f0;
+  --color-tone-violet-bg: #f5f3ff;
+  --color-tone-violet-fg: #6d28d9;
+  --color-tone-violet-ring: #ddd6fe;
+  --color-tone-amber-bg: #fffbeb;
+  --color-tone-amber-fg: #92400e;
+  --color-tone-amber-ring: #fde68a;
+  --color-tone-sky-bg: #f0f9ff;
+  --color-tone-sky-fg: #075985;
+  --color-tone-sky-ring: #bae6fd;
+  --color-tone-blue-bg: #eff6ff;
+  --color-tone-blue-fg: #1d4ed8;
+  --color-tone-blue-ring: #bfdbfe;
+  --color-tone-emerald-bg: #ecfdf5;
+  --color-tone-emerald-fg: #047857;
+  --color-tone-emerald-ring: #a7f3d0;
+  --color-tone-rose-bg: #fff1f2;
+  --color-tone-rose-fg: #be123c;
+  --color-tone-rose-ring: #fecdd3;
+
+  /* Palet grafik (MT-03): seri kategorikal + unsur sumbu. */
+  --color-chart-1: #2563eb;
+  --color-chart-2: #0fb5ba;
+  --color-chart-3: #f5b301;
+  --color-chart-4: #8b1fd1;
+  --color-chart-5: #e0567a;
+  --color-chart-6: #64748b;
+  --color-chart-grid: #e2e8f0;
+  --color-chart-axis: #64748b;
+  --color-chart-track: #eef2f7;
 
   /* Aksen dari logo Atala — dipakai hemat (tag, ilustrasi). */
   --color-atala-teal: #0fb5ba;
@@ -75,6 +133,135 @@
   }
 }
 
+/*
+ * Nilai gelap. Blok pertama untuk pilihan "Gelap", blok kedua untuk "Ikuti sistem"
+ * (data-theme="system" atau tanpa atribut) saat OS memakai mode gelap. Nilainya identik.
+ * Kontras AA terukur: ink/canvas 15.9, ink-soft/surface 7.9, ink-muted/surface-2 5.7,
+ * brand/surface 6.8, on-brand/brand 7.4.
+ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #0b1220;
+  --color-surface: #111a2e;
+  --color-surface-2: #16213a;
+  --color-ink: #e6edf7;
+  --color-ink-soft: #9fb0c8;
+  --color-ink-muted: #8a9cb8;
+  --color-line: #24324d;
+  --color-line-strong: #3a4d72;
+  --color-overlay: rgb(2 6 23 / 0.72);
+  --color-brand: #6ea2ff;
+  --color-brand-hover: #8db6ff;
+  --color-brand-soft: #172a4d;
+  --color-brand-ring: #3d6cc4;
+  --color-on-brand: #0b1220;
+  --color-danger: #f87171;
+  --color-danger-soft: #3a1620;
+  --color-on-danger: #0b1220;
+  --color-success: #34d399;
+  --color-success-soft: #0f2e26;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #33260b;
+  --color-tone-slate-bg: #1c2740;
+  --color-tone-slate-fg: #cbd5e1;
+  --color-tone-slate-ring: #2c3b5a;
+  --color-tone-violet-bg: #241a3d;
+  --color-tone-violet-fg: #c4b5fd;
+  --color-tone-violet-ring: #3b2d63;
+  --color-tone-amber-bg: #2e2310;
+  --color-tone-amber-fg: #fcd34d;
+  --color-tone-amber-ring: #4a3a17;
+  --color-tone-sky-bg: #0f2a3a;
+  --color-tone-sky-fg: #7dd3fc;
+  --color-tone-sky-ring: #1b4460;
+  --color-tone-blue-bg: #152646;
+  --color-tone-blue-fg: #93c5fd;
+  --color-tone-blue-ring: #22406f;
+  --color-tone-emerald-bg: #0f2e26;
+  --color-tone-emerald-fg: #6ee7b7;
+  --color-tone-emerald-ring: #1a4a3d;
+  --color-tone-rose-bg: #33161f;
+  --color-tone-rose-fg: #fda4af;
+  --color-tone-rose-ring: #542230;
+  --color-chart-1: #6ea2ff;
+  --color-chart-2: #2dd4d9;
+  --color-chart-3: #fbbf24;
+  --color-chart-4: #c084fc;
+  --color-chart-5: #fb7fa0;
+  --color-chart-6: #94a3b8;
+  --color-chart-grid: #24324d;
+  --color-chart-axis: #8a9cb8;
+  --color-chart-track: #1c2740;
+  /* Bayangan diganti garis tepi halus dan permukaan bertingkat. */
+  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
+  --shadow-raised: 0 0 0 1px rgb(255 255 255 / 0.06), 0 12px 32px rgb(0 0 0 / 0.45);
+  --shadow-drawer: 0 0 0 1px rgb(255 255 255 / 0.06), -12px 0 40px rgb(0 0 0 / 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-canvas: #0b1220;
+    --color-surface: #111a2e;
+    --color-surface-2: #16213a;
+    --color-ink: #e6edf7;
+    --color-ink-soft: #9fb0c8;
+    --color-ink-muted: #8a9cb8;
+    --color-line: #24324d;
+    --color-line-strong: #3a4d72;
+    --color-overlay: rgb(2 6 23 / 0.72);
+    --color-brand: #6ea2ff;
+    --color-brand-hover: #8db6ff;
+    --color-brand-soft: #172a4d;
+    --color-brand-ring: #3d6cc4;
+    --color-on-brand: #0b1220;
+    --color-danger: #f87171;
+    --color-danger-soft: #3a1620;
+    --color-on-danger: #0b1220;
+    --color-success: #34d399;
+    --color-success-soft: #0f2e26;
+    --color-warning: #fbbf24;
+    --color-warning-soft: #33260b;
+    --color-tone-slate-bg: #1c2740;
+    --color-tone-slate-fg: #cbd5e1;
+    --color-tone-slate-ring: #2c3b5a;
+    --color-tone-violet-bg: #241a3d;
+    --color-tone-violet-fg: #c4b5fd;
+    --color-tone-violet-ring: #3b2d63;
+    --color-tone-amber-bg: #2e2310;
+    --color-tone-amber-fg: #fcd34d;
+    --color-tone-amber-ring: #4a3a17;
+    --color-tone-sky-bg: #0f2a3a;
+    --color-tone-sky-fg: #7dd3fc;
+    --color-tone-sky-ring: #1b4460;
+    --color-tone-blue-bg: #152646;
+    --color-tone-blue-fg: #93c5fd;
+    --color-tone-blue-ring: #22406f;
+    --color-tone-emerald-bg: #0f2e26;
+    --color-tone-emerald-fg: #6ee7b7;
+    --color-tone-emerald-ring: #1a4a3d;
+    --color-tone-rose-bg: #33161f;
+    --color-tone-rose-fg: #fda4af;
+    --color-tone-rose-ring: #542230;
+    --color-chart-1: #6ea2ff;
+    --color-chart-2: #2dd4d9;
+    --color-chart-3: #fbbf24;
+    --color-chart-4: #c084fc;
+    --color-chart-5: #fb7fa0;
+    --color-chart-6: #94a3b8;
+    --color-chart-grid: #24324d;
+    --color-chart-axis: #8a9cb8;
+    --color-chart-track: #1c2740;
+    --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
+    --shadow-raised: 0 0 0 1px rgb(255 255 255 / 0.06), 0 12px 32px rgb(0 0 0 / 0.45);
+    --shadow-drawer: 0 0 0 1px rgb(255 255 255 / 0.06), -12px 0 40px rgb(0 0 0 / 0.5);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
@@ -85,13 +272,18 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* Pergantian tema: hanya warna, maksimal 150 ms; dimatikan saat reduced motion (aturan global di bawah). */
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
   }
   :focus-visible {
     outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
   ::selection {
-    background: #dbeafe;
+    background: var(--color-brand-soft);
+    color: var(--color-ink);
   }
 }
 
