@@ -48,7 +48,7 @@ export class TemplateErrorBoundary extends Component<
 
 /**
  * Render template pada ukuran final lalu perkecil dengan CSS transform.
- * Dipakai untuk kanvas pratinjau dan thumbnail galeri (thumbnail nyata).
+ * Dipakai untuk kanvas pratinjau, thumbnail galeri, dan strip halaman carousel.
  */
 export const ScaledTemplate = memo(function ScaledTemplate({
   template,
@@ -57,6 +57,8 @@ export const ScaledTemplate = memo(function ScaledTemplate({
   scale,
   showSafeArea = false,
   compact = false,
+  pageIndex,
+  pageCount,
 }: {
   template: TemplateDefinition;
   text: Record<string, string>;
@@ -64,6 +66,9 @@ export const ScaledTemplate = memo(function ScaledTemplate({
   scale: number;
   showSafeArea?: boolean;
   compact?: boolean;
+  /** Posisi halaman carousel (0-based) untuk template yang menampilkan nomor halaman. */
+  pageIndex?: number;
+  pageCount?: number;
 }) {
   const { width, height } = FORMAT_DIMENSIONS[template.format];
   const Render = template.Component;
@@ -84,7 +89,7 @@ export const ScaledTemplate = memo(function ScaledTemplate({
         }}
       >
         <TemplateErrorBoundary resetKey={template.id} compact={compact}>
-          <Render text={text} photos={photos} showSafeArea={false} />
+          <Render text={text} photos={photos} showSafeArea={false} pageIndex={pageIndex} pageCount={pageCount} />
         </TemplateErrorBoundary>
         {showSafeArea ? <SafeAreaGuide {...SAFE_AREA[template.format]} /> : null}
       </div>

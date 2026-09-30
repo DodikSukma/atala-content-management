@@ -6,6 +6,7 @@ import { ContentDetail, type DesignSummary } from "@/components/content/content-
 import { requireSession } from "@/lib/auth/session";
 import { getDataStore } from "@/lib/data";
 import { toActionFailure } from "@/lib/data/errors";
+import { buildSeriesIndex, seriesPosition } from "@/lib/series";
 import { getTemplate } from "@/lib/studio/registry";
 import { idSchema, type Content } from "@/lib/validation/schemas";
 
@@ -91,6 +92,9 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
     sourceIdea = { id: ideaResult.value.id, title: ideaResult.value.title };
   }
 
+  // Seri (F2-07): N dihitung dari bagian aktif; konten ini boleh diarsipkan (nomornya tetap).
+  const series = seriesPosition(content, buildSeriesIndex(contents));
+
   return (
     <ContentDetail
       content={content}
@@ -99,6 +103,7 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
       design={design}
       designUnavailable={designUnavailable}
       sourceIdea={sourceIdea}
+      series={series}
     />
   );
 }

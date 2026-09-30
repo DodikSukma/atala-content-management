@@ -123,6 +123,58 @@ export function defineRepositoryContract(name: string, makeHarness: () => Promis
       });
     });
 
+    describe("contents — seri (F2-07)", () => {
+      const SERIES = "5e5e5e5e-5e5e-4e5e-8e5e-5e5e5e5e5e5e";
+
+      it("seriesId/seriesIndex tersimpan dan terbuka ulang identik; konten biasa bernilai null", async () => {
+        const plain = await h.store.contents.create(content());
+        expect(plain.seriesId).toBeNull();
+        expect(plain.seriesIndex).toBeNull();
+        const parts = [];
+        for (let i = 1; i <= 4; i += 1) {
+          parts.push(
+            await h.store.contents.create({
+              ...content({
+                title: `Belajar pecahan — Bagian ${i}`,
+                status: "scheduled",
+                scheduledAt: new Date(Date.UTC(2026, 9, 28 + 7 * (i - 1), 11)).toISOString(),
+              }),
+              seriesId: SERIES,
+              seriesIndex: i,
+            }),
+          );
+        }
+        const reopened = h.reopen();
+        for (const part of parts) expect(await reopened.contents.get(part.id)).toEqual(part);
+        expect(await reopened.contents.get(plain.id)).toEqual(plain);
+        const members = (await reopened.contents.list()).filter((c) => c.seriesId === SERIES);
+        expect(members.map((c) => c.seriesIndex).sort()).toEqual([1, 2, 3, 4]);
+        expect(members.find((c) => c.seriesIndex === 2)?.scheduledAt).toBe("2026-11-04T11:00:00.000Z");
+      });
+
+      it("update tanpa kunci seri (formulir) dan arsip tidak menghapus seri; seri dapat diubah eksplisit", async () => {
+        const part = await h.store.contents.create({ ...content(), seriesId: SERIES, seriesIndex: 2 });
+        await pause();
+        const edited = await h.store.contents.update(part.id, { hook: "Hook baru" }, part.updatedAt);
+        expect(edited).toMatchObject({ seriesId: SERIES, seriesIndex: 2, hook: "Hook baru" });
+        const archived = await h.store.contents.archive(part.id);
+        expect(archived).toMatchObject({ seriesId: SERIES, seriesIndex: 2 });
+        expect((await h.reopen().contents.list({ includeArchived: true })).find((c) => c.id === part.id)?.seriesIndex).toBe(2);
+        await h.store.contents.restore(part.id);
+        await h.store.contents.update(part.id, { seriesIndex: 3 });
+        expect((await h.reopen().contents.get(part.id))?.seriesIndex).toBe(3);
+        await h.store.contents.update(part.id, { seriesId: null, seriesIndex: null });
+        expect(await h.reopen().contents.get(part.id)).toMatchObject({ seriesId: null, seriesIndex: null });
+      });
+
+      it("menolak seriesIndex < 1 atau seriesId bukan UUID tanpa menyimpan apa pun", async () => {
+        await expect(h.store.contents.create({ ...content(), seriesId: SERIES, seriesIndex: 0 })).rejects.toThrow();
+        await expect(h.store.contents.create({ ...content(), seriesId: "seri-1", seriesIndex: 1 })).rejects.toThrow();
+        await expect(h.store.contents.create({ ...content(), seriesId: SERIES, seriesIndex: 1.5 })).rejects.toThrow();
+        expect(await h.store.contents.list({ includeArchived: true })).toEqual([]);
+      });
+    });
+
     describe("ideas", () => {
       it("CRUD, konflik, arsip, dan convertedContentId", async () => {
         const created = await h.store.ideas.create(idea({ sourceUrl: "https://kemdikbud.go.id/berita", sourceCheckedAt: "2026-09-29T00:00:00.000Z" }));

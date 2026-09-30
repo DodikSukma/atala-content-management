@@ -1,8 +1,11 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, FileText, Palette } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, ArrowLeft, ChevronLeft, ChevronRight, FileText, Palette } from "lucide-react";
 import { Badge, Button, ButtonLink, Drawer, InlineAlert, StatusBadge } from "@/components/ui";
+import { SeriesMarker } from "@/components/content/series-marker";
 import { CHANNEL_LABELS, FORMAT_LABELS, STATUS_DESCRIPTIONS } from "@/lib/constants";
+import type { SeriesNeighbor, SeriesPosition } from "@/lib/series";
 import { formatDateTime } from "@/lib/time";
 import type { Content } from "@/lib/validation/schemas";
 import { RescheduleForm } from "./reschedule-form";
@@ -17,6 +20,43 @@ interface ContentDrawerProps {
   /** Label tanggal bila drawer dibuka dari daftar hari (untuk tombol kembali). */
   backLabel?: string | null;
   onBack?: () => void;
+  /** Posisi dalam seri (F2-07); tombol sebelumnya/berikutnya membuka bagian itu di drawer. */
+  series?: SeriesPosition | null;
+  onOpenContent?: (id: string) => void;
+}
+
+function NeighborButton({
+  part,
+  direction,
+  onOpen,
+}: {
+  part: SeriesNeighbor;
+  direction: "previous" | "next";
+  onOpen?: (id: string) => void;
+}) {
+  const Icon = direction === "previous" ? ChevronLeft : ChevronRight;
+  const label = `${direction === "previous" ? "Sebelumnya" : "Berikutnya"}: Bagian ${part.index}`;
+  const body = (
+    <>
+      <Icon size={15} aria-hidden="true" className="mt-0.5 shrink-0 text-ink-muted" />
+      <span className="min-w-0">
+        <span className="block text-xs font-semibold text-ink-soft">{label}</span>
+        <span className="block truncate text-sm text-ink">{part.title}</span>
+        {part.scheduledAt ? <span className="block text-xs text-ink-muted">{formatDateTime(part.scheduledAt)}</span> : null}
+      </span>
+    </>
+  );
+  const className =
+    "flex w-full min-w-0 items-start gap-1.5 rounded-control border border-line bg-surface px-2.5 py-2 text-left transition-colors duration-150 hover:border-line-strong hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand";
+  return onOpen ? (
+    <button type="button" className={className} onClick={() => onOpen(part.id)}>
+      {body}
+    </button>
+  ) : (
+    <Link href={`/content/${part.id}`} className={className}>
+      {body}
+    </Link>
+  );
 }
 
 function DetailRow({ term, children }: { term: string; children: React.ReactNode }) {
@@ -28,7 +68,18 @@ function DetailRow({ term, children }: { term: string; children: React.ReactNode
   );
 }
 
-export function ContentDrawer({ content, open, overdue, allContents, nowIso, onClose, backLabel, onBack }: ContentDrawerProps) {
+export function ContentDrawer({
+  content,
+  open,
+  overdue,
+  allContents,
+  nowIso,
+  onClose,
+  backLabel,
+  onBack,
+  series = null,
+  onOpenContent,
+}: ContentDrawerProps) {
   return (
     <Drawer
       open={open && content !== null}
@@ -63,6 +114,7 @@ export function ContentDrawer({ content, open, overdue, allContents, nowIso, onC
           <section aria-label="Status" className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={content.status} />
+              {series ? <SeriesMarker index={series.index} total={series.total} /> : null}
               {overdue ? (
                 <Badge tone="rose" icon={AlertTriangle}>
                   Terlambat
@@ -95,6 +147,24 @@ export function ContentDrawer({ content, open, overdue, allContents, nowIso, onC
               </span>
             </DetailRow>
             <DetailRow term="Pilar">{content.pillar}</DetailRow>
+            {series ? (
+              <DetailRow term="Seri">
+                <span className="flex flex-col gap-2">
+                  <span>
+                    Bagian {series.index} dari {series.total}
+                    {series.activeCount < series.total ? (
+                      <span className="text-ink-muted"> · {series.activeCount} bagian aktif</span>
+                    ) : null}
+                  </span>
+                  {series.previous || series.next ? (
+                    <span role="group" className="grid gap-2 sm:grid-cols-2" aria-label="Bagian seri lain">
+                      {series.previous ? <NeighborButton part={series.previous} direction="previous" onOpen={onOpenContent} /> : <span />}
+                      {series.next ? <NeighborButton part={series.next} direction="next" onOpen={onOpenContent} /> : null}
+                    </span>
+                  ) : null}
+                </span>
+              </DetailRow>
+            ) : null}
             <DetailRow term="Hook">
               {content.hook.trim() ? content.hook : <span className="text-ink-muted">Belum ada hook</span>}
             </DetailRow>

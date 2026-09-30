@@ -26,6 +26,9 @@ export function PreviewStage({
   showSafeArea,
   onToggleSafeArea,
   className,
+  pageId,
+  pageIndex,
+  pageCount,
 }: {
   template: TemplateDefinition;
   text: Record<string, string>;
@@ -33,6 +36,10 @@ export function PreviewStage({
   showSafeArea: boolean;
   onToggleSafeArea: (next: boolean) => void;
   className?: string;
+  /** ID halaman aktif: berpindah halaman memutar transisi masuk yang sama seperti ganti template. */
+  pageId?: string;
+  pageIndex?: number;
+  pageCount?: number;
 }) {
   const reduce = useReducedMotion();
   const areaRef = useRef<HTMLDivElement>(null);
@@ -68,6 +75,11 @@ export function PreviewStage({
     <div className={cn("flex min-h-0 min-w-0 flex-col overflow-hidden rounded-card border border-line bg-surface shadow-card", className)}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-3 py-2">
         <p className="min-w-0 truncate text-xs font-semibold text-ink-soft">
+          {pageCount && pageCount > 1 && pageIndex !== undefined ? (
+            <span className="text-ink">
+              Halaman {pageIndex + 1}/{pageCount} ·{" "}
+            </span>
+          ) : null}
           {template.name}
           <span className="font-normal text-ink-muted"> · {FORMAT_LABELS[template.format]} px</span>
         </p>
@@ -111,7 +123,7 @@ export function PreviewStage({
       >
         <div className="flex min-h-full min-w-full items-center justify-center p-5" style={{ width: "max-content", minWidth: "100%" }}>
           <motion.div
-            key={template.id}
+            key={`${pageId ?? ""}:${template.id}`}
             initial={reduce ? false : { opacity: 0, scale: 0.97, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={reduce ? { duration: 0 } : { duration: 0.32, ease: EASE_OUT_SOFT }}
@@ -120,8 +132,22 @@ export function PreviewStage({
             // ekspor (exportBackground di lib/studio/export.ts), jadi pratinjau = PNG.
             style={{ backgroundColor: "white" }}
           >
-            <div data-testid="studio-canvas" data-format={template.format} data-template-id={template.id}>
-              <ScaledTemplate template={template} text={text} photos={photos} scale={scale} showSafeArea={showSafeArea} />
+            <div
+              data-testid="studio-canvas"
+              data-format={template.format}
+              data-template-id={template.id}
+              data-page-id={pageId}
+              data-page-number={pageIndex !== undefined ? pageIndex + 1 : undefined}
+            >
+              <ScaledTemplate
+                template={template}
+                text={text}
+                photos={photos}
+                scale={scale}
+                showSafeArea={showSafeArea}
+                pageIndex={pageIndex}
+                pageCount={pageCount}
+              />
             </div>
           </motion.div>
         </div>

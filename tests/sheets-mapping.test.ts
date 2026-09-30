@@ -132,6 +132,25 @@ describe("pemetaan baris Sheets berdasarkan nama header", () => {
     expect(designSchema.safeParse(record).success).toBe(false);
   });
 
+  it("kolom seri (F2-07): kosong/tidak ada = null, angka teks dibaca angka, nilai rusak ditolak skema", () => {
+    const headers = [...SHUFFLED_HEADERS, "seriesId", "seriesIndex"];
+    const row = (values: Record<string, Cell>) => headers.map((h) => values[h] ?? validRowValues[h] ?? "");
+    const legacy = contentSchema.parse(rowToRecord(TABLES.contents, SHUFFLED_HEADERS, shuffledRow(validRowValues)));
+    expect(legacy).toMatchObject({ seriesId: null, seriesIndex: null });
+    const empty = contentSchema.parse(rowToRecord(TABLES.contents, headers, row({ seriesId: "", seriesIndex: "" })));
+    expect(empty).toMatchObject({ seriesId: null, seriesIndex: null });
+    const text = contentSchema.parse(rowToRecord(TABLES.contents, headers, row({ seriesId: ID_B, seriesIndex: " 3 " })));
+    expect(text).toMatchObject({ seriesId: ID_B, seriesIndex: 3 });
+    const num = contentSchema.parse(rowToRecord(TABLES.contents, headers, row({ seriesId: ID_B, seriesIndex: 4 })));
+    expect(num.seriesIndex).toBe(4);
+    expect(contentSchema.safeParse(rowToRecord(TABLES.contents, headers, row({ seriesId: ID_B, seriesIndex: "tiga" }))).success).toBe(false);
+    expect(contentSchema.safeParse(rowToRecord(TABLES.contents, headers, row({ seriesId: ID_B, seriesIndex: 0 }))).success).toBe(false);
+    // Menulis: angka tetap angka, null menjadi sel kosong.
+    const written = recordToRow(TABLES.contents, headers, { ...num, seriesId: null, seriesIndex: null });
+    expect(written.slice(-2)).toEqual(["", ""]);
+    expect(recordToRow(TABLES.contents, headers, num).slice(-2)).toEqual([ID_B, 4]);
+  });
+
   it("recordToRow menulis sesuai urutan header dan mempertahankan kolom milik admin", () => {
     const record = contentSchema.parse(rowToRecord(TABLES.contents, SHUFFLED_HEADERS, shuffledRow(validRowValues)));
     const existing = shuffledRow(validRowValues);

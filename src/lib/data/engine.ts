@@ -63,6 +63,8 @@ const CONTENT_MUTABLE_KEYS = [
   "notes",
   "sourceIdeaId",
   "designId",
+  "seriesId",
+  "seriesIndex",
 ] as const satisfies readonly (keyof Content)[];
 
 const IDEA_MUTABLE_KEYS = [
@@ -197,6 +199,8 @@ export function createRepositoryStore(backend: TableBackend): DataStore {
           notes: input.notes,
           designId: null,
           sourceIdeaId: input.sourceIdeaId,
+          seriesId: input.seriesId ?? null,
+          seriesIndex: input.seriesIndex ?? null,
           createdAt: now,
           updatedAt: now,
           archivedAt: null,

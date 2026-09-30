@@ -50,6 +50,15 @@ const tagList = z
 
 export const idSchema = z.uuid();
 
+/** Batas nomor bagian yang diterima saat membaca data (pembuatan seri dibatasi SERIES_MAX_PARTS). */
+export const SERIES_INDEX_MAX = 999;
+/** Jumlah bagian saat membuat seri (F2-07). */
+export const SERIES_MIN_PARTS = 2;
+export const SERIES_MAX_PARTS = 12;
+export const SERIES_MAX_INTERVAL_DAYS = 60;
+/** Judul dasar seri; sisa ruang dipakai akhiran " — Bagian 12" agar judul bagian <= 160 karakter. */
+export const SERIES_TITLE_MAX = 140;
+
 // ---------- Content ----------
 
 export const contentSchema = z.object({
@@ -72,11 +81,20 @@ export const contentSchema = z.object({
   notes: z.string().max(4000),
   designId: z.union([idSchema, z.null()]),
   sourceIdeaId: z.union([idSchema, z.null()]),
+  /**
+   * Seri konten (F2-07): bagian-bagian satu seri berbagi `seriesId`; `seriesIndex` = nomor bagian
+   * (mulai 1, stabil walau bagian lain diarsipkan). Kolom tidak ada/kosong = null (data lama), jadi
+   * tidak perlu migrasi skema. Jumlah bagian tidak disimpan; dihitung dari bagian aktif (src/lib/series.ts).
+   */
+  seriesId: z.union([idSchema, z.null()]).default(null),
+  seriesIndex: z.union([z.number().int().min(1).max(SERIES_INDEX_MAX), z.null()]).default(null),
   createdAt: isoDateTime,
   updatedAt: isoDateTime,
   archivedAt: optionalIso,
 });
 export type Content = z.infer<typeof contentSchema>;
+/** Bidang seri yang ditulis repository (tidak lewat formulir konten). */
+export type ContentSeriesFields = Pick<Content, "seriesId" | "seriesIndex">;
 
 /** Input dari formulir (klien tidak dipercaya). */
 export const contentInputSchema = z
@@ -117,6 +135,63 @@ export const contentInputSchema = z
   });
 export type ContentInput = z.input<typeof contentInputSchema>;
 export type ContentInputParsed = z.output<typeof contentInputSchema>;
+
+// ---------- Seri konten (F2-07) ----------
+
+/** "YYYY-MM-DD" kalender yang benar-benar ada (menolak 2026-02-31). */
+const localDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Pilih tanggal mulai")
+  .refine((value) => {
+    const d = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+  }, "Tanggal tidak valid");
+
+export const SERIES_STATUSES = ["draft", "scheduled"] as const;
+
+export const seriesRecurrenceSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("weekly"),
+    /** 0 = Minggu … 6 = Sabtu (sama dengan Date.getUTCDay pada tanggal lokal). */
+    weekdays: z
+      .array(z.number().int().min(0).max(6))
+      .min(1, "Pilih minimal satu hari")
+      .max(7)
+      .transform((days) => Array.from(new Set(days)).sort((a, b) => a - b)),
+  }),
+  z.object({
+    kind: z.literal("interval"),
+    everyDays: z.coerce
+      .number()
+      .int("Isi angka bulat")
+      .min(1, "Minimal setiap 1 hari")
+      .max(SERIES_MAX_INTERVAL_DAYS, `Maksimal setiap ${SERIES_MAX_INTERVAL_DAYS} hari`),
+  }),
+]);
+export type SeriesRecurrence = z.output<typeof seriesRecurrenceSchema>;
+
+/** Input "Buat seri": satu topik menjadi N konten terjadwal berulang (WITA). */
+export const seriesInputSchema = z.object({
+  title: trimmed(SERIES_TITLE_MAX).min(1, "Judul seri wajib diisi"),
+  pillar: trimmed(60).min(1, "Pilih pilar konten"),
+  format: contentFormatSchema,
+  channels: z.array(channelSchema).min(1, "Pilih minimal satu kanal"),
+  parts: z.coerce
+    .number()
+    .int("Isi angka bulat")
+    .min(SERIES_MIN_PARTS, `Seri minimal ${SERIES_MIN_PARTS} bagian`)
+    .max(SERIES_MAX_PARTS, `Seri maksimal ${SERIES_MAX_PARTS} bagian`),
+  startDate: localDateSchema,
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pilih jam unggah"),
+  recurrence: seriesRecurrenceSchema,
+  status: z.enum(SERIES_STATUSES),
+  /** Lanjutkan seri yang sebagian gagal dibuat: pakai ID seri yang sama. */
+  seriesId: z.union([idSchema, z.null()]).default(null),
+  /** Hanya buat bagian bernomor ini (lanjutan). Bagian yang sudah ada selalu dilewati. */
+  onlyParts: z.array(z.number().int().min(1).max(SERIES_MAX_PARTS)).max(SERIES_MAX_PARTS).optional(),
+});
+export type SeriesInput = z.input<typeof seriesInputSchema>;
+export type SeriesInputParsed = z.output<typeof seriesInputSchema>;
 
 // ---------- Idea ----------
 

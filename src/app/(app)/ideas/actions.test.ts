@@ -87,6 +87,8 @@ vi.mock("@/lib/data", () => {
           ...input,
           id: uuid(),
           designId: null,
+          seriesId: null,
+          seriesIndex: null,
           createdAt: now(),
           updatedAt: now(),
           archivedAt: null,

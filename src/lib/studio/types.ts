@@ -47,6 +47,14 @@ export interface TemplateRenderProps {
   photos: Record<string, TemplatePhoto>;
   /** Tampilkan garis area aman (hanya pratinjau, tidak ikut ekspor). */
   showSafeArea?: boolean;
+  /**
+   * Posisi halaman dalam carousel, 0-based (F2-07). Diisi editor untuk pratinjau, thumbnail,
+   * dan ekspor PNG/ZIP; template yang ingin menampilkan nomor halaman ("2/7") memakai
+   * `pageNumberLabel(props)` dari editor-state. Template lama boleh mengabaikannya.
+   */
+  pageIndex?: number;
+  /** Jumlah halaman desain (>= 1). */
+  pageCount?: number;
 }
 
 export type TemplateCategory =

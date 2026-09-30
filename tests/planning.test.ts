@@ -47,6 +47,8 @@ function make(partial: Partial<Content> = {}): Content {
     notes: "",
     designId: null,
     sourceIdeaId: null,
+    seriesId: null,
+    seriesIndex: null,
     createdAt: "2026-09-01T00:00:00.000Z",
     updatedAt: "2026-09-01T00:00:00.000Z",
     archivedAt: null,
