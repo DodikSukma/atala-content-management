@@ -66,7 +66,7 @@ export function TagInput({
             <button
               type="button"
               onClick={() => onChange(value.filter((t) => t !== tag))}
-              className="inline-flex size-5 items-center justify-center rounded-full text-brand/80 hover:bg-white hover:text-brand focus-visible:outline-2 focus-visible:outline-brand"
+              className="inline-flex size-5 items-center justify-center rounded-full text-brand/80 hover:bg-surface hover:text-brand focus-visible:outline-2 focus-visible:outline-brand"
               aria-label={`Hapus tag ${tag}`}
             >
               <X size={12} aria-hidden="true" />

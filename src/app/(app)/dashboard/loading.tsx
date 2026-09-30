@@ -22,7 +22,7 @@ export default function DashboardLoading() {
     <div className="flex flex-col gap-6" aria-busy="true" aria-live="polite">
       <span className="sr-only">Memuat dashboard</span>
 
-      <div className="rounded-card border border-blue-100 bg-linear-to-br from-blue-50 via-white to-sky-50 p-6 shadow-card md:p-7">
+      <div className="rounded-card border border-brand-ring/40 bg-linear-to-br from-brand-soft via-surface to-tone-sky-bg p-6 shadow-card md:p-7">
         <Skeleton className="h-4 w-56" />
         <Skeleton className="mt-3 h-8 w-72 max-w-full" />
         <Skeleton className="mt-3 h-4 w-96 max-w-full" />

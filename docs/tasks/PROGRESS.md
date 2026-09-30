@@ -182,3 +182,37 @@ Kendala/keputusan: masih ada kelas warna mentah di komponen (latar segmented con
   dimigrasikan di MT-02; screenshot semua halaman dua tema dicatat di MT-02.
 Langkah berikutnya: MT-02.
 ```
+
+```text
+Tanggal (Asia/Makassar): 30 September 2026
+Tugas: MT-02
+Status: selesai
+Perubahan:
+- ± 190 kelas warna mentah di src/components dan src/app (di luar template poster) diganti token semantik:
+  UI dasar (badge, button, card, controls, dialog, drawer, feedback, field, toast, showcase), shell (header,
+  shell, sidebar), dashboard, insights (kelas), kalender, konten, ide, Studio editor, pengaturan, login.
+- Kasus khusus dark: pelat logo Atala (bg-surface dark:bg-ink), opsi terpilih SegmentedControl (dark:bg-line).
+- Perbaikan kontras yang ditemukan: warning terang #d97706 -> #b45309, teks galat di latar danger-soft memakai
+  tone-rose-fg, sel kalender di luar bulan tidak lagi diredupkan dengan opacity, jumlah filter text-brand penuh,
+  teks InlineAlert sukses tanpa opacity, teks grafik mingguan memakai fill-ink/ink-soft/ink-muted.
+- Status tanpa warna: kartu kalender ringkas (tablet) kini menampilkan ikon status; titik pekan dashboard punya
+  tooltip teks.
+- Bug lama diperbaiki: tombol mata kata sandi dan tombol hapus foto yang ter-offset karena "relative" bawaan Button.
+- Uji regresi kontras ditambah 4 pasangan (success/success-soft, warning/surface, warning/warning-soft,
+  tone-rose-fg/danger-soft).
+Bukti uji:
+- Regex kelas warna mentah di src/components + src/app (tanpa templates): 0 kecocokan.
+- tests/e2e/theme-screens.mjs (next start, fixture, data diisi lewat UI: 5 konten, 2 ide, 1 desain berfoto):
+  126/126 langkah lulus, tanpa galat konsol/halaman/HTTP. 116 screenshot di test-results/theme-screens/
+  (terang+gelap x 1280x800 + 834x1112 x 29 halaman/state: login, empty state, dashboard, insights, kalender bulan &
+  minggu, daftar/detail/baru konten, ide, studio, editor Studio, pengaturan, integrasi, showcase, not-found, drawer,
+  dialog arsip, dialog Tandai Terbit, toast, menu akun, galat validasi).
+- Audit kontras otomatis 3.626 elemen teks per tema: terang 23 -> 0 kegagalan, gelap 28 (+29 teks grafik) -> 0.
+- Screenshot gelap diperiksa manual (semua halaman 1280; dashboard, kalender, konten, Studio, drawer ide,
+  pengaturan di 834).
+- npm run check: 22 file / 450 uji lulus; npm run build lulus.
+Hasil: kriteria "Selesai jika" MT-02 terpenuhi.
+Kendala/keputusan: warna hex di grafik (heatmap, meter, ring, batang/garis mingguan, donut) dan dekorasi login
+  sengaja ditinggalkan untuk MT-03. Belum ada token tone teal/sky; chip KPI teal memakai color-mix.
+Langkah berikutnya: MT-03.
+```

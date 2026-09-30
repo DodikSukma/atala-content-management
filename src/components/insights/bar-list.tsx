@@ -78,7 +78,7 @@ export function BarList({
                     {isEmpty ? null : <span className="ml-1 text-xs text-ink-muted">· {item.share}%</span>}
                   </span>
                 </span>
-                <span aria-hidden="true" className={cn("relative block w-full rounded-full bg-slate-100", compact ? "h-2" : "h-2.5")}>
+                <span aria-hidden="true" className={cn("relative block w-full rounded-full bg-chart-track", compact ? "h-2" : "h-2.5")}>
                   <motion.span
                     className="absolute inset-y-0 left-0 block rounded-full"
                     style={{ background: color }}

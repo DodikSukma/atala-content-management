@@ -65,7 +65,7 @@ Tambahan khusus paket ini:
 
   Bergantung pada build baseline lulus.
 
-- [ ] **MT-02 — Migrasi komponen dan halaman ke token.**
+- [x] **MT-02 — Migrasi komponen dan halaman ke token.**
   - Saat dokumen ini ditulis ada ± 160 kelas warna mentah (`bg-white`, `text-slate-*`, `border-gray-*`, dan sejenisnya) di `src/components` dan `src/app` di luar template. Ganti semuanya dengan kelas token semantik.
   - Periksa setiap bagian:
     - UI dasar di `src/components/ui/`;

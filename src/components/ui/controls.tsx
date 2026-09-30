@@ -93,7 +93,7 @@ export function Checkbox({ label, checked, onChange, id, disabled, name, descrip
           onChange={(event) => onChange(event.target.checked)}
           className={cn(
             "peer size-5 cursor-[inherit] appearance-none rounded-md border border-line-strong bg-surface shadow-xs",
-            "transition-colors duration-150 group-hover:border-slate-400",
+            "transition-colors duration-150 group-hover:border-ink-muted/60",
             "checked:border-brand checked:bg-brand group-hover:checked:border-brand-hover group-hover:checked:bg-brand-hover",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
           )}
@@ -101,7 +101,7 @@ export function Checkbox({ label, checked, onChange, id, disabled, name, descrip
         <Check
           size={14}
           strokeWidth={3}
-          className="pointer-events-none absolute inset-0 m-auto text-white opacity-0 transition-opacity duration-150 peer-checked:opacity-100"
+          className="pointer-events-none absolute inset-0 m-auto text-on-brand opacity-0 transition-opacity duration-150 peer-checked:opacity-100"
           aria-hidden="true"
         />
       </span>
@@ -186,8 +186,8 @@ export function ChipToggleGroup<T extends string>({
                   checked
                     ? "border-brand bg-brand-soft text-brand"
                     : error
-                      ? "border-danger bg-surface text-ink-soft hover:bg-slate-50"
-                      : "border-line-strong bg-surface text-ink-soft hover:border-slate-400 hover:text-ink",
+                      ? "border-danger bg-surface text-ink-soft hover:bg-surface-2"
+                      : "border-line-strong bg-surface text-ink-soft hover:border-ink-muted/60 hover:text-ink",
                 )}
               >
                 {checked ? <Check size={14} strokeWidth={2.5} aria-hidden="true" /> : null}
@@ -232,7 +232,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn("inline-flex max-w-full rounded-control border border-line bg-slate-100/80 p-1", className)}
+      className={cn("inline-flex max-w-full rounded-control border border-line bg-surface-2 p-1", className)}
     >
       {options.map((option) => {
         const Icon = option.icon;
@@ -253,7 +253,8 @@ export function SegmentedControl<T extends string>({
                 "transition-[background-color,color,box-shadow] duration-150",
                 "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-1 peer-focus-visible:outline-brand",
                 size === "sm" ? "h-7 px-2.5 text-xs" : "h-8 px-3.5 text-[13px]",
-                checked ? "bg-surface text-brand shadow-sm" : "text-ink-soft hover:text-ink",
+                // Tema gelap: surface lebih gelap dari trek surface-2, jadi pil terpilih memakai line agar tetap menonjol.
+                checked ? "bg-surface text-brand shadow-sm dark:bg-line" : "text-ink-soft hover:text-ink",
               )}
             >
               {Icon ? <Icon size={size === "sm" ? 14 : 16} aria-hidden="true" /> : null}

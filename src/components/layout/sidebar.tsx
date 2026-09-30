@@ -46,7 +46,7 @@ function collapsedOnly(tabletCollapsed: boolean, desktopCollapsed: boolean): str
 
 const TOOLTIP =
   "pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 " +
-  "text-xs font-semibold text-white opacity-0 shadow-raised transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100";
+  "text-xs font-semibold text-surface opacity-0 shadow-raised transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100";
 
 export function Sidebar({ desktopCollapsed, tabletExpanded, mobileOpen, onNavigate, onClose, ref }: SidebarProps) {
   const pathname = usePathname() ?? "";
@@ -84,7 +84,7 @@ export function Sidebar({ desktopCollapsed, tabletExpanded, mobileOpen, onNaviga
             width={40}
             height={40}
             priority
-            className="size-10 shrink-0 rounded-xl border border-line bg-white object-contain p-0.5"
+            className="size-10 shrink-0 rounded-xl border border-line bg-surface object-contain p-0.5 dark:bg-ink"
           />
           <span className={cn("flex min-w-0 flex-col leading-tight", showWhenExpanded)}>
             <span className="truncate text-[15px] font-extrabold tracking-tight text-ink">{APP_NAME}</span>
@@ -97,7 +97,7 @@ export function Sidebar({ desktopCollapsed, tabletExpanded, mobileOpen, onNaviga
             onClick={onClose}
             aria-label="Tutup menu"
             title="Tutup menu"
-            className="ml-auto inline-flex size-9 shrink-0 items-center justify-center rounded-control text-ink-soft transition-colors duration-150 hover:bg-slate-100 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand md:hidden"
+            className="ml-auto inline-flex size-9 shrink-0 items-center justify-center rounded-control text-ink-soft transition-colors duration-150 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand md:hidden"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -122,7 +122,7 @@ export function Sidebar({ desktopCollapsed, tabletExpanded, mobileOpen, onNaviga
                     "group relative isolate flex h-11 items-center gap-3 rounded-control px-4 text-sm font-semibold",
                     "transition-[background-color,color] duration-150 ease-out",
                     "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand",
-                    active ? "text-brand" : "text-ink-soft hover:bg-slate-100 hover:text-ink",
+                    active ? "text-brand" : "text-ink-soft hover:bg-surface-2 hover:text-ink",
                   )}
                 >
                   {active ? (
@@ -156,7 +156,7 @@ export function Sidebar({ desktopCollapsed, tabletExpanded, mobileOpen, onNaviga
 
       <div className="shrink-0 border-t border-line p-3">
         <div
-          className="group relative flex items-start gap-2.5 rounded-control bg-slate-50 px-[17px] py-3 text-ink-soft"
+          className="group relative flex items-start gap-2.5 rounded-control bg-canvas px-[17px] py-3 text-ink-soft"
         >
           <CalendarClock size={18} className="mt-px shrink-0 text-brand" aria-hidden="true" />
           <p className={cn("min-w-0 text-xs leading-relaxed", showWhenExpanded)}>

@@ -13,12 +13,12 @@ import { cn } from "@/lib/cn";
 export const CONTROL_CLASSES =
   "w-full rounded-control border bg-surface text-sm text-ink shadow-xs placeholder:text-ink-muted " +
   "transition-[border-color,box-shadow,background-color] duration-150 ease-out " +
-  "hover:border-slate-400 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ring/40 " +
-  "disabled:cursor-not-allowed disabled:border-line disabled:bg-slate-50 disabled:text-ink-muted";
+  "hover:border-ink-muted/60 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ring/40 " +
+  "disabled:cursor-not-allowed disabled:border-line disabled:bg-canvas disabled:text-ink-muted";
 
 export function controlStateClasses(invalid?: boolean): string {
   return invalid
-    ? "border-danger hover:border-danger focus-visible:border-danger focus-visible:ring-red-200"
+    ? "border-danger hover:border-danger focus-visible:border-danger focus-visible:ring-danger/25"
     : "border-line-strong";
 }
 

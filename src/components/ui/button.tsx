@@ -7,16 +7,27 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const BASE =
-  "relative inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-control font-semibold " +
+  "inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-control font-semibold " +
   "transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand " +
   "active:translate-y-px disabled:pointer-events-none disabled:opacity-55 aria-disabled:pointer-events-none aria-disabled:opacity-55";
 
+/**
+ * `relative` hanya bila pemanggil tidak memosisikan tombol sendiri. cn() tidak menggabungkan
+ * kelas yang bentrok, dan di CSS Tailwind `relative` muncul setelah `absolute`, sehingga
+ * tombol ber-`absolute` (mis. tombol mata kata sandi) jatuh ke bawah kolom isian.
+ */
+function position(className?: string): string {
+  return className && /(^|\s)(absolute|fixed|sticky)(\s|$)/.test(className) ? "" : "relative";
+}
+
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white shadow-sm shadow-blue-600/20 hover:bg-brand-hover",
-  secondary: "border border-line-strong bg-surface text-ink shadow-xs hover:border-slate-400 hover:bg-slate-50",
-  ghost: "text-ink-soft hover:bg-slate-100 hover:text-ink",
-  danger: "bg-danger text-white shadow-sm shadow-red-600/20 hover:bg-red-700 focus-visible:outline-danger",
+  primary: "bg-brand text-on-brand shadow-sm shadow-brand/20 hover:bg-brand-hover",
+  secondary: "border border-line-strong bg-surface text-ink shadow-xs hover:border-ink-muted/60 hover:bg-surface-2",
+  ghost: "text-ink-soft hover:bg-surface-2 hover:text-ink",
+  // Hover danger: campur 12% ink, jadi lebih gelap di tema terang dan lebih terang di tema gelap (seperti brand-hover).
+  danger:
+    "bg-danger text-on-danger shadow-sm shadow-danger/20 hover:bg-[color-mix(in_oklab,var(--color-danger),var(--color-ink)_12%)] focus-visible:outline-danger",
 };
 
 const SIZES: Record<ButtonSize, string> = {
@@ -36,7 +47,7 @@ export function buttonClasses({
   size?: ButtonSize;
   className?: string;
 } = {}): string {
-  return cn(BASE, VARIANTS[variant], SIZES[size], className);
+  return cn(position(className), BASE, VARIANTS[variant], SIZES[size], className);
 }
 
 export type ButtonProps = ComponentProps<"button"> & {
@@ -112,6 +123,7 @@ export function IconButton({ icon: Icon, label, variant = "ghost", size = "md", 
       aria-label={label}
       title={title ?? label}
       className={cn(
+        position(className),
         BASE,
         variant === "ghost" ? VARIANTS.ghost : VARIANTS.secondary,
         size === "sm" ? "size-8" : "size-10",

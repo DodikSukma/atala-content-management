@@ -35,7 +35,7 @@ export function WeekView({ columns, slotHints, isOverdue, onOpenContent, addHref
                   aria-current={day.isToday ? "date" : undefined}
                   className={cn(
                     "mt-0.5 inline-flex items-center rounded-full text-sm font-semibold tabular-nums",
-                    day.isToday ? "bg-brand px-2 text-white" : "text-ink",
+                    day.isToday ? "bg-brand px-2 text-on-brand" : "text-ink",
                   )}
                 >
                   {formatDayMonth(day.date)}

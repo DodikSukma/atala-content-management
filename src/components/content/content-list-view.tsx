@@ -175,7 +175,7 @@ export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: 
             aria-label="Cari judul, hook, caption, atau tag"
             placeholder="Cari judul, hook, caption, tag"
             maxLength={120}
-            className="h-10 w-full rounded-control border border-line-strong bg-surface pl-9 pr-9 text-sm text-ink shadow-xs placeholder:text-ink-muted transition-[border-color,box-shadow] duration-150 hover:border-slate-400 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ring/40 [&::-webkit-search-cancel-button]:hidden"
+            className="h-10 w-full rounded-control border border-line-strong bg-surface pl-9 pr-9 text-sm text-ink shadow-xs placeholder:text-ink-muted transition-[border-color,box-shadow] duration-150 hover:border-ink-muted/60 focus-visible:border-brand focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ring/40 [&::-webkit-search-cancel-button]:hidden"
           />
           {q ? (
             <button
@@ -185,7 +185,7 @@ export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: 
                 navigate({ q: "" });
               }}
               aria-label="Hapus pencarian"
-              className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-muted hover:bg-slate-100 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
+              className="absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-ink-muted hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
             >
               <X size={15} aria-hidden="true" />
             </button>
@@ -355,7 +355,7 @@ export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: 
         >
           <table className="w-full table-fixed border-collapse text-left text-sm">
             <caption className="sr-only">Daftar konten</caption>
-            <thead className="border-b border-line bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+            <thead className="border-b border-line bg-surface-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
               <tr>
                 <th scope="col" className="px-4 py-3">
                   Judul
@@ -474,8 +474,8 @@ function ContentRow({
   return (
     <tr
       className={cn(
-        "animate-rise-in align-top transition-colors duration-150 hover:bg-slate-50/70",
-        archived && "bg-slate-50/60 text-ink-soft",
+        "animate-rise-in align-top transition-colors duration-150 hover:bg-surface-2",
+        archived && "bg-surface-2/60 text-ink-soft",
       )}
       style={{ animationDelay: `${Math.min(index, 12) * 25}ms` }}
     >

@@ -46,7 +46,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {mode === "unconfigured" ? (
             <div
               role="status"
-              className="mb-5 flex items-start gap-2.5 rounded-control border border-amber-200 bg-warning-soft px-3.5 py-3 text-sm text-amber-900"
+              className="mb-5 flex items-start gap-2.5 rounded-control border border-tone-amber-ring bg-warning-soft px-3.5 py-3 text-sm text-tone-amber-fg"
             >
               <TriangleAlert size={18} className="mt-px shrink-0 text-warning" aria-hidden="true" />
               <span>{CONFIG_ERROR_MESSAGE}</span>
@@ -56,7 +56,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <LoginForm next={next === "/dashboard" ? "" : next} disabled={mode === "unconfigured"} />
 
           {mode === "demo" ? (
-            <p className="mt-6 flex items-start gap-2 rounded-control border border-dashed border-line-strong bg-slate-50 px-3.5 py-2.5 text-xs leading-relaxed text-ink-soft">
+            <p className="mt-6 flex items-start gap-2 rounded-control border border-dashed border-line-strong bg-surface-2 px-3.5 py-2.5 text-xs leading-relaxed text-ink-soft">
               <Info size={16} className="mt-px shrink-0 text-ink-muted" aria-hidden="true" />
               <span>
                 Mode demo lokal: <span className="font-semibold text-ink">{DEMO_USERNAME}</span> /{" "}

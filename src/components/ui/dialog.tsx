@@ -52,7 +52,7 @@ export function Dialog({
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6">
       <div
-        className="absolute inset-0 animate-fade-in bg-slate-900/45 backdrop-blur-[2px]"
+        className="absolute inset-0 animate-fade-in bg-overlay backdrop-blur-[2px]"
         aria-hidden="true"
         onMouseDown={close}
       />
@@ -83,7 +83,7 @@ export function Dialog({
         </div>
         {children ? <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 text-sm text-ink">{children}</div> : null}
         {footer ? (
-          <div className="flex flex-wrap items-center justify-end gap-3 rounded-b-card border-t border-line bg-slate-50/70 px-6 py-4">
+          <div className="flex flex-wrap items-center justify-end gap-3 rounded-b-card border-t border-line bg-canvas/70 px-6 py-4">
             {footer}
           </div>
         ) : null}

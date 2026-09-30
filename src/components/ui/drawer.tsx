@@ -45,7 +45,7 @@ export function Drawer({
 
   return createPortal(
     <div className="fixed inset-0 z-[60]">
-      <div className="absolute inset-0 animate-fade-in bg-slate-900/35" aria-hidden="true" onMouseDown={close} />
+      <div className="absolute inset-0 animate-fade-in bg-overlay/80" aria-hidden="true" onMouseDown={close} />
       <div
         ref={panelRef}
         role="dialog"

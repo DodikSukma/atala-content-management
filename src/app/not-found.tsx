@@ -17,7 +17,7 @@ export default function NotFound() {
             alt=""
             width={44}
             height={44}
-            className="size-11 rounded-xl border border-line bg-white object-contain p-0.5"
+            className="size-11 rounded-xl border border-line bg-surface object-contain p-0.5 dark:bg-ink"
           />
           <div className="text-left leading-tight">
             <p className="text-[15px] font-extrabold tracking-tight text-ink">{APP_NAME}</p>

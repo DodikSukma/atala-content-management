@@ -40,7 +40,7 @@ export default function StudioEditorLoading() {
             ))}
           </div>
         </div>
-        <div className="flex h-[calc(100dvh-15rem)] min-h-[380px] items-center justify-center rounded-card border border-line bg-slate-100/80 shadow-card">
+        <div className="flex h-[calc(100dvh-15rem)] min-h-[380px] items-center justify-center rounded-card border border-line bg-surface-2/80 shadow-card">
           <Skeleton className="aspect-square w-[min(60%,420px)]" />
         </div>
         <div className="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 shadow-card">

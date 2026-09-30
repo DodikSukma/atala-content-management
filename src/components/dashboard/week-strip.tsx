@@ -41,6 +41,8 @@ export function WeekStrip({ days, today, className }: { days: DayCell[]; today: 
               <Link
                 href={`/calendar?view=week&date=${day.date}`}
                 aria-label={label}
+                // Titik status hanya berwarna; rincian status tersedia sebagai teks di tooltip.
+                title={breakdown || undefined}
                 aria-current={day.isToday ? "date" : undefined}
                 className={cn(
                   "flex h-full min-h-[104px] flex-col items-center gap-1 rounded-control border px-1 py-3 text-center transition-colors duration-150",

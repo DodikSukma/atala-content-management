@@ -50,7 +50,7 @@ function RibbonArt({ className }: { className?: string }) {
 export function BrandMarkLogo({ size = 48 }: { size?: number }) {
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-white shadow-card ring-1 ring-line"
+      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-surface shadow-card ring-1 ring-line dark:bg-ink"
       style={{ width: size, height: size }}
     >
       <Image
@@ -71,7 +71,7 @@ export function BrandPanel({ className }: { className?: string }) {
     <aside
       aria-label="Tentang Atala Konten"
       className={cn(
-        "relative flex-col justify-between overflow-hidden border-r border-line bg-linear-to-br from-[#EFF6FF] via-[#F6F9FF] to-white px-12 py-12 xl:px-16",
+        "relative flex-col justify-between overflow-hidden border-r border-line bg-linear-to-br from-brand-soft via-canvas to-surface px-12 py-12 xl:px-16",
         className,
       )}
     >
@@ -90,7 +90,7 @@ export function BrandPanel({ className }: { className?: string }) {
         <ul className="mt-9 space-y-5">
           {FEATURES.map(({ icon: Icon, title, description }) => (
             <li key={title} className="flex items-start gap-4">
-              <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-control bg-white text-brand shadow-card ring-1 ring-line">
+              <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-control bg-surface text-brand shadow-card ring-1 ring-line">
                 <Icon size={20} aria-hidden="true" />
               </span>
               <span className="min-w-0">

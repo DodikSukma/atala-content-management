@@ -64,11 +64,11 @@ export const TemplateGallery = memo(function TemplateGallery({
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
                   active
                     ? "border-brand bg-brand-soft text-brand"
-                    : "border-line-strong bg-surface text-ink-soft hover:border-slate-400 hover:text-ink",
+                    : "border-line-strong bg-surface text-ink-soft hover:border-ink-muted/60 hover:text-ink",
                 )}
               >
                 {group === ALL ? "Semua" : templateGroupLabel(group)}
-                <span className={cn("tabular-nums", active ? "text-brand/80" : "text-ink-muted")}>{count}</span>
+                <span className={cn("tabular-nums", active ? "text-brand" : "text-ink-muted")}>{count}</span>
               </button>
             );
           })}
@@ -94,8 +94,8 @@ export const TemplateGallery = memo(function TemplateGallery({
                   selected ? "border-brand ring-2 ring-brand-ring" : "border-line hover:border-line-strong",
                 )}
               >
-                <span className="relative flex items-center justify-center bg-slate-100 px-2 py-2.5">
-                  <span className="overflow-hidden rounded-[6px] shadow-sm ring-1 ring-black/5">
+                <span className="relative flex items-center justify-center bg-surface-2 px-2 py-2.5">
+                  <span className="overflow-hidden rounded-[6px] shadow-sm ring-1 ring-line">
                     <ScaledTemplate
                       template={template}
                       text={renderText(template, {})}
@@ -105,7 +105,7 @@ export const TemplateGallery = memo(function TemplateGallery({
                     />
                   </span>
                   {selected ? (
-                    <span className="absolute right-1.5 top-1.5 inline-flex size-6 items-center justify-center rounded-full bg-brand text-white shadow-sm">
+                    <span className="absolute right-1.5 top-1.5 inline-flex size-6 items-center justify-center rounded-full bg-brand text-on-brand shadow-sm">
                       <Check size={14} aria-hidden="true" />
                     </span>
                   ) : null}
@@ -116,7 +116,7 @@ export const TemplateGallery = memo(function TemplateGallery({
                   <span
                     className={cn(
                       "mt-auto w-fit rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                      group === "infografis" ? "bg-violet-50 text-violet-700" : "bg-slate-100 text-ink-soft",
+                      group === "infografis" ? "bg-tone-violet-bg text-tone-violet-fg" : "bg-surface-2 text-ink-soft",
                     )}
                   >
                     {templateGroupLabel(group)}

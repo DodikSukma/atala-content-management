@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import { STATUS_ICONS } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { FORMAT_SHORT_LABELS, STATUS_LABELS, STATUS_TONES, type ContentStatus } from "@/lib/constants";
 import { planDateOf } from "@/lib/planning";
@@ -9,15 +10,15 @@ import type { Content } from "@/lib/validation/schemas";
 
 type Tone = (typeof STATUS_TONES)[ContentStatus];
 
-/** Warna status halus; selalu dipasangkan dengan label teks. */
+/** Warna status halus (token nada tema); selalu dipasangkan dengan label teks. */
 const TONE_CLASSES: Record<Tone, { border: string; dot: string; text: string }> = {
-  slate: { border: "border-l-slate-400", dot: "bg-slate-400", text: "text-slate-600" },
-  violet: { border: "border-l-violet-500", dot: "bg-violet-500", text: "text-violet-700" },
-  amber: { border: "border-l-amber-500", dot: "bg-amber-500", text: "text-amber-700" },
-  sky: { border: "border-l-sky-500", dot: "bg-sky-500", text: "text-sky-700" },
-  blue: { border: "border-l-blue-600", dot: "bg-blue-600", text: "text-blue-700" },
-  emerald: { border: "border-l-emerald-600", dot: "bg-emerald-600", text: "text-emerald-700" },
-  rose: { border: "border-l-rose-500", dot: "bg-rose-500", text: "text-rose-700" },
+  slate: { border: "border-l-tone-slate-fg", dot: "bg-tone-slate-fg", text: "text-tone-slate-fg" },
+  violet: { border: "border-l-tone-violet-fg", dot: "bg-tone-violet-fg", text: "text-tone-violet-fg" },
+  amber: { border: "border-l-tone-amber-fg", dot: "bg-tone-amber-fg", text: "text-tone-amber-fg" },
+  sky: { border: "border-l-tone-sky-fg", dot: "bg-tone-sky-fg", text: "text-tone-sky-fg" },
+  blue: { border: "border-l-tone-blue-fg", dot: "bg-tone-blue-fg", text: "text-tone-blue-fg" },
+  emerald: { border: "border-l-tone-emerald-fg", dot: "bg-tone-emerald-fg", text: "text-tone-emerald-fg" },
+  rose: { border: "border-l-tone-rose-fg", dot: "bg-tone-rose-fg", text: "text-tone-rose-fg" },
 };
 
 export function toneOf(status: ContentStatus) {
@@ -48,23 +49,29 @@ export function CalendarCard({ content, overdue, variant, onOpen, dimmed }: Cale
   const tone = toneOf(content.status);
   const time = cardTimeLabel(content);
   const label = accessibleLabel(content, overdue);
+  const StatusIcon = STATUS_ICONS[content.status];
 
   const base = cn(
-    "block w-full min-w-0 rounded-lg border border-line border-l-[3px] bg-surface text-left",
+    "block w-full min-w-0 rounded-lg border border-line border-l-[3px] text-left",
     "transition-[box-shadow,transform,border-color] duration-150 ease-out hover:-translate-y-px hover:shadow-card hover:border-line-strong",
     "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand",
     tone.border,
-    overdue && "bg-danger-soft/60",
-    dimmed && "opacity-70",
+    // Di luar bulan: latar kanvas (bukan opacity) agar teks tetap memenuhi AA di kedua tema.
+    overdue ? "bg-danger-soft/60" : dimmed ? "bg-canvas" : "bg-surface",
   );
 
   if (variant === "compact") {
     return (
       <button type="button" className={cn(base, "px-1.5 py-1")} onClick={() => onOpen(content.id)} aria-label={label} title={content.title}>
         <span className="flex min-w-0 items-center gap-1 text-[11px] leading-4">
-          {overdue ? <AlertTriangle aria-hidden size={12} className="shrink-0 text-danger" /> : null}
+          {overdue ? (
+            <AlertTriangle aria-hidden size={12} className="shrink-0 text-danger" />
+          ) : (
+            // Di bawah lg baris label status disembunyikan: ikon status menjaga status tidak hanya dibedakan warna.
+            <StatusIcon aria-hidden size={12} strokeWidth={2.25} className={cn("shrink-0 lg:hidden", tone.text)} />
+          )}
           <span className="shrink-0 tabular-nums text-ink-muted">{time}</span>
-          <span className="min-w-0 truncate font-medium text-ink">{content.title}</span>
+          <span className={cn("min-w-0 truncate font-medium", dimmed ? "text-ink-soft" : "text-ink")}>{content.title}</span>
         </span>
         <span className="mt-0.5 hidden min-w-0 items-center gap-1 text-[11px] leading-4 lg:flex">
           <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone.dot)} />

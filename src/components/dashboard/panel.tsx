@@ -28,7 +28,7 @@ export function DashboardPanel({
       aria-labelledby={labelledBy}
       className={cn(
         "flex h-full min-w-0 flex-col rounded-card border bg-surface p-5 shadow-card",
-        tone === "warning" ? "border-amber-200" : "border-line",
+        tone === "warning" ? "border-tone-amber-ring" : "border-line",
         className,
       )}
     >
@@ -59,13 +59,16 @@ export function DashboardPanel({
   );
 }
 
-/** Warna titik status — selalu didampingi teks/label di sekitarnya. */
+/**
+ * Warna titik status — selalu didampingi teks/label di sekitarnya. Memakai palet
+ * grafik (chart-*) dan success agar titik tetap cerah dan terbedakan di tema gelap.
+ */
 export const STATUS_DOT: Record<ContentStatus, string> = {
-  idea: "bg-slate-400",
-  draft: "bg-violet-500",
-  review: "bg-amber-500",
-  ready: "bg-sky-500",
-  scheduled: "bg-blue-600",
-  published: "bg-emerald-500",
-  cancelled: "bg-rose-500",
+  idea: "bg-chart-6",
+  draft: "bg-chart-4",
+  review: "bg-chart-3",
+  ready: "bg-chart-2",
+  scheduled: "bg-chart-1",
+  published: "bg-success",
+  cancelled: "bg-chart-5",
 };

@@ -120,7 +120,7 @@ export function PhotoPanel({
                       onClick={() => onActiveSlotChange(slot.slotId)}
                       aria-pressed={isTarget}
                       aria-label={`Jadikan ${slotLabel(slot.slotId)} tujuan foto`}
-                      className="relative size-12 shrink-0 overflow-hidden rounded-[10px] border border-line bg-slate-100"
+                      className="relative size-12 shrink-0 overflow-hidden rounded-[10px] border border-line bg-surface-2"
                     >
                       {photo?.src ? (
                         <img src={photo.src} alt="" className="size-full object-cover" draggable={false} />
@@ -208,7 +208,7 @@ export function PhotoPanel({
                       canUse && targetSlot ? `Pasang ${photo.name} ke ${slotLabel(targetSlot)}` : `${photo.name}: ${statusText(photo)}`
                     }
                     className={cn(
-                      "relative block aspect-square w-full overflow-hidden rounded-[10px] border bg-slate-100",
+                      "relative block aspect-square w-full overflow-hidden rounded-[10px] border bg-surface-2",
                       "transition-[border-color,box-shadow] duration-150 disabled:cursor-default",
                       inUse ? "border-brand ring-2 ring-brand-ring" : "border-line enabled:hover:border-line-strong",
                     )}
@@ -223,7 +223,7 @@ export function PhotoPanel({
                       />
                     ) : null}
                     {photo.status === "preparing" || photo.status === "uploading" ? (
-                      <span className="absolute inset-0 flex items-center justify-center bg-white/55">
+                      <span className="absolute inset-0 flex items-center justify-center bg-surface/55">
                         <LoaderCircle size={20} className="animate-spin text-brand motion-reduce:animate-none" aria-hidden="true" />
                       </span>
                     ) : null}
@@ -233,7 +233,7 @@ export function PhotoPanel({
                       </span>
                     ) : null}
                     {inUse ? (
-                      <span className="absolute left-1.5 top-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      <span className="absolute left-1.5 top-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-on-brand">
                         Dipakai
                       </span>
                     ) : null}
@@ -258,7 +258,7 @@ export function PhotoPanel({
                       aria-valuemin={0}
                       aria-valuemax={100}
                       aria-valuenow={Math.round(photo.progress * 100)}
-                      className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-200"
+                      className="mt-1 h-1.5 overflow-hidden rounded-full bg-line"
                     >
                       <div
                         className="h-full rounded-full bg-brand transition-[width] duration-200"

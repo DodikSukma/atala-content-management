@@ -31,7 +31,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         action={
           <Link
             href="/settings"
-            className="text-sm font-semibold text-red-900 underline underline-offset-2 hover:text-danger"
+            className="text-sm font-semibold text-tone-rose-fg underline underline-offset-2 hover:text-danger"
           >
             Lihat Pengaturan
           </Link>

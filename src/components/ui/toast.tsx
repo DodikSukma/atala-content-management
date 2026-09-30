@@ -90,7 +90,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
         onClick={() => onDismiss(toast.id)}
         aria-label="Tutup notifikasi"
         title="Tutup notifikasi"
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors duration-150 hover:bg-slate-100 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-brand"
       >
         <X size={16} aria-hidden="true" />
       </button>

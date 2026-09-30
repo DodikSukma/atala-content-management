@@ -156,7 +156,7 @@ export function ComponentGallery() {
               <li key={section.id}>
                 <a
                   href={`#${section.id}`}
-                  className="flex h-9 items-center rounded-lg px-3 text-sm font-medium text-ink-soft transition-colors duration-150 hover:bg-slate-100 hover:text-ink"
+                  className="flex h-9 items-center rounded-lg px-3 text-sm font-medium text-ink-soft transition-colors duration-150 hover:bg-surface-2 hover:text-ink"
                 >
                   {section.label}
                 </a>

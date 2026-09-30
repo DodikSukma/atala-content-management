@@ -72,7 +72,7 @@ export function PreviewStage({
           <span className="font-normal text-ink-muted"> · {FORMAT_LABELS[template.format]} px</span>
         </p>
         <div className="flex items-center gap-1">
-          <label className="mr-1 inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-ink-soft hover:bg-slate-100">
+          <label className="mr-1 inline-flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-ink-soft hover:bg-surface-2">
             <input
               type="checkbox"
               checked={showSafeArea}
@@ -104,8 +104,8 @@ export function PreviewStage({
       <div
         ref={areaRef}
         className={cn(
-          "relative min-h-0 flex-1 bg-slate-100/80",
-          "bg-[radial-gradient(circle,rgba(100,116,139,0.28)_1px,transparent_1.2px)] bg-[length:16px_16px]",
+          "relative min-h-0 flex-1 bg-surface-2/80",
+          "bg-[radial-gradient(circle,color-mix(in_srgb,var(--color-ink-muted)_28%,transparent)_1px,transparent_1.2px)] bg-[length:16px_16px]",
           manualZoom !== null ? "overflow-auto" : "overflow-hidden",
         )}
       >
@@ -115,7 +115,10 @@ export function PreviewStage({
             initial={reduce ? false : { opacity: 0, scale: 0.97, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={reduce ? { duration: 0 } : { duration: 0.32, ease: EASE_OUT_SOFT }}
-            className="shrink-0 overflow-hidden rounded-[4px] bg-white shadow-[0_18px_48px_-18px_rgba(15,23,42,0.35),0_2px_6px_rgba(15,23,42,0.08)] ring-1 ring-black/5"
+            className="shrink-0 overflow-hidden rounded-[4px] shadow-[0_18px_48px_-18px_rgba(15,23,42,0.35),0_2px_6px_rgba(15,23,42,0.08)] ring-1 ring-line"
+            // Kertas poster sengaja tetap putih di kedua tema: sama dengan latar cadangan
+            // ekspor (exportBackground di lib/studio/export.ts), jadi pratinjau = PNG.
+            style={{ backgroundColor: "white" }}
           >
             <div data-testid="studio-canvas" data-format={template.format} data-template-id={template.id}>
               <ScaledTemplate template={template} text={text} photos={photos} scale={scale} showSafeArea={showSafeArea} />

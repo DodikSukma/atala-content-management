@@ -21,11 +21,11 @@ export function DashboardHero({
   return (
     <section
       aria-labelledby="dashboard-greeting"
-      className="relative overflow-hidden rounded-card border border-blue-100 bg-linear-to-br from-blue-50 via-white to-sky-50 p-6 shadow-card animate-fade-in md:p-7"
+      className="relative overflow-hidden rounded-card border border-brand-ring/40 bg-linear-to-br from-brand-soft via-surface to-tone-sky-bg p-6 shadow-card animate-fade-in md:p-7"
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-blue-100/60 blur-3xl"
+        className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-brand-ring/15 blur-3xl"
       />
       <div className="relative flex flex-wrap items-end justify-between gap-5">
         <div className="min-w-0">

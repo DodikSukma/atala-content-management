@@ -7,16 +7,19 @@ import { StatCard } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import type { IdeaStats, PillarShare } from "./idea-utils";
 
-/** Warna segmen sebaran pilar; selalu disertai label teks di legenda. */
+/**
+ * Warna segmen sebaran pilar; selalu disertai label teks di legenda.
+ * Enam pertama = palet grafik kategorikal (berganti per tema); dua sisanya cadangan.
+ */
 const PILLAR_COLORS = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-amber-500",
-  "bg-violet-500",
-  "bg-sky-500",
-  "bg-rose-500",
-  "bg-atala-teal",
-  "bg-slate-400",
+  "bg-chart-1",
+  "bg-chart-2",
+  "bg-chart-3",
+  "bg-chart-4",
+  "bg-chart-5",
+  "bg-chart-6",
+  "bg-success",
+  "bg-tone-sky-fg",
 ];
 
 type IdeaOverviewProps = {

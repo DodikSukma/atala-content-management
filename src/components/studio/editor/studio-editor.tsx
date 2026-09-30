@@ -561,7 +561,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
         </InlineAlert>
       ) : null}
       {!missingSavedTemplate && !emptySlots.length && !warnings.length ? (
-        <p className="flex items-center gap-2 rounded-control border border-emerald-200 bg-success-soft px-3 py-2 text-xs font-medium text-emerald-800">
+        <p className="flex items-center gap-2 rounded-control border border-tone-emerald-ring bg-success-soft px-3 py-2 text-xs font-medium text-tone-emerald-fg">
           <CircleCheck size={14} aria-hidden="true" />
           Semua slot berfoto dan teks sesuai batas.
         </p>
@@ -727,7 +727,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
           </InlineAlert>
         ) : null}
         {exportState.status === "done" ? (
-          <p className="flex items-center gap-2 text-xs font-medium text-emerald-800" role="status">
+          <p className="flex items-center gap-2 text-xs font-medium text-success" role="status">
             <CircleCheck size={14} aria-hidden="true" />
             {exportState.fileName} diunduh ({exportWidth} × {exportHeight} px).
           </p>

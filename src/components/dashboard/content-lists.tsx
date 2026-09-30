@@ -76,7 +76,7 @@ export function OverdueList({ items, className }: { items: Content[]; className?
       {hasItems ? (
         <ul className="flex flex-col gap-2">
           {shown.map((c) => (
-            <li key={c.id} className="rounded-control border border-amber-200 bg-warning-soft px-3">
+            <li key={c.id} className="rounded-control border border-tone-amber-ring bg-warning-soft px-3">
               <ContentRow content={c} warning />
             </li>
           ))}

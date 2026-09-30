@@ -123,7 +123,7 @@ export function CropPanel({
             {src ? (
               <div className="flex items-start gap-3">
                 <div
-                  className="relative w-20 shrink-0 overflow-hidden rounded-[8px] border border-line bg-slate-100"
+                  className="relative w-20 shrink-0 overflow-hidden rounded-[8px] border border-line bg-surface-2"
                   style={{ aspectRatio: String(aspect) }}
                   aria-hidden="true"
                 >
@@ -176,7 +176,7 @@ export function CropPanel({
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2.5 rounded-[8px] bg-slate-50 px-3 py-2.5 text-xs text-ink-muted">
+              <div className="flex items-center gap-2.5 rounded-[8px] bg-surface-2 px-3 py-2.5 text-xs text-ink-muted">
                 <ImageOff size={16} className="shrink-0" aria-hidden="true" />
                 <span className="min-w-0 flex-1">Belum ada foto; grafis pengganti dipakai.</span>
                 {onGoToPhotos ? (

@@ -76,7 +76,7 @@ export function WeeklyChart({
           {ticks.map((t) => (
             <g key={t}>
               <line x1={m.left} x2={m.left + plotW} y1={y(t)} y2={y(t)} stroke={t === 0 ? VIZ.axis : VIZ.grid} strokeWidth={1} />
-              <text x={m.left - 8} y={y(t)} dy="0.32em" textAnchor="end" fontSize={11} fill={VIZ.inkMuted} className="tabular-nums">
+              <text x={m.left - 8} y={y(t)} dy="0.32em" textAnchor="end" fontSize={11} className="fill-ink-muted tabular-nums">
                 {Number.isInteger(t) ? t : t.toFixed(1)}
               </text>
             </g>
@@ -116,8 +116,7 @@ export function WeeklyChart({
                     textAnchor="middle"
                     fontSize={11}
                     fontWeight={600}
-                    fill={VIZ.inkSoft}
-                    className="tabular-nums"
+                    className="fill-ink-soft tabular-nums"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: revealed ? 1 : 0 }}
                     transition={reduce ? { duration: 0 } : { duration: 0.2, delay: 0.35 + Math.min(i * 0.04, 0.4) }}
@@ -132,7 +131,7 @@ export function WeeklyChart({
                     textAnchor="middle"
                     fontSize={11}
                     fontWeight={w.isCurrent ? 700 : 500}
-                    fill={w.isCurrent ? VIZ.ink : VIZ.inkMuted}
+                    className={w.isCurrent ? "fill-ink" : "fill-ink-muted"}
                   >
                     {w.isCurrent ? "Pekan ini" : formatDayMonth(w.weekStart)}
                   </text>
@@ -153,7 +152,7 @@ export function WeeklyChart({
           {target > 0 ? (
             <g pointerEvents="none">
               <line x1={m.left} x2={m.left + plotW} y1={y(target)} y2={y(target)} stroke={VIZ.reference} strokeWidth={1.5} />
-              <text x={m.left + plotW + 6} y={y(target)} dy="0.32em" fontSize={11} fontWeight={600} fill={VIZ.reference}>
+              <text x={m.left + plotW + 6} y={y(target)} dy="0.32em" fontSize={11} fontWeight={600} className="fill-ink-soft">
                 Target {target}
               </text>
             </g>

@@ -7,15 +7,23 @@ import { Meter } from "./meter";
 
 export type KpiTone = "blue" | "emerald" | "amber" | "rose" | "violet" | "sky" | "teal" | "slate";
 
+/**
+ * Chip ikon memakai token nada (tone-*), strip kiri memakai palet grafik
+ * (chart-*) agar tetap cerah dan terbaca di kedua tema. Teal tidak punya token
+ * nada: latarnya chart-2 tipis, ikonnya chart-2 dicampur ink agar kontras ≥ 3:1.
+ */
 const TONES: Record<KpiTone, { chip: string; bar: string }> = {
-  blue: { chip: "bg-blue-50 text-blue-600", bar: "bg-blue-500" },
-  emerald: { chip: "bg-emerald-50 text-emerald-600", bar: "bg-emerald-500" },
-  amber: { chip: "bg-amber-50 text-amber-600", bar: "bg-amber-500" },
-  rose: { chip: "bg-rose-50 text-rose-600", bar: "bg-rose-500" },
-  violet: { chip: "bg-violet-50 text-violet-600", bar: "bg-violet-500" },
-  sky: { chip: "bg-sky-50 text-sky-600", bar: "bg-sky-500" },
-  teal: { chip: "bg-teal-50 text-teal-600", bar: "bg-teal-500" },
-  slate: { chip: "bg-slate-100 text-slate-600", bar: "bg-slate-400" },
+  blue: { chip: "bg-tone-blue-bg text-tone-blue-fg", bar: "bg-chart-1" },
+  emerald: { chip: "bg-tone-emerald-bg text-tone-emerald-fg", bar: "bg-success" },
+  amber: { chip: "bg-tone-amber-bg text-tone-amber-fg", bar: "bg-chart-3" },
+  rose: { chip: "bg-tone-rose-bg text-tone-rose-fg", bar: "bg-chart-5" },
+  violet: { chip: "bg-tone-violet-bg text-tone-violet-fg", bar: "bg-chart-4" },
+  sky: { chip: "bg-tone-sky-bg text-tone-sky-fg", bar: "bg-chart-2" },
+  teal: {
+    chip: "bg-chart-2/10 text-[color-mix(in_oklab,var(--color-chart-2)_70%,var(--color-ink))]",
+    bar: "bg-chart-2",
+  },
+  slate: { chip: "bg-tone-slate-bg text-tone-slate-fg", bar: "bg-chart-6" },
 };
 
 /**

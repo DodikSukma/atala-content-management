@@ -15,13 +15,13 @@ import { STATUS_DESCRIPTIONS, STATUS_LABELS, STATUS_TONES, type ContentStatus } 
 export type BadgeTone = "slate" | "violet" | "amber" | "sky" | "blue" | "emerald" | "rose";
 
 const TONES: Record<BadgeTone, string> = {
-  slate: "bg-slate-100 text-slate-700 ring-slate-200",
-  violet: "bg-violet-50 text-violet-700 ring-violet-200",
-  amber: "bg-amber-50 text-amber-800 ring-amber-200",
-  sky: "bg-sky-50 text-sky-800 ring-sky-200",
-  blue: "bg-blue-50 text-blue-700 ring-blue-200",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  rose: "bg-rose-50 text-rose-700 ring-rose-200",
+  slate: "bg-tone-slate-bg text-tone-slate-fg ring-tone-slate-ring",
+  violet: "bg-tone-violet-bg text-tone-violet-fg ring-tone-violet-ring",
+  amber: "bg-tone-amber-bg text-tone-amber-fg ring-tone-amber-ring",
+  sky: "bg-tone-sky-bg text-tone-sky-fg ring-tone-sky-ring",
+  blue: "bg-tone-blue-bg text-tone-blue-fg ring-tone-blue-ring",
+  emerald: "bg-tone-emerald-bg text-tone-emerald-fg ring-tone-emerald-ring",
+  rose: "bg-tone-rose-bg text-tone-rose-fg ring-tone-rose-ring",
 };
 
 export type BadgeProps = {

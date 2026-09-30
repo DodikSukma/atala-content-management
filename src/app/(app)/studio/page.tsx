@@ -93,11 +93,11 @@ function FilterChip({ href, active, label, count }: { href: string; active: bool
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
         active
           ? "border-brand bg-brand-soft text-brand"
-          : "border-line-strong bg-surface text-ink-soft hover:border-slate-400 hover:text-ink",
+          : "border-line-strong bg-surface text-ink-soft hover:border-ink-muted/60 hover:text-ink",
       )}
     >
       {label}
-      <span className={cn("tabular-nums", active ? "text-brand/80" : "text-ink-muted")}>{count}</span>
+      <span className={cn("tabular-nums", active ? "text-brand" : "text-ink-muted")}>{count}</span>
     </Link>
   );
 }

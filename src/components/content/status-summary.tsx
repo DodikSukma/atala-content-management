@@ -9,23 +9,23 @@ import { filterHref, type ContentFilters, type StatusCounts } from "./filters";
 const ORDER: ContentStatus[] = [...STATUS_FLOW, "cancelled"];
 
 const TONE_ICON: Record<(typeof STATUS_TONES)[ContentStatus], string> = {
-  slate: "bg-slate-100 text-slate-600",
-  violet: "bg-violet-50 text-violet-600",
-  amber: "bg-amber-50 text-amber-700",
-  sky: "bg-sky-50 text-sky-700",
-  blue: "bg-blue-50 text-blue-600",
-  emerald: "bg-emerald-50 text-emerald-600",
-  rose: "bg-rose-50 text-rose-600",
+  slate: "bg-tone-slate-bg text-tone-slate-fg",
+  violet: "bg-tone-violet-bg text-tone-violet-fg",
+  amber: "bg-tone-amber-bg text-tone-amber-fg",
+  sky: "bg-tone-sky-bg text-tone-sky-fg",
+  blue: "bg-tone-blue-bg text-tone-blue-fg",
+  emerald: "bg-tone-emerald-bg text-tone-emerald-fg",
+  rose: "bg-tone-rose-bg text-tone-rose-fg",
 };
 
 const TONE_BAR: Record<(typeof STATUS_TONES)[ContentStatus], string> = {
-  slate: "bg-slate-400",
-  violet: "bg-violet-500",
-  amber: "bg-amber-500",
-  sky: "bg-sky-500",
-  blue: "bg-blue-500",
-  emerald: "bg-emerald-500",
-  rose: "bg-rose-400",
+  slate: "bg-tone-slate-fg",
+  violet: "bg-tone-violet-fg",
+  amber: "bg-tone-amber-fg",
+  sky: "bg-tone-sky-fg",
+  blue: "bg-tone-blue-fg",
+  emerald: "bg-tone-emerald-fg",
+  rose: "bg-tone-rose-fg",
 };
 
 function Chip({
@@ -116,7 +116,7 @@ export function StatusSummary({ counts, filters }: { counts: StatusCounts; filte
             label="Melewati jadwal"
             count={counts.overdue}
             title="Jadwal unggah sudah lewat tetapi belum ditandai terbit"
-            iconClass={counts.overdue > 0 ? "bg-danger-soft text-danger" : "bg-slate-100 text-slate-500"}
+            iconClass={counts.overdue > 0 ? "bg-danger-soft text-danger" : "bg-surface-2 text-ink-muted"}
             icon={TriangleAlert}
           />
         </StaggerItem>
@@ -125,7 +125,7 @@ export function StatusSummary({ counts, filters }: { counts: StatusCounts; filte
       {counts.total > 0 ? (
         <div>
           <div
-            className="flex h-2 w-full overflow-hidden rounded-full bg-slate-100"
+            className="flex h-2 w-full overflow-hidden rounded-full bg-chart-track"
             role="img"
             aria-label={`Sebaran status: ${segments
               .map((s) => `${STATUS_LABELS[s]} ${counts.byStatus[s]}`)

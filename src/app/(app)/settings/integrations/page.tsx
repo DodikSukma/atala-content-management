@@ -107,8 +107,8 @@ export default async function IntegrationsPage() {
                               key={key}
                               className={
                                 p.missingEnv.includes(key)
-                                  ? "rounded bg-rose-50 px-1 py-0.5 text-rose-700"
-                                  : "rounded bg-emerald-50 px-1 py-0.5 text-emerald-700"
+                                  ? "rounded bg-tone-rose-bg px-1 py-0.5 text-tone-rose-fg"
+                                  : "rounded bg-tone-emerald-bg px-1 py-0.5 text-tone-emerald-fg"
                               }
                               title={p.missingEnv.includes(key) ? "Belum diisi" : "Sudah diisi"}
                             >

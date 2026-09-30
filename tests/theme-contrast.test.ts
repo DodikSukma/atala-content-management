@@ -64,6 +64,10 @@ const PAIRS: [fg: string, bg: string][] = [
   ["on-danger", "danger"],
   ["danger", "surface"],
   ["success", "surface"],
+  ["success", "success-soft"],
+  ["warning", "surface"],
+  ["warning", "warning-soft"],
+  ["tone-rose-fg", "danger-soft"],
   ...(["slate", "violet", "amber", "sky", "blue", "emerald", "rose"] as const).map(
     (tone) => [`tone-${tone}-fg`, `tone-${tone}-bg`] as [string, string],
   ),

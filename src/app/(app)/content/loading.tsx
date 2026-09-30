@@ -31,7 +31,7 @@ export default function ContentLoading() {
         <Skeleton className="h-10 w-32" />
       </div>
       <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
-        <div className="border-b border-line bg-slate-50/80 px-4 py-3">
+        <div className="border-b border-line bg-surface-2 px-4 py-3">
           <Skeleton className="h-3 w-40" />
         </div>
         {Array.from({ length: 6 }, (_, i) => (

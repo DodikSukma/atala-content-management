@@ -55,7 +55,7 @@ export function AppHeader({ username, viewport, sidebarExpanded, onToggleSidebar
         title={label}
         aria-expanded={sidebarExpanded}
         aria-controls={SIDEBAR_ID}
-        className="inline-flex size-10 shrink-0 items-center justify-center rounded-control text-ink-soft transition-colors duration-150 hover:bg-slate-100 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+        className="inline-flex size-10 shrink-0 items-center justify-center rounded-control text-ink-soft transition-colors duration-150 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
       >
         <Icon size={20} aria-hidden="true" />
       </button>
@@ -79,7 +79,7 @@ export function AppHeader({ username, viewport, sidebarExpanded, onToggleSidebar
           aria-keyshortcuts="/"
           maxLength={120}
           className={cn(
-            "peer h-10 w-full rounded-control border border-line bg-slate-50 pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted lg:pr-10",
+            "peer h-10 w-full rounded-control border border-line bg-canvas pl-10 pr-3 text-sm text-ink placeholder:text-ink-muted lg:pr-10",
             "transition-[border-color,box-shadow,background-color] duration-150 hover:border-line-strong",
             "focus-visible:border-brand focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ring/40",
           )}

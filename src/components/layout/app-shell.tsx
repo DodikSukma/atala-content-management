@@ -153,7 +153,7 @@ export function AppShell({ username, notice, children }: AppShellProps) {
         aria-hidden="true"
         onClick={() => closeOverlay(true)}
         className={cn(
-          "fixed inset-0 z-[35] bg-slate-900/35 backdrop-blur-[1px] transition-opacity duration-200 desktop:hidden",
+          "fixed inset-0 z-[35] bg-overlay/80 backdrop-blur-[1px] transition-opacity duration-200 desktop:hidden",
           overlayOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />

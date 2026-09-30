@@ -49,7 +49,7 @@ export function StatusStepper({
                 className={cn(
                   "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
                   isCurrent
-                    ? "bg-brand text-white"
+                    ? "bg-brand text-on-brand"
                     : done
                       ? "bg-brand-soft text-brand"
                       : "border border-line-strong text-ink-muted",

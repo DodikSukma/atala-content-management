@@ -169,7 +169,7 @@ export function StatusPanel({
 
       <div className="mt-4 space-y-3 text-sm">
         {current === "published" ? (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-control bg-success-soft px-4 py-3 text-emerald-900">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-control bg-success-soft px-4 py-3 text-success">
             <span className="inline-flex items-center gap-1.5">
               <Send size={15} aria-hidden="true" className="text-success" />
               Terbit {content.publishedAt ? formatDateTime(content.publishedAt) : "(tanggal belum dicatat)"}
@@ -179,13 +179,13 @@ export function StatusPanel({
                 href={content.publishedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 underline-offset-2 hover:underline"
+                className="inline-flex items-center gap-1.5 font-semibold text-success underline-offset-2 hover:underline"
               >
                 Lihat unggahan
                 <ExternalLink size={14} aria-hidden="true" />
               </a>
             ) : (
-              <span className="text-emerald-800/80">URL unggahan belum dicatat.</span>
+              <span className="text-ink-soft">URL unggahan belum dicatat.</span>
             )}
           </div>
         ) : content.scheduledAt && current !== "cancelled" ? (

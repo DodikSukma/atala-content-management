@@ -44,7 +44,7 @@ export function ErrorState({ title = "Terjadi kesalahan", description, action, c
     <div
       role="alert"
       className={cn(
-        "flex flex-col items-center justify-center rounded-card border border-red-200 bg-surface px-6 py-12 text-center",
+        "flex flex-col items-center justify-center rounded-card border border-tone-rose-ring bg-surface px-6 py-12 text-center",
         className,
       )}
     >
@@ -61,7 +61,7 @@ export function ErrorState({ title = "Terjadi kesalahan", description, action, c
 // ---------- Skeleton ----------
 
 export function Skeleton({ className, style }: { className?: string; style?: CSSProperties }) {
-  return <div aria-hidden="true" style={style} className={cn("animate-pulse rounded-lg bg-slate-200/70", className)} />;
+  return <div aria-hidden="true" style={style} className={cn("animate-pulse rounded-lg bg-line/70", className)} />;
 }
 
 // ---------- Spinner ----------
@@ -80,10 +80,10 @@ export function Spinner({ size = 20, label = "Memuat", className }: { size?: num
 export type InlineAlertTone = "info" | "warning" | "error" | "success";
 
 const ALERT_TONES: Record<InlineAlertTone, { box: string; icon: string; Icon: LucideIcon }> = {
-  info: { box: "border-blue-200 bg-brand-soft text-blue-900", icon: "text-brand", Icon: Info },
-  warning: { box: "border-amber-200 bg-warning-soft text-amber-900", icon: "text-warning", Icon: TriangleAlert },
-  error: { box: "border-red-200 bg-danger-soft text-red-900", icon: "text-danger", Icon: CircleAlert },
-  success: { box: "border-emerald-200 bg-success-soft text-emerald-900", icon: "text-success", Icon: CircleCheck },
+  info: { box: "border-tone-blue-ring bg-brand-soft text-tone-blue-fg", icon: "text-brand", Icon: Info },
+  warning: { box: "border-tone-amber-ring bg-warning-soft text-tone-amber-fg", icon: "text-warning", Icon: TriangleAlert },
+  error: { box: "border-tone-rose-ring bg-danger-soft text-tone-rose-fg", icon: "text-danger", Icon: CircleAlert },
+  success: { box: "border-tone-emerald-ring bg-success-soft text-tone-emerald-fg", icon: "text-success", Icon: CircleCheck },
 };
 
 export type InlineAlertProps = {
@@ -104,7 +104,7 @@ export function InlineAlert({ tone, title, children, className, action }: Inline
       <Icon size={18} className={cn("mt-px shrink-0", icon)} aria-hidden="true" />
       <div className="min-w-0 flex-1 leading-relaxed">
         {title ? <p className="font-semibold">{title}</p> : null}
-        {children ? <div className={cn(title && "mt-0.5", "opacity-90")}>{children}</div> : null}
+        {children ? <div className={cn(title && "mt-0.5")}>{children}</div> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

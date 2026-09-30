@@ -92,7 +92,7 @@ export function WeekTargetStrip({ focus, weeks, overdueCount }: WeekTargetStripP
         {overdueCount > 0 ? (
           <Link
             href="/content?due=overdue"
-            className="inline-flex items-center gap-1.5 rounded-full bg-danger-soft px-3 py-1 font-medium text-danger hover:underline"
+            className="inline-flex items-center gap-1.5 rounded-full bg-danger-soft px-3 py-1 font-medium text-tone-rose-fg hover:underline"
           >
             <AlertTriangle aria-hidden size={16} />
             {overdueCount} terlambat

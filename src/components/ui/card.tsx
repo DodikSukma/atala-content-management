@@ -51,13 +51,14 @@ export function CardHeader({ title, description, action, className, as: Heading 
 
 export type StatTone = "blue" | "emerald" | "amber" | "rose" | "violet" | "sky";
 
+/** Chip memakai token nada; strip kiri memakai palet grafik, sama dengan KpiTile di dashboard. */
 const STAT_TONES: Record<StatTone, { chip: string; bar: string }> = {
-  blue: { chip: "bg-blue-50 text-blue-600", bar: "bg-blue-500" },
-  emerald: { chip: "bg-emerald-50 text-emerald-600", bar: "bg-emerald-500" },
-  amber: { chip: "bg-amber-50 text-amber-600", bar: "bg-amber-500" },
-  rose: { chip: "bg-rose-50 text-rose-600", bar: "bg-rose-500" },
-  violet: { chip: "bg-violet-50 text-violet-600", bar: "bg-violet-500" },
-  sky: { chip: "bg-sky-50 text-sky-600", bar: "bg-sky-500" },
+  blue: { chip: "bg-tone-blue-bg text-tone-blue-fg", bar: "bg-chart-1" },
+  emerald: { chip: "bg-tone-emerald-bg text-tone-emerald-fg", bar: "bg-success" },
+  amber: { chip: "bg-tone-amber-bg text-tone-amber-fg", bar: "bg-chart-3" },
+  rose: { chip: "bg-tone-rose-bg text-tone-rose-fg", bar: "bg-chart-5" },
+  violet: { chip: "bg-tone-violet-bg text-tone-violet-fg", bar: "bg-chart-4" },
+  sky: { chip: "bg-tone-sky-bg text-tone-sky-fg", bar: "bg-chart-2" },
 };
 
 export type StatCardProps = {

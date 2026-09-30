@@ -54,14 +54,14 @@ export function StudioSteps({
                     isCurrent
                       ? "border-brand bg-brand-soft text-brand"
                       : done
-                        ? "border-emerald-200 bg-success-soft text-emerald-800 hover:border-emerald-300"
+                        ? "border-tone-emerald-ring bg-success-soft text-tone-emerald-fg hover:border-success/50"
                         : "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink",
                   )}
                 >
                   <span
                     className={cn(
                       "inline-flex size-6 items-center justify-center rounded-full text-[11px] tabular-nums transition-colors duration-200",
-                      done ? "bg-success text-white" : isCurrent ? "bg-brand text-white" : "bg-slate-100 text-ink-soft",
+                      done ? "bg-success text-on-brand" : isCurrent ? "bg-brand text-on-brand" : "bg-surface-2 text-ink-soft",
                     )}
                     aria-hidden="true"
                   >

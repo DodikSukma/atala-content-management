@@ -51,9 +51,9 @@ export function LoginForm({ next, disabled = false }: LoginFormProps) {
           key={attempt}
           id={errorId}
           role="alert"
-          className="flex items-start gap-2.5 rounded-control border border-red-200 bg-danger-soft px-3.5 py-3 text-sm font-medium text-danger animate-fade-in"
+          className="flex items-start gap-2.5 rounded-control border border-tone-rose-ring bg-danger-soft px-3.5 py-3 text-sm font-medium text-tone-rose-fg animate-fade-in"
         >
-          <CircleAlert size={18} className="mt-px shrink-0" aria-hidden="true" />
+          <CircleAlert size={18} className="mt-px shrink-0 text-danger" aria-hidden="true" />
           <span>{error}</span>
         </div>
       ) : null}

@@ -48,7 +48,8 @@
   --color-on-danger: #ffffff;
   --color-success: #047857;
   --color-success-soft: #ecfdf5;
-  --color-warning: #d97706;
+  /* #b45309 (bukan #d97706): text-warning dipakai sebagai teks; 5.0 di surface, 4.8 di warning-soft. */
+  --color-warning: #b45309;
   --color-warning-soft: #fffbeb;
 
   /* Nada badge/status: latar, teks, garis. Status selalu disertai label/ikon, bukan warna saja. */

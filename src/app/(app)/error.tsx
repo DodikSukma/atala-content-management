@@ -42,7 +42,7 @@ export default function AppError({ error, retry, reset }: AppErrorProps) {
             </p>
             {error.digest ? (
               <p className="mt-2 text-xs text-ink-muted">
-                Kode referensi: <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-ink-soft">{error.digest}</code>
+                Kode referensi: <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-ink-soft">{error.digest}</code>
               </p>
             ) : null}
           </>

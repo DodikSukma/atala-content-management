@@ -71,7 +71,7 @@ export function MonthView({ cells, isOverdue, onOpenContent, onOpenDay, addHref,
                   aria-current={cell.isToday ? "date" : undefined}
                   className={cn(
                     "inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold tabular-nums",
-                    cell.isToday ? "bg-brand text-white" : cell.inMonth ? "text-ink" : "text-ink-muted/70",
+                    cell.isToday ? "bg-brand text-on-brand" : cell.inMonth ? "text-ink" : "text-ink-muted",
                   )}
                 >
                   {cell.dayOfMonth}
