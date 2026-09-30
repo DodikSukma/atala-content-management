@@ -110,7 +110,6 @@ export const TABLES: Record<TableName, TableSpec> = {
 
 export const SETTINGS_TAB = "Settings";
 export const SETTINGS_HEADERS = ["key", "value"] as const;
-export const SCHEMA_VERSION = "1";
 export const ALL_TABS = [...Object.values(TABLES).map((t) => t.tab), SETTINGS_TAB];
 
 /** Penanda nilai JSON rusak: skema akan menolaknya sehingga baris dilewati, bukan membuat daftar gagal. */
@@ -267,7 +266,10 @@ export function parseSettings(values: Record<string, string>): Settings {
   const rawUpdated = String(values.updatedAt ?? "").trim();
   const updatedAt = rawUpdated && !Number.isNaN(Date.parse(rawUpdated)) ? new Date(rawUpdated).toISOString() : EPOCH_ISO;
 
-  return { weeklyTarget, pillars, updatedAt };
+  const rawVersion = String(values.schemaVersion ?? "").trim();
+  const schemaVersion = /^d{1,4}$/.test(rawVersion) && Number(rawVersion) >= 1 ? Number(rawVersion) : 1;
+
+  return { weeklyTarget, pillars, updatedAt, schemaVersion };
 }
 
 export function serializeSettings(settings: Settings): Record<string, string> {
@@ -275,6 +277,7 @@ export function serializeSettings(settings: Settings): Record<string, string> {
     weeklyTarget: String(settings.weeklyTarget),
     pillars: JSON.stringify(settings.pillars),
     updatedAt: settings.updatedAt,
+    schemaVersion: String(settings.schemaVersion),
   };
 }
 

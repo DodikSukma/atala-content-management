@@ -232,6 +232,8 @@ export const settingsSchema = z.object({
   weeklyTarget: z.union([z.literal(3), z.literal(7)]),
   pillars: z.array(trimmed(60).min(1)).min(1).max(20),
   updatedAt: isoDateTime,
+  /** Versi skema data (F2-03). Data lama tanpa kunci ini = versi 1. */
+  schemaVersion: z.number().int().min(1),
 });
 export type Settings = z.infer<typeof settingsSchema>;
 

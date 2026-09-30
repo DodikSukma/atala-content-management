@@ -2,10 +2,20 @@ import { randomUUID } from "node:crypto";
 import type { z } from "zod";
 import type { TableBackend } from "@/lib/data/backend";
 import type { TableName } from "@/lib/data/sheets-mapping";
-import { parseSettings, serializeSettings } from "@/lib/data/sheets-mapping";
+import {
+  CURRENT_SCHEMA_VERSION,
+  SchemaVersionError,
+  changedRows,
+  migrateSnapshot,
+  parseSchemaVersion,
+  type DataSnapshot,
+  type SnapshotTables,
+} from "@/lib/data/migrations";
+import { TABLES, parseSettings, serializeSettings } from "@/lib/data/sheets-mapping";
 import {
   ConflictError,
   NotFoundError,
+  StorageError,
   type AssetMetaRepository,
   type ContentRepository,
   type DataStore,
@@ -347,6 +357,7 @@ export function createRepositoryStore(backend: TableBackend): DataStore {
           weeklyTarget: parsed.weeklyTarget,
           pillars: parsed.pillars,
           updatedAt: nextTimestamp(current.updatedAt),
+          schemaVersion: Math.max(current.schemaVersion, CURRENT_SCHEMA_VERSION),
         };
         await backend.writeSettings(serializeSettings(next));
         return next;
@@ -379,5 +390,82 @@ export function createRepositoryStore(backend: TableBackend): DataStore {
     },
   };
 
-  return { kind: backend.kind, contents, ideas, designs, assets, settings, integrationLogs };
+  // ---------- Versi skema & migrasi (F2-03) ----------
+
+  /**
+   * Dijalankan sekali per proses sebelum operasi pertama. Membaca tidak pernah
+   * menulis: data tanpa schemaVersion = versi 1. Bila versi tersimpan lebih lama,
+   * migrasi murni diterapkan ke baris yang berubah lalu versi baru dicatat.
+   * Versi yang lebih baru dari aplikasi ditolak agar downgrade tidak merusak data.
+   */
+  async function migrateIfNeeded(): Promise<void> {
+    await backend.withLock(async () => {
+      const stored = await backend.readSettings({ fresh: true });
+      let version: number;
+      try {
+        version = parseSchemaVersion(stored.schemaVersion);
+      } catch (error) {
+        throw new StorageError((error as Error).message, "UNAVAILABLE");
+      }
+      if (version === CURRENT_SCHEMA_VERSION) return;
+      if (version > CURRENT_SCHEMA_VERSION) {
+        throw new StorageError(
+        `Data memakai skema versi ${version}, sedangkan aplikasi ini baru mengenal versi ${CURRENT_SCHEMA_VERSION}. Perbarui aplikasi sebelum melanjutkan.`,
+          "UNAVAILABLE",
+        );
+      }
+      const names = Object.keys(TABLES) as TableName[];
+      const rows = await Promise.all(names.map((name) => backend.readRows(name, { fresh: true })));
+      const tables = Object.fromEntries(names.map((name, i) => [name, rows[i]])) as SnapshotTables;
+      const before: DataSnapshot = { tables, settings: stored };
+      let after: DataSnapshot;
+      try {
+        after = migrateSnapshot(before, version).snapshot;
+      } catch (error) {
+        if (error instanceof SchemaVersionError) throw new StorageError(error.message, "UNAVAILABLE", { cause: error });
+        throw error;
+      }
+      for (const change of changedRows(before, after)) {
+        await backend.updateRow(change.table, String(change.row.id), change.row);
+      }
+      await backend.writeSettings({ schemaVersion: String(CURRENT_SCHEMA_VERSION) });
+      console.info(`[data] Skema data dimigrasikan dari versi ${version} ke ${CURRENT_SCHEMA_VERSION}.`);
+    });
+  }
+
+  let ready: Promise<void> | null = null;
+  function ensureReady(): Promise<void> {
+    if (!ready) {
+      ready = migrateIfNeeded().catch((error) => {
+        ready = null; // coba lagi pada operasi berikutnya
+        throw error;
+      });
+    }
+    return ready;
+  }
+
+  /** Bungkus setiap metode repository agar menunggu migrasi selesai lebih dulu. */
+  function guarded<T extends object>(repo: T): T {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(repo)) {
+      out[key] =
+        typeof value === "function"
+          ? async (...args: unknown[]) => {
+              await ensureReady();
+              return (value as (...a: unknown[]) => unknown)(...args);
+            }
+          : value;
+    }
+    return out as T;
+  }
+
+  return {
+    kind: backend.kind,
+    contents: guarded(contents),
+    ideas: guarded(ideas),
+    designs: guarded(designs),
+    assets: guarded(assets),
+    settings: guarded(settings),
+    integrationLogs: guarded(integrationLogs),
+  };
 }

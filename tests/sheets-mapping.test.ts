@@ -199,23 +199,24 @@ describe("repository membaca baris Sheets", () => {
   it("pengaturan kosong memakai bawaan target 3 dan pilar awal", async () => {
     const store = createRepositoryStore(fakeBackend({}));
     const settings = await store.settings.get();
-    expect(settings).toEqual({ weeklyTarget: 3, pillars: [...DEFAULT_PILLARS], updatedAt: EPOCH_ISO });
+    expect(settings).toEqual({ weeklyTarget: 3, pillars: [...DEFAULT_PILLARS], updatedAt: EPOCH_ISO, schemaVersion: 1 });
   });
 });
 
 describe("tab Settings (key/value)", () => {
   it("parseSettings menangani nilai rusak dengan bawaan", () => {
-    expect(parseSettings({ weeklyTarget: "5", pillars: "bukan json" })).toEqual({
+    expect(parseSettings({ weeklyTarget: "5", pillars: "bukan json", schemaVersion: "rusak" })).toEqual({
       weeklyTarget: 3,
       pillars: [...DEFAULT_PILLARS],
       updatedAt: EPOCH_ISO,
+      schemaVersion: 1,
     });
     const parsed = parseSettings({
       weeklyTarget: "7",
       pillars: '["Edukasi","Tips","Tips"]',
       updatedAt: "2026-10-01T02:00:00.000Z",
     });
-    expect(parsed).toEqual({ weeklyTarget: 7, pillars: ["Edukasi", "Tips"], updatedAt: "2026-10-01T02:00:00.000Z" });
+    expect(parsed).toEqual({ weeklyTarget: 7, pillars: ["Edukasi", "Tips"], updatedAt: "2026-10-01T02:00:00.000Z", schemaVersion: 1 });
     expect(parseSettings(serializeSettings(parsed))).toEqual(parsed);
   });
 

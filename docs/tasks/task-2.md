@@ -172,7 +172,7 @@ export interface ImageAssist {
 
   Bergantung pada F2-01.
 
-- [ ] **F2-03 — Uji kontrak repository dan versi skema.**
+- [x] **F2-03 — Uji kontrak repository dan versi skema.**
   - Buat satu suite uji kontrak (`tests/contract/*.ts`) yang dijalankan untuk setiap adapter data (fixture sekarang; Sheets dengan mock HTTP; Postgres di F2-10).
   - Suite mencakup: CRUD, arsip/pulihkan, `ConflictError` pada `expectedUpdatedAt`/`expectedVersion`, urutan, dan validasi.
   - Tambahkan mekanisme versi skema data (`schemaVersion` di Settings) dan fungsi migrasi murni per versi, sehingga perubahan seperti Design v2 (F2-06) dapat dimigrasikan dengan aman.

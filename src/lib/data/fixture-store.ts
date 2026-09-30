@@ -3,7 +3,7 @@ import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { sharedMutex, type TableBackend } from "@/lib/data/backend";
 import { createRepositoryStore } from "@/lib/data/engine";
-import { SCHEMA_VERSION, type TableName } from "@/lib/data/sheets-mapping";
+import type { TableName } from "@/lib/data/sheets-mapping";
 import { NotFoundError, StorageError, type DataStore } from "@/lib/data/types";
 
 /**
@@ -24,7 +24,7 @@ interface FixtureFile {
 }
 
 function emptyFixture(): FixtureFile {
-  return { schemaVersion: SCHEMA_VERSION, contents: [], ideas: [], designs: [], assets: [], integrationLogs: [], settings: {} };
+  return { schemaVersion: "1", contents: [], ideas: [], designs: [], assets: [], integrationLogs: [], settings: {} };
 }
 
 export function defaultDataDir(): string {
@@ -79,8 +79,9 @@ export class FixtureBackend implements TableBackend {
     if (obj.settings && typeof obj.settings === "object") {
       for (const [k, v] of Object.entries(obj.settings)) settings[k] = typeof v === "string" ? v : JSON.stringify(v);
     }
+    if (!settings.schemaVersion && typeof obj.schemaVersion === "string") settings.schemaVersion = obj.schemaVersion;
     return {
-      schemaVersion: typeof obj.schemaVersion === "string" ? obj.schemaVersion : SCHEMA_VERSION,
+      schemaVersion: typeof obj.schemaVersion === "string" ? obj.schemaVersion : "1",
       contents: asRows(obj.contents),
       ideas: asRows(obj.ideas),
       designs: asRows(obj.designs),
@@ -142,7 +143,9 @@ export class FixtureBackend implements TableBackend {
 
   async writeSettings(values: Record<string, string>): Promise<void> {
     const data = await this.load();
-    data.settings = { ...data.settings, ...values, schemaVersion: SCHEMA_VERSION };
+    data.settings = { ...data.settings, ...values };
+    // Salinan versi di tingkat berkas hanya untuk dibaca manusia; sumber kebenaran = settings.schemaVersion.
+    if (data.settings.schemaVersion) data.schemaVersion = data.settings.schemaVersion;
     await this.save(data);
   }
 }

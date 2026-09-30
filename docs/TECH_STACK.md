@@ -123,6 +123,9 @@ UI boleh memakai server actions atau route handlers; pilih satu pola yang konsis
 - **Model tambahan:** `Content.sourceIdeaId` menautkan konten ke ide asalnya sehingga konversi ide tidak menggandakan data.
 - **Ekspor PNG:** node template ukuran asli (1080 px) dirender terpisah dari pratinjau berskala; `html-to-image` dipanggil setelah `document.fonts.ready` dan `img.decode()`, lalu dimensi hasil diverifikasi sebelum diunduh.
 
+- **Versi skema data (F2-03):** `Settings.schemaVersion` (data lama tanpa kunci = 1). `src/lib/data/migrations.ts` berisi migrasi murni per versi; `engine.ts` menjalankannya sekali per proses sebelum operasi pertama dan menolak data berversi lebih baru. Setiap adapter wajib lulus `tests/contract/`.
+- **Lapisan integrasi (F2-02):** semua layanan luar lewat `src/lib/integrations/`; lihat [INTEGRATIONS.md](./INTEGRATIONS.md).
+
 ## 8. Migrasi dan fase berikutnya
 
 - Saat volume/tim bertambah, ganti adapter Sheets dengan database relasional tanpa mengubah bentuk model dan komponen utama; migrasikan file Blob hanya bila penyimpanan baru diperlukan.

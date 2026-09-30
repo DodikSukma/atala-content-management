@@ -4,7 +4,6 @@ import { sharedMutex, type TableBackend } from "@/lib/data/backend";
 import { createRepositoryStore } from "@/lib/data/engine";
 import {
   ALL_TABS,
-  SCHEMA_VERSION,
   SETTINGS_HEADERS,
   SETTINGS_TAB,
   TABLES,
@@ -94,12 +93,19 @@ interface ValueRange {
   values?: Cell[][];
 }
 
+/** Dependensi yang dapat disuntikkan untuk uji (HTTP mock, token palsu). Produksi memakai bawaan. */
+export interface SheetsDeps {
+  fetch?: typeof fetch;
+  getToken?: () => Promise<string>;
+}
+
 class SheetsClient {
   private jwt: JWT | null = null;
 
   constructor(
     private readonly sheetId: string,
     private readonly credentialsRaw: string,
+    private readonly deps: SheetsDeps = {},
   ) {}
 
   private auth(): JWT {
@@ -111,6 +117,7 @@ class SheetsClient {
   }
 
   private async token(): Promise<string> {
+    if (this.deps.getToken) return this.deps.getToken();
     try {
       const { token } = await this.auth().getAccessToken();
       if (!token) throw new Error("token kosong");
@@ -141,7 +148,7 @@ class SheetsClient {
       const token = await this.token();
       let response: Response;
       try {
-        response = await fetch(url, {
+        response = await (this.deps.fetch ?? fetch)(url, {
           method,
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           body: body === undefined ? undefined : JSON.stringify(body),
@@ -241,8 +248,8 @@ export class SheetsBackend implements TableBackend {
   private schemaReady: Promise<void> | null = null;
   private cache = new Map<string, { at: number; value: Promise<Cell[][]> }>();
 
-  constructor(sheetId: string, credentialsRaw: string) {
-    this.client = new SheetsClient(sheetId, credentialsRaw);
+  constructor(sheetId: string, credentialsRaw: string, deps: SheetsDeps = {}) {
+    this.client = new SheetsClient(sheetId, credentialsRaw, deps);
     this.lock = sharedMutex(`sheets:${sheetId}`);
   }
 
@@ -279,12 +286,7 @@ export class SheetsBackend implements TableBackend {
       }
     }
 
-    const settingsRows = (await this.client.getValues(a1(SETTINGS_TAB))).values ?? [];
-    const settings = settingsRowsToMap(settingsRows);
-    if (settings.schemaVersion !== SCHEMA_VERSION) {
-      const rows = mergeSettingsRows(settingsRows, { schemaVersion: SCHEMA_VERSION });
-      await this.client.updateValues(a1(SETTINGS_TAB, `A1:${columnLetter(rows[0].length)}${rows.length}`), rows);
-    }
+    // Versi skema data dikelola runner migrasi di engine.ts (F2-03), bukan di sini.
     this.cache.clear();
   }
 
@@ -351,7 +353,7 @@ export class SheetsBackend implements TableBackend {
 
   async writeSettings(values: Record<string, string>): Promise<void> {
     const current = await this.readTab(SETTINGS_TAB, true);
-    const rows = mergeSettingsRows(current, { ...values, schemaVersion: SCHEMA_VERSION });
+    const rows = mergeSettingsRows(current, values);
     try {
       await this.client.updateValues(a1(SETTINGS_TAB, `A1:${columnLetter(rows[0].length)}${rows.length}`), rows);
     } finally {
@@ -360,6 +362,6 @@ export class SheetsBackend implements TableBackend {
   }
 }
 
-export function createSheetsStore(sheetId: string, credentialsRaw: string): DataStore {
-  return createRepositoryStore(new SheetsBackend(sheetId, credentialsRaw));
+export function createSheetsStore(sheetId: string, credentialsRaw: string, deps: SheetsDeps = {}): DataStore {
+  return createRepositoryStore(new SheetsBackend(sheetId, credentialsRaw, deps));
 }

@@ -83,3 +83,29 @@ Hasil: kriteria "Selesai jika" F2-02 terpenuhi.
 Kendala/keputusan: belum ada provider live; masing-masing ditambahkan di tugasnya (F2-08, F2-11, F2-17, F2-19, F2-22).
 Langkah berikutnya: F2-03.
 ```
+
+```text
+Tanggal (Asia/Makassar): 30 September 2026
+Tugas: F2-03
+Status: selesai
+Perubahan:
+- tests/contract/repository-contract.ts: satu suite kontrak (contents, ideas, designs, assets, settings,
+  integrationLogs) — CRUD, arsip/pulihkan, ConflictError pada expectedUpdatedAt/expectedVersion, urutan, validasi,
+  persistensi setelah store dibuka ulang. Dijalankan identik untuk fixture dan Google Sheets (HTTP mock).
+- tests/contract/fake-sheets.ts: server Sheets API v4 palsu di memori; SheetsBackend kini menerima dependensi
+  opsional { fetch, getToken } (produksi tetap memakai fetch + JWT service account).
+- src/lib/data/migrations.ts: CURRENT_SCHEMA_VERSION = 1, parseSchemaVersion, planMigrations, migrateSnapshot (murni,
+  menolak migrasi yang menambah/menghapus baris), changedRows.
+- engine.ts: runner migrasi sekali per proses sebelum operasi pertama; data lebih baru dari aplikasi ditolak dengan
+  StorageError; membaca tidak pernah menulis. Settings.schemaVersion ditambahkan; adapter Sheets/fixture tidak lagi
+  memaksa versi sendiri.
+Bukti uji:
+- npx vitest run tests/contract: 42 uji lulus (19 kasus kontrak per adapter × 2 + 3 khusus Sheets + migrasi).
+- Migrasi v1→v1 no-op teruji; prototipe migrasi gaya Design v2 (v1→v2) teruji termasuk penolakan penghapusan baris.
+- npm run check: 21 file / 368 uji lulus, lint 0. npm run build: lulus.
+- tests/e2e/flows.mjs (next start, fixture, Chrome): 31/31 lulus — login, kalender WITA, dashboard, ide→konten,
+  status terbit, unggah foto, simpan/buka ulang desain, PNG 1080×1080.
+Hasil: kriteria "Selesai jika" F2-03 terpenuhi.
+Kendala/keputusan: adapter Postgres akan memakai suite yang sama di F2-10.
+Langkah berikutnya: paket MT (MT-01 tema) dan F2-06 sesuai task-3.md.
+```
