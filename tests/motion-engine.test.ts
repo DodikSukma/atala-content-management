@@ -1221,7 +1221,8 @@ describe("properti: spesifikasi acak (LCG, seed tetap)", () => {
         }
       }
     }
-  });
+    // Uji properti menyeluruh (banyak kasus x sampel frame x semua lapisan): butuh lebih dari 5 detik bawaan.
+  }, 60_000);
 
   it("deterministik dan validator selalu melapor tanpa melempar", () => {
     for (const [i, c] of CASES.entries()) {

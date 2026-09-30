@@ -9,45 +9,33 @@ Ditulis 30 September 2026 (WITA) saat sesi Claude Code dihentikan atas permintaa
 - Aturan produk di [CLAUDE.md](../../CLAUDE.md) tetap berlaku: tanpa emoji, ikon lucide, animasi sekali jalan dan hormati reduced motion, rahasia hanya di server, tema aplikasi tidak boleh mengubah hasil ekspor, jangan mengarang hasil uji.
 - Sebelum mencentang: `npm run check`, `npm run build`, cek tampilan 1280×800 dan 834×1112 di tema terang **dan** gelap, dan (untuk Studio) dimensi hasil ekspor.
 
-## 1. Peta branch
+## 1. Keadaan branch
 
-### Sudah selesai dan terverifikasi — siap di-push oleh pemilik
+**Semua pekerjaan sudah digabung ke `main` (lokal) pada 30 September 2026** atas permintaan pemilik, termasuk pekerjaan setengah jadi. Setelah penggabungan, `main` diverifikasi:
 
-Push belum berhasil dari sesi ini karena kredensial Git di laptop milik akun lain (403). Pemilik menjalankan:
+- `npm run check`: typecheck 0 galat, lint 0, vitest 29 file / 751 uji lulus;
+- `npm run build`: lulus;
+- E2E pada `next start` mode fixture: `tests/e2e/flows.mjs` 31/31, `theme.mjs` 10/10, `integrations.mjs` 9/9;
+- tidak ada kelas warna mentah di `src/components` dan `src/app` (di luar template poster).
+
+Perbaikan kecil saat penggabungan: `tags`/`pack` diisi di 20 definisi template lama (kontrak MT-04), `SAFE_AREA` diketik untuk `portrait` sebelum format itu masuk `CONTENT_FORMATS`, uji properti motion diberi batas waktu 60 detik (sebelumnya gagal karena timeout 5 detik, bukan karena logika), dan dua file uji coba reviewer (`tests/motion-zz-probe*.test.ts`) dihapus.
+
+Push `main` dilakukan pemilik dengan akunnya sendiri (kredensial di laptop ini milik akun lain):
 
 ```bash
-git push https://DodikSukma@github.com/DodikSukma/atala-content-management.git at/qa-fixes f2/01-baseline f2/02-integrations f2/03-contract-tests mt/01-theme-tokens mt/02-theme-migration f2/06-design-v2
+git push https://DodikSukma@github.com/DodikSukma/atala-content-management.git main
 ```
 
-Urutan bertumpuk (setiap baris adalah induk baris berikutnya):
+Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-baseline`, `f2/02-integrations`, `f2/03-contract-tests`, `mt/01-theme-tokens`, `mt/02-theme-migration`, `f2/06-design-v2`, `wip/carousel-series` (F2-07), `wip/motion-engine` (MT-10/12), `wip/mt03-charts-guard` (MT-03), `wip/template-infra` (MT-04). Lanjutkan pekerjaan baru dari `main` dengan branch `mt/<id>-<slug>` / `f2/<id>-<slug>`.
 
-| Commit | Branch | Isi |
+### Bagian yang ada di main tetapi BELUM selesai (jangan dicentang)
+
+| Tugas | Yang sudah ada di main | Yang belum |
 |---|---|---|
-| baseline | — | Rilis pertama (AT-01…AT-25), 221 file |
-| QA | `at/qa-fixes` | Perbaikan QA browser + skrip E2E (`tests/e2e/flows.mjs`, `export-templates.mjs`, `screenshots.mjs`) |
-| F2-01 | `f2/01-baseline` | Keputusan opsi B, PRD §10, aturan per fase di CLAUDE.md |
-| F2-02 | `f2/02-integrations` | Lapisan integrasi `src/lib/integrations/`, Pengaturan › Integrasi, cron, URL media bertanda tangan, `docs/INTEGRATIONS.md` |
-| F2-03 | `f2/03-contract-tests` | Suite kontrak repository (fixture + Sheets HTTP mock), versi skema data |
-| MT-01 | `mt/01-theme-tokens` | Token semantik terang/gelap, cookie `atala-theme`, kontrol Terang/Gelap/Sistem |
-| AT docs | — | Centang AT terverifikasi + blocker kredensial di TASKS/PROGRESS |
-| MT-02 | `mt/02-theme-migration` | Migrasi seluruh UI ke token, 0 kegagalan kontras di kedua tema, dokumen ini |
-
-Cabang terpisah yang juga selesai:
-
-| Branch | Isi | Catatan |
-|---|---|---|
-| `f2/06-design-v2` | F2-06 Design v2 (`pages[]`, migrasi skema v1→v2) | Bercabang dari commit "AT docs", **belum** di-rebase ke atas MT-02. Rebase ke `mt/02-theme-migration` sebelum dipakai (konflik kecil mungkin di `studio-editor.tsx`, `content-detail.tsx`, `TECH_STACK.md`, `PROGRESS.md`). |
-
-### Pekerjaan setengah jadi (WIP) — hanya lokal, BELUM di-push
-
-Branch ini ada di repo lokal laptop pemilik (worktree di `C:\tmp\…`). Bila Codex berjalan di luar laptop ini, pemilik perlu mem-push-nya dulu: `git push origin wip/mt03-charts-guard wip/motion-engine wip/carousel-series wip/template-infra`.
-
-| Branch lokal | Worktree | Tugas | Keadaan nyata saat dihentikan |
-|---|---|---|---|
-| `wip/mt03-charts-guard` | `C:\tmp\atala-f2` | MT-03 | Hanya `scripts/check-colors.mjs` + `check-colors-lib.mjs`. Belum ditambahkan ke `npm run check`, belum ada uji, grafik belum dimigrasikan. |
-| `wip/motion-engine` | `C:\tmp\atala-motion` | MT-10 + bagian murni MT-12 | `src/lib/motion/` (types, easing, timeline, evaluate, schema, presets 16 resep, validate). 208/209 uji lulus; **1 gagal**: `tests/motion-engine.test.ts > properti: spesifikasi acak (LCG, seed tetap) > setiap frame hingga dan dalam batas; setelah masuk hanya foto Ken Burns yang tidak identitas`. `tests/motion-zz-probe*.test.ts` adalah uji coba reviewer — gabungkan ke uji resmi atau hapus. Bercabang dari commit "AT docs". |
-| `wip/carousel-series` | `C:\tmp\atala-design` | F2-07 | Di atas F2-06. Mode carousel (strip halaman, tambah/duplikat/hapus/urut), `export-zip.ts` (fflate 0.8.3 sudah di package.json), seri konten (`src/lib/series.ts`, dialog, penanda "Bagian i/N"). Typecheck 0 galat, vitest 27 file / 539 uji lulus. **Belum**: E2E `tests/e2e/carousel-series.mjs`, cek visual 1280/834, dokumen PRD/DESIGN/TECH_STACK/REFERENCES, entri PROGRESS. |
-| `wip/template-infra` | `C:\tmp\atala-tpl` | MT-04 (awal) | Hanya kontrak: `src/lib/studio/types.ts` (tone, pageIndex/pageCount, kategori baru, `TemplatePack`, `TemplateLayerRole`, `tags`, `pack`, `thumbnail`, `motion`, `SAFE_AREA.portrait`) dan `src/lib/studio/tokens.ts` (`useTemplateTokens`, `TemplateTokensProvider`). Belum dikompilasi dengan template lama — `tags`/`pack` wajib sehingga typecheck akan gagal sampai 20 template diperbarui. |
+| F2-07 | Mode carousel (strip halaman), ekspor ZIP (`src/lib/studio/export-zip.ts`, fflate 0.8.3), seri konten (`src/lib/series.ts`, dialog, penanda "Bagian i/N"); unit test lulus | E2E `tests/e2e/carousel-series.mjs` (10 halaman → ZIP 01..10.png 1080×1080, seri 4 bagian melewati batas bulan, arsip satu bagian), cek visual 1280/834 kedua tema, dokumen PRD/DESIGN/TECH_STACK/REFERENCES, entri PROGRESS |
+| MT-03 | `scripts/check-colors.mjs` + `check-colors-lib.mjs` | Lihat tabel bagian 2 |
+| MT-04 | Kontrak `src/lib/studio/types.ts` + `src/lib/studio/tokens.ts`; `tags`/`pack` di 20 template | Lihat tabel bagian 2 |
+| MT-10 / MT-12 | `src/lib/motion/` lengkap dengan 16 resep dan validator; 76 + uji preset lulus | Lihat tabel bagian 2 |
 
 ## 2. Status per tugas task-3.md
 
@@ -55,16 +43,16 @@ Branch ini ada di repo lokal laptop pemilik (worktree di `C:\tmp\…`). Bila Cod
 |---|---|---|
 | MT-01 | Selesai | — |
 | MT-02 | Selesai | — |
-| MT-03 | Belum (WIP skrip) | Grafik `src/components/insights/*` (donut, meter, ring-gauge, weekly-chart, heatmap, status-pipeline, bar-list, chart-kit, `palette.ts`) masih hex → ganti variabel CSS; tambah token `--color-status-*`, `--color-heat-0..4`, `--color-logo-plate` di tiga tempat globals.css (`@theme`, `:root[data-theme="dark"]`, blok `prefers-color-scheme`); dekorasi `RibbonArt` login; shell Studio gelap (kanvas poster tetap warna template); `check:colors` masuk `npm run check` + uji; E2E PNG identik byte (SHA-256) terang vs gelap untuk ≥ 6 template; grafik beranimasi sekali. |
-| MT-04 | Belum (WIP kontrak) | Format `portrait` 1080×1350 di `CONTENT_FORMATS`, `constants.ts` (label/dimensi), filter kalender/konten/studio, form konten, ekspor; semua `Record<ContentFormat,…>` akan ditandai typecheck. Konversi 20 template lama ke `useTemplateTokens(tone)` + `tags`/`pack` (nada terang harus identik piksel dengan sekarang). Pilihan Nada Terang/Gelap di editor, disimpan per halaman desain (tambah `tone` opsional di `designPageSchema` — butuh F2-06). Galeri: pencarian, filter format/kategori/paket/nada, favorit + baru dipakai (simpan di data store, bukan hanya localStorage), grid tervirtualisasi (uji dengan 80 entri). `npm run templates:thumbs` → `public/templates/thumbs/<id>-<tone>.webp`. `npm run templates:check` (render tiap template × nada × {pendek, maxLength}: tanpa overflow, teks di dalam `SAFE_AREA`, ukuran root = format). |
+| MT-03 | Sebagian (skrip di main) | Grafik `src/components/insights/*` (donut, meter, ring-gauge, weekly-chart, heatmap, status-pipeline, bar-list, chart-kit, `palette.ts`) masih hex → ganti variabel CSS; tambah token `--color-status-*`, `--color-heat-0..4`, `--color-logo-plate` di tiga tempat globals.css (`@theme`, `:root[data-theme="dark"]`, blok `prefers-color-scheme`); dekorasi `RibbonArt` login; shell Studio gelap (kanvas poster tetap warna template); `check:colors` masuk `npm run check` + uji; E2E PNG identik byte (SHA-256) terang vs gelap untuk ≥ 6 template; grafik beranimasi sekali. |
+| MT-04 | Sebagian (kontrak di main) | Format `portrait` 1080×1350 di `CONTENT_FORMATS`, `constants.ts` (label/dimensi), filter kalender/konten/studio, form konten, ekspor; semua `Record<ContentFormat,…>` akan ditandai typecheck. Konversi 20 template lama ke `useTemplateTokens(tone)` + `tags`/`pack` (nada terang harus identik piksel dengan sekarang). Pilihan Nada Terang/Gelap di editor, disimpan per halaman desain (tambah `tone` opsional di `designPageSchema` — butuh F2-06). Galeri: pencarian, filter format/kategori/paket/nada, favorit + baru dipakai (simpan di data store, bukan hanya localStorage), grid tervirtualisasi (uji dengan 80 entri). `npm run templates:thumbs` → `public/templates/thumbs/<id>-<tone>.webp`. `npm run templates:check` (render tiap template × nada × {pendek, maxLength}: tanpa overflow, teks di dalam `SAFE_AREA`, ukuran root = format). |
 | MT-05 | Belum | ≥ 15 template di `templates/feed-learn/` (daftar di task-3.md). |
 | MT-06 | Belum | ≥ 15 template di `templates/feed-community/`. |
 | MT-07 | Belum | ≥ 12 template potret di `templates/portrait/`. |
 | MT-08 | Belum | ≥ 16 Story di `templates/story-pack/` + area stiker (hanya pratinjau). |
 | MT-09 | Belum | ≥ 8 set carousel (1:1 dan 4:5), nomor halaman otomatis lewat `pageIndex`/`pageCount`. Butuh F2-07. |
-| MT-10 | WIP (`wip/motion-engine`) | Perbaiki 1 uji gagal; tambah `motion` opsional di `designPageSchema` + migrasi skema v2→v3 lewat `src/lib/data/migrations.ts`; samakan `LayerRole` dengan `TemplateLayerRole`. |
+| MT-10 | Sebagian (di main) | Tambah `motion` opsional di `designPageSchema` + migrasi skema v2→v3 lewat `src/lib/data/migrations.ts`; samakan `LayerRole` dengan `TemplateLayerRole`. |
 | MT-11 | Belum | `src/components/studio/motion/layer.tsx` (`<Layer id role split>`: tanpa konteks render apa adanya; `split` memecah ke span `data-sublayer`), bungkus semua template, uji snapshot PNG tidak berubah. |
-| MT-12 | WIP | Resep + validator ada; tambahkan uji "setiap resep × setiap template kompatibel" setelah MT-11, dan sembunyikan resep yang `requiresRoles`-nya tidak ada. |
+| MT-12 | Sebagian (di main) | Resep + validator ada; tambahkan uji "setiap resep × setiap template kompatibel" setelah MT-11, dan sembunyikan resep yang `requiresRoles`-nya tidak ada. |
 | MT-13 | Belum | `compositor.ts` (rasterisasi lapisan sekali lalu komposisi per frame), fallback `motionRender: "dom"`, `player.tsx`; frame terakhir = PNG (selisih ≤ 0,5%), ≥ 30 fps. |
 | MT-14 | Belum | Tab Motion di Studio (galeri resep, durasi, fps, Ken Burns, loop, override lapisan, timeline dengan snap 50 ms, peringatan validator, "Kembalikan ke resep"). |
 | MT-15 | Belum | Motion Story/Reels (7 dtk / 10 dtk), sampling 100 ms area aman, area stiker kosong. |
@@ -78,8 +66,8 @@ Branch ini ada di repo lokal laptop pemilik (worktree di `C:\tmp\…`). Bila Cod
 | Tugas | Status |
 |---|---|
 | F2-01, F2-02, F2-03 | Selesai (di stack `mt/02-theme-migration`) |
-| F2-06 | Selesai (`f2/06-design-v2`, perlu rebase) |
-| F2-07 | WIP (`wip/carousel-series`) |
+| F2-06 | Selesai (di main) |
+| F2-07 | Sebagian (di main, lihat bagian 1) |
 | F2-04, F2-05, F2-08…F2-13, F2-16…F2-25 | Belum dikerjakan |
 | F2-14, F2-15 | Digantikan MT-10…MT-17 (centang setelah MT-17 selesai) |
 
@@ -91,10 +79,10 @@ Catatan QA yang belum diperbaiki: angka count-up dapat berkedip bila kartu hanya
 
 ## 5. Urutan lanjutan yang disarankan
 
-1. Rebase `f2/06-design-v2` ke `mt/02-theme-migration`, lalu `wip/carousel-series` di atasnya; selesaikan F2-07 (E2E + visual + dokumen).
-2. MT-03 dari `wip/mt03-charts-guard`.
-3. MT-04 dari `wip/template-infra` (kontrak sudah ditulis; lanjutkan konversi template, galeri, portrait, dua skrip).
-4. MT-10 (cherry-pick `wip/motion-engine`, perbaiki uji gagal, simpan `motion` per halaman + migrasi v3), lalu MT-11 (Layer + bungkus template lama).
+1. Selesaikan F2-07 dari `main` (E2E + visual + dokumen).
+2. MT-03 (lanjutkan skrip penjaga warna yang sudah ada).
+3. MT-04 (kontrak sudah ditulis; lanjutkan konversi template ke `useTemplateTokens`, galeri, portrait, dua skrip).
+4. MT-10 (simpan `motion` per halaman desain + migrasi skema v3, samakan `LayerRole` dengan `TemplateLayerRole`), lalu MT-11 (Layer + bungkus template lama).
 5. MT-05…MT-08 paralel (folder terpisah, template ditulis langsung dengan `useTemplateTokens` dan `<Layer>`), lalu MT-09.
 6. MT-12 (uji lintas template) → MT-13 → MT-14/MT-15/MT-16 → MT-17 → MT-18 → MT-19.
 7. Setelah itu sisa task-2 (F2-04 Brand Kit memakai `TemplateTokensProvider`, F2-05, F2-08…).
@@ -103,8 +91,8 @@ Catatan QA yang belum diperbaiki: angka count-up dapat berkedip bila kartu hanya
 
 - **Tema aplikasi:** token di `src/app/globals.css`; nilai gelap wajib ditulis identik di `:root[data-theme="dark"]` **dan** blok `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])`. Uji `tests/theme-contrast.test.ts` membaca token langsung dari CSS (AA ≥ 4,5 di kedua tema). Varian Tailwind `dark:` tersedia. Preferensi di cookie `atala-theme` lewat `src/lib/theme.ts`; `src/app/layout.tsx` memasang `data-theme` di server.
 - **Design v2:** `Design = { id, contentId, format, pages[1..10], version, updatedAt }`, `DesignPage = { id, templateId, textFields, imageSlots }` (tambahkan `tone` dan `motion` sebagai field opsional). Skema data versi 2; migrasi di `src/lib/data/migrations.ts`, dijalankan otomatis oleh `engine.ts`.
-- **Template (kontrak di `wip/template-infra`):** warna lewat `useTemplateTokens(tone)` berbasis peran (bg/ink/panel/onPanel/accent/onAccent/teal/tealText/…); pasangan teks-latar ≥ 4,5 di kedua nada. `SAFE_AREA.portrait = { top 72, right 80, bottom 72, left 80 }` karena grid profil Instagram memotong 4:5 menjadi 3:4.
-- **Motion (di `wip/motion-engine`):** fungsi murni tanpa `Date.now`/`requestAnimationFrame`; Ken Burns memperkecil dari `scaleTo` ke 1,0 agar frame terakhir identitas; resep: tenang, minimal, editorial, tegas, ceria, fokus, kinetik, mesin-ketik, hitung, daftar, sorot, tirai, tumpuk-kartu, hitung-mundur, pertanyaan, pengumuman.
+- **Template (kontrak MT-04 di main):** warna lewat `useTemplateTokens(tone)` berbasis peran (bg/ink/panel/onPanel/accent/onAccent/teal/tealText/…); pasangan teks-latar ≥ 4,5 di kedua nada. `SAFE_AREA.portrait = { top 72, right 80, bottom 72, left 80 }` karena grid profil Instagram memotong 4:5 menjadi 3:4.
+- **Motion (`src/lib/motion/` di main):** fungsi murni tanpa `Date.now`/`requestAnimationFrame`; Ken Burns memperkecil dari `scaleTo` ke 1,0 agar frame terakhir identitas; resep: tenang, minimal, editorial, tegas, ceria, fokus, kinetik, mesin-ketik, hitung, daftar, sorot, tirai, tumpuk-kartu, hitung-mundur, pertanyaan, pengumuman.
 - **Integrasi:** semua layanan luar lewat `src/lib/integrations/providers/<nama>/` dan `registry.ts`; mock mati di Vercel/production; lihat [INTEGRATIONS.md](../INTEGRATIONS.md).
 
 ## 7. Cara menjalankan verifikasi
