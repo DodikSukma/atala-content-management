@@ -210,7 +210,7 @@ export interface ImageAssist {
 
   Bergantung pada F2-04.
 
-- [ ] **F2-06 — Model desain multi-halaman (Design v2).**
+- [x] **F2-06 — Model desain multi-halaman (Design v2).**
   - Ubah `Design` agar berisi `pages: DesignPage[]`, dengan `DesignPage = { id, templateId, textFields, imageSlots }` dan maksimal 10 halaman.
   - Migrasikan desain v1 menjadi satu halaman lewat mekanisme F2-03.
   - Pertahankan deteksi konflik `expectedVersion`.

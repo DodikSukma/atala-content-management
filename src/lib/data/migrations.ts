@@ -9,11 +9,17 @@ import type { TableName } from "@/lib/data/sheets-mapping";
  *   menghapus baris, agar dapat diterapkan aman pada Google Sheets maupun fixture.
  * - Aplikasi menolak data berversi lebih baru dari yang dikenalnya (mencegah downgrade merusak data).
  *
- * Menambah versi (contoh Design v2 di F2-06): naikkan CURRENT_SCHEMA_VERSION dan tambahkan
- * `{ from: 1, to: 2, description, up }` ke MIGRATIONS beserta uji di tests/contract/migrations.test.ts.
+ * Menambah versi: naikkan CURRENT_SCHEMA_VERSION dan tambahkan `{ from: n, to: n + 1, description, up }`
+ * ke MIGRATIONS beserta uji di tests/contract/migrations.test.ts. Migrasi harus idempoten (aman
+ * diterapkan ulang bila proses terhenti sebelum versi baru dicatat) dan tidak bergantung pada kode
+ * aplikasi yang dapat berubah kelak (skema zod, registry template).
+ *
+ * Riwayat versi:
+ * - v1: baseline rilis pertama.
+ * - v2 (F2-06): Design memuat `pages[]`; kolom templateId/textFields/imageSlots dipindah ke halaman "p1".
  */
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 
 export type SnapshotTables = Record<TableName, Record<string, unknown>[]>;
 
@@ -29,8 +35,43 @@ export interface Migration {
   up(snapshot: DataSnapshot): DataSnapshot;
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * v1 -> v2: `{ templateId, textFields, imageSlots }` menjadi `pages: [{ id: "p1", ... }]`, kolom lama
+ * dikosongkan. Baris yang sudah punya `pages` tidak disentuh (idempoten). Baris v1 yang memang tidak
+ * valid (templateId kosong atau JSON rusak) dibiarkan apa adanya agar isinya tidak hilang; baris itu
+ * tetap dilewati saat dibaca seperti di v1.
+ */
+export function migrateDesignRowV1toV2(row: Record<string, unknown>): Record<string, unknown> {
+  if (Array.isArray(row.pages) && row.pages.length > 0) return row;
+  const { templateId } = row;
+  const textFields = row.textFields ?? {};
+  const imageSlots = row.imageSlots ?? [];
+  if (typeof templateId !== "string" || !templateId.trim() || !isPlainObject(textFields) || !Array.isArray(imageSlots)) {
+    return row;
+  }
+  return {
+    ...row,
+    pages: [{ id: "p1", templateId, textFields, imageSlots }],
+    templateId: "",
+    textFields: {},
+    imageSlots: [],
+  };
+}
+
 export const MIGRATIONS: readonly Migration[] = [
-  // v1 adalah baseline rilis pertama; belum ada migrasi.
+  {
+    from: 1,
+    to: 2,
+    description: "Design v2: pages[]",
+    up(snapshot) {
+      snapshot.tables.designs = snapshot.tables.designs.map(migrateDesignRowV1toV2);
+      return snapshot;
+    },
+  },
 ];
 
 export class SchemaVersionError extends Error {
@@ -70,8 +111,21 @@ export function planMigrations(from: number, to: number = CURRENT_SCHEMA_VERSION
   return plan;
 }
 
+/**
+ * Salinan dalam untuk data mirip JSON. Tidak memakai structuredClone karena baris Sheets dengan
+ * JSON rusak membawa penanda Symbol (lihat sheets-mapping.ts) yang tidak dapat di-clone; nilai
+ * primitif, termasuk Symbol itu, disalin apa adanya.
+ */
+function cloneValue<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(cloneValue) as T;
+  if (isPlainObject(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneValue(item)])) as T;
+  }
+  return value;
+}
+
 function cloneSnapshot(snapshot: DataSnapshot): DataSnapshot {
-  return structuredClone(snapshot);
+  return cloneValue(snapshot);
 }
 
 /** Terapkan migrasi secara murni. v1 -> v1 mengembalikan salinan identik tanpa langkah. */

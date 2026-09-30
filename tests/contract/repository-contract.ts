@@ -5,6 +5,7 @@ import {
   DEFAULT_PILLARS,
   ideaInputSchema,
   type ContentInput,
+  type DesignPage,
   type IdeaInput,
 } from "@/lib/validation/schemas";
 
@@ -138,31 +139,86 @@ export function defineRepositoryContract(name: string, makeHarness: () => Promis
       });
     });
 
-    describe("designs", () => {
-      const base = (contentId: string) => ({
-        contentId,
+    describe("designs (v2, multi-halaman)", () => {
+      const page = (over: Partial<DesignPage> = {}): DesignPage => ({
+        id: "p1",
         templateId: "feed-fact-focus",
-        format: "feed" as const,
         textFields: { headline: "Fakta singkat" },
         imageSlots: [{ slotId: "photo", assetId: null, crop: { x: 50, y: 40, zoom: 1.2 } }],
+        ...over,
       });
+      const base = (contentId: string, pages: DesignPage[] = [page()]) => ({ contentId, format: "feed" as const, pages });
 
       it("save baru = versi 1, save berikutnya menaikkan versi, versi usang ditolak", async () => {
         const c = await h.store.contents.create(content());
         const v1 = await h.store.designs.save(base(c.id), null);
         expect(v1.version).toBe(1);
-        const v2 = await h.store.designs.save({ ...base(c.id), textFields: { headline: "Diubah" } }, 1);
+        expect(v1.pages).toEqual([page()]);
+        const v2 = await h.store.designs.save(base(c.id, [page({ textFields: { headline: "Diubah" } })]), 1);
         expect(v2.version).toBe(2);
         expect(v2.id).toBe(v1.id);
         await expect(h.store.designs.save(base(c.id), 1)).rejects.toBeInstanceOf(ConflictError);
         await expect(h.store.designs.save(base(c.id), null)).rejects.toBeInstanceOf(ConflictError);
         const loaded = await h.reopen().designs.getByContentId(c.id);
         expect(loaded).toEqual(v2);
+        expect(await h.reopen().designs.get(v2.id)).toEqual(v2);
       });
 
       it("expectedVersion untuk desain yang belum ada ditolak", async () => {
         const c = await h.store.contents.create(content());
         await expect(h.store.designs.save(base(c.id), 3)).rejects.toBeInstanceOf(ConflictError);
+        expect(await h.store.designs.getByContentId(c.id)).toBeNull();
+      });
+
+      it("desain multi-halaman tersimpan dan terbuka ulang identik", async () => {
+        const c = await h.store.contents.create(content());
+        const pages: DesignPage[] = [
+          page({ id: "p1", textFields: { eyebrow: "Fakta Belajar", headline: "Otak butuh jeda", body: "Baris 1\nBaris 2" } }),
+          page({
+            id: "p2",
+            templateId: "feed-step-by-step",
+            textFields: { headline: "Tiga langkah", steps: "Siapkan meja\nMatikan notifikasi\nMulai 20 menit" },
+            imageSlots: [{ slotId: "photo", assetId: "44444444-4444-4444-8444-444444444444", crop: { x: 12.5, y: 87, zoom: 2.75 } }],
+          }),
+          page({
+            id: "halaman-3",
+            templateId: "feed-info-comparison",
+            textFields: { title: "Sebelum vs sesudah", "kutipan \"khusus\"": "Tanda kutip, koma, dan é" },
+            imageSlots: [],
+          }),
+        ];
+        const saved = await h.store.designs.save(base(c.id, pages), null);
+        expect(saved.pages).toEqual(pages);
+        const reopened = await h.reopen().designs.getByContentId(c.id);
+        expect(reopened).toEqual(saved);
+        expect(reopened?.pages.map((p) => p.id)).toEqual(["p1", "p2", "halaman-3"]);
+
+        // Ubah satu halaman: halaman lain tetap sama persis, versi naik.
+        const edited = pages.map((p) => (p.id === "p2" ? { ...p, textFields: { ...p.textFields, headline: "Empat langkah" } } : p));
+        const v2 = await h.store.designs.save(base(c.id, edited), saved.version);
+        expect(v2.version).toBe(saved.version + 1);
+        const again = await h.reopen().designs.getByContentId(c.id);
+        expect(again?.pages[0]).toEqual(pages[0]);
+        expect(again?.pages[1].textFields.headline).toBe("Empat langkah");
+        expect(again?.pages[2]).toEqual(pages[2]);
+      });
+
+      it("batas 10 halaman dan minimal 1 halaman ditegakkan tanpa menyimpan apa pun", async () => {
+        const c = await h.store.contents.create(content());
+        const ten = Array.from({ length: 10 }, (_, i) => page({ id: `p${i + 1}` }));
+        const saved = await h.store.designs.save(base(c.id, ten), null);
+        expect(saved.pages).toHaveLength(10);
+        const eleven = [...ten, page({ id: "p11" })];
+        await expect(h.store.designs.save(base(c.id, eleven), saved.version)).rejects.toThrow();
+        await expect(h.store.designs.save(base(c.id, []), saved.version)).rejects.toThrow();
+        const reopened = await h.reopen().designs.getByContentId(c.id);
+        expect(reopened).toEqual(saved);
+      });
+
+      it("ID halaman ganda ditolak", async () => {
+        const c = await h.store.contents.create(content());
+        await expect(h.store.designs.save(base(c.id, [page({ id: "p1" }), page({ id: "p1" })]), null)).rejects.toThrow(/ganda/);
+        expect(await h.reopen().designs.getByContentId(c.id)).toBeNull();
       });
     });
 

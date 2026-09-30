@@ -1,0 +1,84 @@
+import type { ContentFormat } from "@/lib/constants";
+import { createPage, type EditorPage, type EditorSnapshot } from "@/lib/studio/editor-state";
+import { defaultTemplateFor, getTemplate, resolveText } from "@/lib/studio/registry";
+import type { TemplateDefinition } from "@/lib/studio/types";
+import type { DesignPage } from "@/lib/validation/schemas";
+
+/**
+ * Pemetaan Design v2 (F2-06) <-> dokumen editor Studio. Murni (tanpa React),
+ * sehingga "desain lama terbuka tanpa perubahan visual" dapat diuji.
+ */
+
+/** Bidang konten yang dipakai untuk isi awal teks template (`prefillFrom`). */
+type ContentTextSource = Parameters<typeof resolveText>[2];
+
+/** Bagian desain yang dibutuhkan editor. */
+export interface DesignDocument {
+  format: ContentFormat;
+  pages: DesignPage[];
+}
+
+export interface LoadedDocument {
+  snapshot: EditorSnapshot;
+  /** ID halaman yang template tersimpannya tidak ada lagi di registry (diganti template bawaan format). */
+  missingTemplatePageIds: string[];
+}
+
+/** Template untuk halaman editor; template yang tidak dikenal jatuh ke bawaan format. */
+export function templateForPage(page: Pick<EditorPage, "templateId">, format: ContentFormat): TemplateDefinition {
+  return getTemplate(page.templateId) ?? defaultTemplateFor(format);
+}
+
+/**
+ * Dokumen editor dari desain tersimpan. Setiap halaman dipulihkan dengan aturan
+ * yang sama seperti desain v1: teks tersimpan -> bidang konten -> teks bawaan,
+ * slot dicocokkan per slotId (atau per indeks bila template berganti), crop
+ * dijaga dalam rentang. Tanpa desain -> satu halaman template bawaan format konten.
+ */
+export function editorDocumentFromDesign(
+  design: DesignDocument | null,
+  contentFormat: ContentFormat,
+  content: ContentTextSource,
+): LoadedDocument {
+  if (!design || design.pages.length === 0) {
+    const template = defaultTemplateFor(design?.format ?? contentFormat);
+    return {
+      snapshot: { format: template.format, pages: [createPage(template, resolveText(template, undefined, content))] },
+      missingTemplatePageIds: [],
+    };
+  }
+  const missingTemplatePageIds: string[] = [];
+  const templates = design.pages.map((page) => {
+    const saved = getTemplate(page.templateId);
+    if (!saved) missingTemplatePageIds.push(page.id);
+    return saved ?? defaultTemplateFor(design.format);
+  });
+  const pages = design.pages.map((page, index) => {
+    const template = templates[index];
+    const text = resolveText(template, page.textFields, content);
+    const slots = page.imageSlots.map((s) => ({ slotId: s.slotId, photoId: s.assetId, crop: s.crop }));
+    return createPage(template, text, slots, page.id);
+  });
+  return { snapshot: { format: templates[0].format, pages }, missingTemplatePageIds };
+}
+
+/**
+ * Halaman desain untuk disimpan: SEMUA halaman dikirim (halaman yang tidak
+ * disunting tetap sama). `assetIdFor` memetakan kunci foto editor ke ID aset
+ * tersimpan (null bila foto belum tersimpan).
+ */
+export function designPagesFromDocument(
+  snapshot: EditorSnapshot,
+  assetIdFor: (photoId: string) => string | null,
+): DesignPage[] {
+  return snapshot.pages.map((page) => ({
+    id: page.id,
+    templateId: page.templateId,
+    textFields: page.textFields,
+    imageSlots: page.slots.map((s) => ({
+      slotId: s.slotId,
+      assetId: s.photoId ? assetIdFor(s.photoId) : null,
+      crop: s.crop,
+    })),
+  }));
+}

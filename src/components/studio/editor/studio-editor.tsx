@@ -40,19 +40,19 @@ import {
   canRedo,
   canUndo,
   createEditorState,
-  createSnapshot,
+  currentPage,
   editorReducer,
-  renderText,
+  pageRenderProps,
   studioStepStatus,
   STUDIO_STEPS,
   textWarnings,
   type StudioStepId,
 } from "@/lib/studio/editor-state";
+import { designPagesFromDocument, editorDocumentFromDesign, templateForPage } from "@/lib/studio/design-document";
 import { EXPORT_STAGE_LABELS, ExportError, exportFileName, exportNodeToPng, type ExportStage } from "@/lib/studio/export";
-import { defaultTemplateFor, getTemplate, resolveText, templatesFor } from "@/lib/studio/registry";
-import type { TemplatePhoto } from "@/lib/studio/types";
+import { getTemplate, resolveText, templatesFor } from "@/lib/studio/registry";
 import { formatDateTime } from "@/lib/time";
-import type { Crop, DesignInput } from "@/lib/validation/schemas";
+import type { DesignInput, DesignPage } from "@/lib/validation/schemas";
 import { CropPanel } from "./crop-panel";
 import { PhotoPanel } from "./photo-panel";
 import { PreviewStage } from "./preview-stage";
@@ -77,11 +77,10 @@ export interface StudioContent {
   cta: string;
 }
 
+/** Desain tersimpan (Design v2): semua halaman, walau editor saat ini menyunting halaman aktif saja. */
 export interface StudioDesign {
-  templateId: string;
   format: ContentFormat;
-  textFields: Record<string, string>;
-  imageSlots: { slotId: string; assetId: string | null; crop: Crop }[];
+  pages: DesignPage[];
   version: number;
   updatedAt: string;
 }
@@ -156,20 +155,17 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     [content.title, content.hook, content.summary, content.caption, content.cta],
   );
 
-  // ---------- keadaan awal: desain tersimpan → persis dipulihkan ----------
-  const savedTemplate = design ? getTemplate(design.templateId) : undefined;
-  const missingSavedTemplate = !!design && !savedTemplate;
-  const [state, dispatch] = useReducer(editorReducer, undefined, () => {
-    const template = savedTemplate ?? defaultTemplateFor(design?.format ?? content.format);
-    const text = resolveText(template, design?.textFields, contentText);
-    const slots = (design?.imageSlots ?? []).map((s) => ({ slotId: s.slotId, photoId: s.assetId, crop: s.crop }));
-    return createEditorState(createSnapshot(template, text, slots));
-  });
+  // ---------- keadaan awal: desain tersimpan → semua halaman persis dipulihkan ----------
+  const [loaded] = useState(() => editorDocumentFromDesign(design, content.format, contentText));
+  const [state, dispatch] = useReducer(editorReducer, loaded.snapshot, (snapshot) => createEditorState(snapshot));
   const [version, setVersion] = useState<number | null>(design?.version ?? null);
   const [savedAt, setSavedAt] = useState<string | null>(design?.updatedAt ?? null);
 
   const present = state.present;
-  const template = getTemplate(present.templateId) ?? defaultTemplateFor(present.format);
+  // Editor menyunting satu halaman (halaman aktif); strip halaman carousel menyusul di F2-07.
+  const page = currentPage(state);
+  const template = templateForPage(page, present.format);
+  const missingSavedTemplate = loaded.missingTemplatePageIds.includes(page.id);
 
   // ---------- foto ----------
   const onRekey = useCallback((from: string, to: string) => dispatch({ type: "renamePhoto", from, to }), []);
@@ -181,30 +177,27 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
   } = usePhotoLibrary({ initial: assets, storage, onRekey });
   const photoByKey = useMemo(() => new Map(photos.map((p) => [p.key, p])), [photos]);
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
-  const activeSlot = present.slots.some((s) => s.slotId === activeSlotId) ? activeSlotId : null;
+  const activeSlot = page.slots.some((s) => s.slotId === activeSlotId) ? activeSlotId : null;
 
   const photoSrc = useCallback((photoId: string | null) => (photoId ? (photoByKey.get(photoId)?.src ?? null) : null), [photoByKey]);
 
-  const renderPhotos = useMemo(() => {
-    const out: Record<string, TemplatePhoto> = {};
-    for (const slot of present.slots) out[slot.slotId] = { src: photoSrc(slot.photoId), crop: slot.crop };
-    return out;
-  }, [present.slots, photoSrc]);
-
-  const renderedText = useMemo(() => renderText(template, present.textFields), [template, present.textFields]);
-  const warnings = useMemo(() => textWarnings(template, present.textFields), [template, present.textFields]);
+  const { text: renderedText, photos: renderPhotos } = useMemo(
+    () => pageRenderProps(template, page, photoSrc),
+    [template, page, photoSrc],
+  );
+  const warnings = useMemo(() => textWarnings(template, page.textFields), [template, page.textFields]);
 
   const addFiles = useCallback(
     (files: FileList) => {
       const keys = addLibraryFiles(files);
       // Isi slot kosong berurutan; satu foto tanpa slot kosong menggantikan slot aktif.
-      const empty = present.slots.filter((s) => !s.photoId).map((s) => s.slotId);
+      const empty = page.slots.filter((s) => !s.photoId).map((s) => s.slotId);
       keys.forEach((key, index) => {
         const slotId = empty[index] ?? (keys.length === 1 && activeSlot ? activeSlot : null);
         if (slotId) dispatch({ type: "assignPhoto", slotId, photoId: key });
       });
     },
-    [addLibraryFiles, present.slots, activeSlot],
+    [addLibraryFiles, page.slots, activeSlot],
   );
 
   const removeFromLibrary = useCallback(
@@ -251,22 +244,27 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     [template.slots],
   );
 
+  // Simpan mengirim semua halaman, jadi foto di setiap halaman harus sudah tersimpan.
   const photoIssues = useMemo(() => {
     const pending: string[] = [];
     const broken: string[] = [];
     const local: string[] = [];
     const missing: string[] = [];
-    for (const slot of present.slots) {
-      if (!slot.photoId) continue;
-      const photo = photoByKey.get(slot.photoId);
-      const label = slotLabel(slot.slotId);
-      if (!photo) missing.push(label);
-      else if (photo.status === "preparing" || photo.status === "uploading") pending.push(label);
-      else if (photo.status === "error") broken.push(label);
-      else if (photo.status === "local" || !photo.assetId) local.push(label);
-    }
+    present.pages.forEach((p, index) => {
+      const pageTemplate = templateForPage(p, present.format);
+      for (const slot of p.slots) {
+        if (!slot.photoId) continue;
+        const photo = photoByKey.get(slot.photoId);
+        const base = pageTemplate.slots.find((s) => s.id === slot.slotId)?.label ?? slot.slotId;
+        const label = present.pages.length > 1 ? `${base} (halaman ${index + 1})` : base;
+        if (!photo) missing.push(label);
+        else if (photo.status === "preparing" || photo.status === "uploading") pending.push(label);
+        else if (photo.status === "error") broken.push(label);
+        else if (photo.status === "local" || !photo.assetId) local.push(label);
+      }
+    });
     return { pending, broken, local, missing };
-  }, [present.slots, photoByKey, slotLabel]);
+  }, [present, photoByKey]);
 
   const saveBlock: string | null =
     storage === "unconfigured"
@@ -291,14 +289,8 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     const snapshot = state.present;
     const input: DesignInput = {
       contentId: content.id,
-      templateId: snapshot.templateId,
       format: snapshot.format,
-      textFields: snapshot.textFields,
-      imageSlots: snapshot.slots.map((s) => ({
-        slotId: s.slotId,
-        assetId: s.photoId ? (photoByKey.get(s.photoId)?.assetId ?? null) : null,
-        crop: s.crop,
-      })),
+      pages: designPagesFromDocument(snapshot, (photoId) => photoByKey.get(photoId)?.assetId ?? null),
       expectedVersion: version,
     };
     setSaving(true);
@@ -421,7 +413,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
   // ---------- panel & langkah ----------
   const [tab, setTab] = useState<PanelTab>("template");
   const [showSafeArea, setShowSafeArea] = useState(false);
-  const stepStatus = studioStepStatus({ snapshot: present, template, dirty: state.dirty, savedVersion: version, exported });
+  const stepStatus = studioStepStatus({ page, template, dirty: state.dirty, savedVersion: version, exported });
   const currentStep: StudioStepId = STUDIO_STEPS.find((s) => !stepStatus[s.id])?.id ?? "export";
 
   const focusSection = (id: string) => {
@@ -480,7 +472,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
       <SectionTitle icon={LayoutTemplate} id="studio-sec-template-title">
         Template
       </SectionTitle>
-      <TemplateGallery format={present.format} selectedId={present.templateId} onSelect={applyTemplate} />
+      <TemplateGallery format={present.format} selectedId={page.templateId} onSelect={applyTemplate} />
     </section>
   );
 
@@ -491,7 +483,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
       </SectionTitle>
       <PhotoPanel
         photos={photos}
-        slots={present.slots}
+        slots={page.slots}
         templateSlots={template.slots}
         storage={storage}
         activeSlotId={activeSlot}
@@ -512,7 +504,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
       </SectionTitle>
       <TextPanel
         fields={template.fields}
-        values={present.textFields}
+        values={page.textFields}
         warnings={warnings}
         content={contentText}
         onChange={(key, value) => dispatch({ type: "setText", key, value, at: Date.now() })}
@@ -526,7 +518,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
         Crop foto
       </SectionTitle>
       <CropPanel
-        slots={present.slots}
+        slots={page.slots}
         templateSlots={template.slots}
         photoSrc={photoSrc}
         activeSlotId={activeSlot}
@@ -538,7 +530,7 @@ export function StudioEditor({ content, design, assets, storage, storageMessage 
     </section>
   );
 
-  const emptySlots = present.slots.filter((s) => !s.photoId).map((s) => slotLabel(s.slotId));
+  const emptySlots = page.slots.filter((s) => !s.photoId).map((s) => slotLabel(s.slotId));
   const warningList = (
     <div className="flex flex-col gap-2" aria-live="polite">
       {missingSavedTemplate ? (

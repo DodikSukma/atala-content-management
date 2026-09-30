@@ -1,10 +1,16 @@
 import type { ContentFormat } from "@/lib/constants";
-import type { TemplateDefinition } from "@/lib/studio/types";
+import type { TemplateDefinition, TemplatePhoto, TemplateRenderProps } from "@/lib/studio/types";
 import type { Crop } from "@/lib/validation/schemas";
 
 /**
- * State editor Studio (AT-20). Reducer murni tanpa React/DOM sehingga dapat
- * diuji. Riwayat undo/redo mencakup teks, crop, foto, dan template (maks 50).
+ * State editor Studio (AT-20, Design v2 F2-06). Reducer murni tanpa React/DOM
+ * sehingga dapat diuji. Riwayat undo/redo mencakup seluruh dokumen (semua
+ * halaman: teks, crop, foto, template; maks 50 langkah).
+ *
+ * Dokumen = `format` + `pages[]` (cermin `Design.pages`). Aksi penyuntingan
+ * (teks, crop, foto, template) berlaku pada halaman `currentPageIndex`;
+ * `removePhoto`/`renamePhoto` berlaku di semua halaman karena pustaka foto
+ * dipakai bersama. Indeks halaman aktif bukan bagian riwayat undo.
  *
  * `photoId` pada slot adalah kunci foto di pustaka editor: ID aset tersimpan
  * (UUID) atau kunci sementara "local-..." untuk pratinjau lokal yang belum
@@ -17,6 +23,9 @@ export const COALESCE_MS = 1000;
 
 export const DEFAULT_CROP: Crop = { x: 50, y: 50, zoom: 1 };
 
+/** ID halaman pertama (desain baru dan hasil migrasi v1 -> v2). */
+export const FIRST_PAGE_ID = "p1";
+
 export type TemplateShape = Pick<TemplateDefinition, "id" | "format" | "slots" | "fields">;
 
 export interface EditorSlot {
@@ -25,11 +34,20 @@ export interface EditorSlot {
   crop: Crop;
 }
 
-export interface EditorSnapshot {
+/** Satu halaman di editor (cermin `DesignPage`, dengan `photoId` alih-alih `assetId`). */
+export interface EditorPage {
+  /** Stabil dan unik dalam desain; tidak berubah saat halaman diurutkan ulang. */
+  id: string;
   templateId: string;
-  format: ContentFormat;
   textFields: Record<string, string>;
   slots: EditorSlot[];
+}
+
+/** Satu langkah riwayat: seluruh dokumen desain. */
+export interface EditorSnapshot {
+  format: ContentFormat;
+  /** Minimal satu halaman. */
+  pages: EditorPage[];
 }
 
 export interface EditorState {
@@ -39,13 +57,16 @@ export interface EditorState {
   /** Snapshot terakhir yang tersimpan (atau dimuat) — acuan indikator perubahan. */
   saved: EditorSnapshot;
   dirty: boolean;
-  /** Kunci penggabungan langkah terakhir (mis. "text:headline") dan waktunya. */
+  /** Kunci penggabungan langkah terakhir (mis. "text:p1:headline") dan waktunya. */
   lastEdit: { key: string; at: number } | null;
+  /** Halaman yang sedang disunting (selalu < present.pages.length). */
+  currentPageIndex: number;
 }
 
 export type EditorAction =
-  | { type: "load"; snapshot: EditorSnapshot }
+  | { type: "load"; snapshot: EditorSnapshot; pageIndex?: number }
   | { type: "markSaved"; snapshot?: EditorSnapshot }
+  | { type: "selectPage"; index: number }
   | {
       type: "applyTemplate";
       template: TemplateShape;
@@ -84,12 +105,16 @@ export function slotsForTemplate(template: TemplateShape, previous: EditorSlot[]
   });
 }
 
-/** Snapshot awal untuk template tertentu. `saved` = nilai tersimpan (boleh kosong). */
-export function createSnapshot(
+/**
+ * Halaman editor untuk template tertentu. `text` = teks awal (nilai tersimpan
+ * yang sudah di-resolve); `savedSlots` = slot tersimpan (boleh kosong).
+ */
+export function createPage(
   template: TemplateShape,
   text: Record<string, string>,
   savedSlots: { slotId: string; photoId: string | null; crop?: Partial<Crop> }[] = [],
-): EditorSnapshot {
+  id: string = FIRST_PAGE_ID,
+): EditorPage {
   // Cocokkan per slotId; bila tak satu pun cocok (template berganti), cocokkan per indeks.
   const matchById = template.slots.some((slot) => savedSlots.some((s) => s.slotId === slot.id));
   const slots = template.slots.map((slot, index) => {
@@ -102,7 +127,26 @@ export function createSnapshot(
   });
   const textFields: Record<string, string> = {};
   for (const f of template.fields) textFields[f.key] = text[f.key] ?? f.defaultValue;
-  return { templateId: template.id, format: template.format, textFields, slots };
+  return { id, templateId: template.id, textFields, slots };
+}
+
+/** Dokumen satu halaman (desain baru). Format mengikuti template. */
+export function createSnapshot(
+  template: TemplateShape,
+  text: Record<string, string>,
+  savedSlots: { slotId: string; photoId: string | null; crop?: Partial<Crop> }[] = [],
+): EditorSnapshot {
+  return { format: template.format, pages: [createPage(template, text, savedSlots)] };
+}
+
+/** Halaman yang sedang disunting. */
+export function currentPage(state: Pick<EditorState, "present" | "currentPageIndex">): EditorPage {
+  return state.present.pages[clampPageIndex(state.present, state.currentPageIndex)];
+}
+
+function clampPageIndex(snapshot: EditorSnapshot, index: number): number {
+  const last = Math.max(0, snapshot.pages.length - 1);
+  return Number.isInteger(index) ? Math.min(last, Math.max(0, index)) : 0;
 }
 
 export function normalizeCrop(crop?: Partial<Crop>): Crop {
@@ -115,8 +159,9 @@ export function normalizeCrop(crop?: Partial<Crop>): Crop {
   };
 }
 
-export function snapshotsEqual(a: EditorSnapshot, b: EditorSnapshot): boolean {
-  if (a.templateId !== b.templateId || a.format !== b.format) return false;
+export function pagesEqual(a: EditorPage, b: EditorPage): boolean {
+  if (a === b) return true;
+  if (a.id !== b.id || a.templateId !== b.templateId) return false;
   const ak = Object.keys(a.textFields);
   const bk = Object.keys(b.textFields);
   if (ak.length !== bk.length) return false;
@@ -131,8 +176,22 @@ export function snapshotsEqual(a: EditorSnapshot, b: EditorSnapshot): boolean {
   return true;
 }
 
-export function createEditorState(snapshot: EditorSnapshot): EditorState {
-  return { present: snapshot, past: [], future: [], saved: snapshot, dirty: false, lastEdit: null };
+export function snapshotsEqual(a: EditorSnapshot, b: EditorSnapshot): boolean {
+  if (a === b) return true;
+  if (a.format !== b.format || a.pages.length !== b.pages.length) return false;
+  return a.pages.every((page, i) => pagesEqual(page, b.pages[i]));
+}
+
+export function createEditorState(snapshot: EditorSnapshot, pageIndex = 0): EditorState {
+  return {
+    present: snapshot,
+    past: [],
+    future: [],
+    saved: snapshot,
+    dirty: false,
+    lastEdit: null,
+    currentPageIndex: clampPageIndex(snapshot, pageIndex),
+  };
 }
 
 export function canUndo(state: EditorState): boolean {
@@ -165,114 +224,169 @@ function commit(state: EditorState, next: EditorSnapshot, coalesceKey?: string, 
   };
 }
 
-function updateSlot(snapshot: EditorSnapshot, slotId: string, patch: (slot: EditorSlot) => EditorSlot): EditorSnapshot {
+/** Ganti halaman aktif lewat `patch`; mengembalikan snapshot yang sama bila tidak berubah. */
+function updateCurrentPage(state: EditorState, patch: (page: EditorPage) => EditorPage): EditorSnapshot {
+  const index = clampPageIndex(state.present, state.currentPageIndex);
+  const page = state.present.pages[index];
+  const next = patch(page);
+  if (next === page) return state.present;
+  const pages = state.present.pages.slice();
+  pages[index] = next;
+  return { ...state.present, pages };
+}
+
+function updateSlot(page: EditorPage, slotId: string, patch: (slot: EditorSlot) => EditorSlot): EditorPage {
   let changed = false;
-  const slots = snapshot.slots.map((s) => {
+  const slots = page.slots.map((s) => {
     if (s.slotId !== slotId) return s;
     changed = true;
     return patch(s);
   });
-  return changed ? { ...snapshot, slots } : snapshot;
+  return changed ? { ...page, slots } : page;
+}
+
+/** Terapkan `patch` ke setiap slot di semua halaman; snapshot sama bila tidak ada yang berubah. */
+function mapAllSlots(snapshot: EditorSnapshot, patch: (slot: EditorSlot) => EditorSlot): EditorSnapshot {
+  let changed = false;
+  const pages = snapshot.pages.map((page) => {
+    let pageChanged = false;
+    const slots = page.slots.map((slot) => {
+      const next = patch(slot);
+      if (next !== slot) pageChanged = true;
+      return next;
+    });
+    if (!pageChanged) return page;
+    changed = true;
+    return { ...page, slots };
+  });
+  return changed ? { ...snapshot, pages } : snapshot;
+}
+
+/** Pindah ke snapshot riwayat; indeks halaman aktif dijaga tetap dalam rentang. */
+function travel(state: EditorState, present: EditorSnapshot, past: EditorSnapshot[], future: EditorSnapshot[]): EditorState {
+  return {
+    ...state,
+    present,
+    past,
+    future,
+    dirty: !snapshotsEqual(present, state.saved),
+    lastEdit: null,
+    currentPageIndex: clampPageIndex(present, state.currentPageIndex),
+  };
 }
 
 export function editorReducer(state: EditorState, action: EditorAction): EditorState {
   switch (action.type) {
     case "load":
-      return createEditorState(action.snapshot);
+      return createEditorState(action.snapshot, action.pageIndex);
 
     case "markSaved": {
       const saved = action.snapshot ?? state.present;
       return { ...state, saved, dirty: !snapshotsEqual(state.present, saved), lastEdit: null };
     }
 
+    case "selectPage": {
+      const index = clampPageIndex(state.present, action.index);
+      return index === state.currentPageIndex ? state : { ...state, currentPageIndex: index, lastEdit: null };
+    }
+
     case "applyTemplate": {
+      // Format dokumen mengikuti template. Untuk desain multi-halaman, pemanggil (F2-07)
+      // bertanggung jawab agar semua halaman memakai template berformat sama.
       const { template, defaults, previousDefaults } = action;
-      if (template.id === state.present.templateId) return state;
+      const page = currentPage(state);
+      if (template.id === page.templateId) return state;
       const textFields: Record<string, string> = {};
       for (const f of template.fields) {
-        const kept = state.present.textFields[f.key];
+        const kept = page.textFields[f.key];
         const edited =
           kept !== undefined && (!previousDefaults || (kept.trim() !== "" && kept !== previousDefaults[f.key]));
         textFields[f.key] = edited ? kept : (defaults[f.key] ?? f.defaultValue);
       }
-      return commit(state, {
+      const next = updateCurrentPage(state, (p) => ({
+        ...p,
         templateId: template.id,
-        format: template.format,
         textFields,
-        slots: slotsForTemplate(template, state.present.slots),
-      });
+        slots: slotsForTemplate(template, p.slots),
+      }));
+      return commit(state, { ...next, format: template.format });
     }
 
     case "resetTemplate": {
       const { template, defaults } = action;
       const textFields: Record<string, string> = {};
       for (const f of template.fields) textFields[f.key] = defaults[f.key] ?? f.defaultValue;
-      return commit(state, {
-        ...state.present,
-        textFields,
-        slots: state.present.slots.map((s) => ({ ...s, crop: { ...DEFAULT_CROP } })),
-      });
+      return commit(
+        state,
+        updateCurrentPage(state, (p) => ({
+          ...p,
+          textFields,
+          slots: p.slots.map((s) => ({ ...s, crop: { ...DEFAULT_CROP } })),
+        })),
+      );
     }
 
     case "setText": {
-      if (state.present.textFields[action.key] === action.value) return state;
+      const page = currentPage(state);
+      if (page.textFields[action.key] === action.value) return state;
       return commit(
         state,
-        { ...state.present, textFields: { ...state.present.textFields, [action.key]: action.value } },
-        `text:${action.key}`,
+        updateCurrentPage(state, (p) => ({ ...p, textFields: { ...p.textFields, [action.key]: action.value } })),
+        `text:${page.id}:${action.key}`,
         action.at,
       );
     }
 
     case "setCrop": {
-      const next = updateSlot(state.present, action.slotId, (s) => ({
-        ...s,
-        crop: normalizeCrop({ ...s.crop, ...action.crop }),
-      }));
-      return commit(state, next, `crop:${action.slotId}`, action.at);
+      const page = currentPage(state);
+      const next = updateCurrentPage(state, (p) =>
+        updateSlot(p, action.slotId, (s) => ({ ...s, crop: normalizeCrop({ ...s.crop, ...action.crop }) })),
+      );
+      return commit(state, next, `crop:${page.id}:${action.slotId}`, action.at);
     }
 
     case "resetCrop":
       return commit(
         state,
-        updateSlot(state.present, action.slotId, (s) => ({ ...s, crop: { ...DEFAULT_CROP } })),
+        updateCurrentPage(state, (p) => updateSlot(p, action.slotId, (s) => ({ ...s, crop: { ...DEFAULT_CROP } }))),
       );
 
     case "assignPhoto":
       return commit(
         state,
-        updateSlot(state.present, action.slotId, (s) =>
-          s.photoId === action.photoId ? s : { ...s, photoId: action.photoId, crop: { ...DEFAULT_CROP } },
+        updateCurrentPage(state, (p) =>
+          updateSlot(p, action.slotId, (s) =>
+            s.photoId === action.photoId ? s : { ...s, photoId: action.photoId, crop: { ...DEFAULT_CROP } },
+          ),
         ),
       );
 
     case "swapSlots": {
       if (action.a === action.b) return state;
-      const a = state.present.slots.find((s) => s.slotId === action.a);
-      const b = state.present.slots.find((s) => s.slotId === action.b);
+      const page = currentPage(state);
+      const a = page.slots.find((s) => s.slotId === action.a);
+      const b = page.slots.find((s) => s.slotId === action.b);
       if (!a || !b) return state;
-      const slots = state.present.slots.map((s) => {
+      const slots = page.slots.map((s) => {
         if (s.slotId === a.slotId) return { ...s, photoId: b.photoId, crop: { ...b.crop } };
         if (s.slotId === b.slotId) return { ...s, photoId: a.photoId, crop: { ...a.crop } };
         return s;
       });
-      return commit(state, { ...state.present, slots });
+      return commit(state, updateCurrentPage(state, (p) => ({ ...p, slots })));
     }
 
     case "removePhoto": {
-      if (!state.present.slots.some((s) => s.photoId === action.photoId)) return state;
-      const slots = state.present.slots.map((s) =>
+      // Foto dihapus dari pustaka bersama: lepas dari semua halaman.
+      const next = mapAllSlots(state.present, (s) =>
         s.photoId === action.photoId ? { ...s, photoId: null, crop: { ...DEFAULT_CROP } } : s,
       );
-      return commit(state, { ...state.present, slots });
+      return next === state.present ? state : commit(state, next);
     }
 
     case "renamePhoto": {
       // Kunci foto berubah (mis. setelah unggah berhasil) — bukan langkah undo, ganti di seluruh riwayat.
       const rename = (snap: EditorSnapshot): EditorSnapshot =>
-        snap.slots.some((s) => s.photoId === action.from)
-          ? { ...snap, slots: snap.slots.map((s) => (s.photoId === action.from ? { ...s, photoId: action.to } : s)) }
-          : snap;
+        mapAllSlots(snap, (s) => (s.photoId === action.from ? { ...s, photoId: action.to } : s));
       const present = rename(state.present);
       return {
         ...state,
@@ -286,27 +400,13 @@ export function editorReducer(state: EditorState, action: EditorAction): EditorS
     case "undo": {
       if (!state.past.length) return state;
       const previous = state.past[state.past.length - 1];
-      return {
-        ...state,
-        present: previous,
-        past: state.past.slice(0, -1),
-        future: [state.present, ...state.future].slice(0, HISTORY_LIMIT),
-        dirty: !snapshotsEqual(previous, state.saved),
-        lastEdit: null,
-      };
+      return travel(state, previous, state.past.slice(0, -1), [state.present, ...state.future].slice(0, HISTORY_LIMIT));
     }
 
     case "redo": {
       if (!state.future.length) return state;
       const [next, ...rest] = state.future;
-      return {
-        ...state,
-        present: next,
-        past: [...state.past, state.present].slice(-HISTORY_LIMIT),
-        future: rest,
-        dirty: !snapshotsEqual(next, state.saved),
-        lastEdit: null,
-      };
+      return travel(state, next, [...state.past, state.present].slice(-HISTORY_LIMIT), rest);
     }
 
     default:
@@ -357,6 +457,17 @@ export function renderText(template: TemplateShape, textFields: Record<string, s
     out[f.key] = value && value.trim() ? value : f.defaultValue;
   }
   return out;
+}
+
+/** Props render satu halaman (pratinjau, ekspor PNG, dan kelak thumbnail halaman). */
+export function pageRenderProps(
+  template: TemplateShape,
+  page: EditorPage,
+  photoSrc: (photoId: string | null) => string | null,
+): Pick<TemplateRenderProps, "text" | "photos"> {
+  const photos: Record<string, TemplatePhoto> = {};
+  for (const slot of page.slots) photos[slot.slotId] = { src: photoSrc(slot.photoId), crop: slot.crop };
+  return { text: renderText(template, page.textFields), photos };
 }
 
 // ---------- pengelompokan galeri ----------
@@ -416,21 +527,22 @@ export const STUDIO_STEPS: { id: StudioStepId; label: string }[] = [
 ];
 
 /**
- * Status tiap langkah. Foto selesai bila semua slot terisi (atau template
- * tanpa slot); Teks selesai bila tidak ada peringatan; Simpan selesai bila
- * ada versi tersimpan tanpa perubahan; Unduh selesai setelah PNG diunduh.
+ * Status tiap langkah untuk halaman yang sedang disunting. Foto selesai bila
+ * semua slot terisi (atau template tanpa slot); Teks selesai bila tidak ada
+ * peringatan; Simpan selesai bila ada versi tersimpan tanpa perubahan; Unduh
+ * selesai setelah PNG diunduh.
  */
 export function studioStepStatus(input: {
-  snapshot: EditorSnapshot;
+  page: EditorPage;
   template: TemplateShape;
   dirty: boolean;
   savedVersion: number | null;
   exported: boolean;
 }): Record<StudioStepId, boolean> {
-  const { snapshot, template, dirty, savedVersion, exported } = input;
-  const withPhoto = snapshot.slots.filter((s) => s.photoId);
-  const photoDone = template.slots.length === 0 || withPhoto.length === snapshot.slots.length;
-  const textDone = textWarnings(template, snapshot.textFields).length === 0;
+  const { page, template, dirty, savedVersion, exported } = input;
+  const withPhoto = page.slots.filter((s) => s.photoId);
+  const photoDone = template.slots.length === 0 || withPhoto.length === page.slots.length;
+  const textDone = textWarnings(template, page.textFields).length === 0;
   // Crop opsional: dianggap beres bila template tanpa foto, atau semua slot sudah berfoto.
   const cropDone = template.slots.length === 0 || (withPhoto.length > 0 && photoDone);
   return {

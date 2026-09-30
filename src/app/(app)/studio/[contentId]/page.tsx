@@ -32,9 +32,13 @@ async function loadStudio(contentId: string): Promise<LoadResult> {
     if (!content) return { ok: false, notFound: true };
     const design = await store.designs.getByContentId(content.id);
 
-    // Foto desain tersimpan dipulihkan per ID; foto lain terbaru ikut ditawarkan untuk dipakai ulang.
+    // Foto desain tersimpan (semua halaman) dipulihkan per ID; foto lain terbaru ikut ditawarkan untuk dipakai ulang.
     const savedIds = Array.from(
-      new Set((design?.imageSlots ?? []).map((s) => s.assetId).filter((id): id is string => typeof id === "string")),
+      new Set(
+        (design?.pages ?? []).flatMap((page) =>
+          page.imageSlots.map((s) => s.assetId).filter((id): id is string => typeof id === "string"),
+        ),
+      ),
     );
     let recent: Asset[] = [];
     try {
@@ -116,16 +120,7 @@ export default async function StudioEditorPage({ params }: PageProps) {
         cta: content.cta,
       }}
       design={
-        design
-          ? {
-              templateId: design.templateId,
-              format: design.format,
-              textFields: design.textFields,
-              imageSlots: design.imageSlots,
-              version: design.version,
-              updatedAt: design.updatedAt,
-            }
-          : null
+        design ? { format: design.format, pages: design.pages, version: design.version, updatedAt: design.updatedAt } : null
       }
       assets={assets}
       storage={storage.assets}
