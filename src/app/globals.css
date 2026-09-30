@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/*
+ * Token desain Atala Konten (DESIGN §2). Bahasa visual dasbor admin modern:
+ * latar terang, permukaan putih, aksen biru, radius 12–16 px, bayangan lembut.
+ */
+@theme {
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-ink: #0f172a;
+  --color-ink-soft: #475569;
+  --color-ink-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+
+  --color-brand: #2563eb;
+  --color-brand-hover: #1d4ed8;
+  --color-brand-soft: #eff6ff;
+  --color-brand-ring: #93c5fd;
+
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
+  --color-success: #059669;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-soft: #fffbeb;
+
+  /* Aksen dari logo Atala — dipakai hemat (tag, ilustrasi). */
+  --color-atala-teal: #0fb5ba;
+  --color-atala-amber: #f5b301;
+  --color-atala-plum: #7a2a5c;
+  --color-atala-violet: #8b1fd1;
+  --color-atala-navy: #1e3a5f;
+
+  /*
+   * Breakpoint tambahan dalam rem agar diurutkan bersama md/lg/xl bawaan.
+   * Varian arbitrer seperti min-[1200px] tidak dapat dibandingkan dengan md
+   * (48rem), sehingga ditaruh sebelum md dan kelas md: menimpanya.
+   * desktop = 1200 px (sama dengan DESKTOP_QUERY di shell-state), wide = 1400 px.
+   */
+  --breakpoint-desktop: 75rem;
+  --breakpoint-wide: 87.5rem;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px rgba(15, 23, 42, 0.04);
+  --shadow-raised: 0 10px 30px rgba(15, 23, 42, 0.1);
+  --shadow-drawer: -12px 0 40px rgba(15, 23, 42, 0.14);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-in: fade-in 200ms var(--ease-out-soft) both;
+  --animate-rise-in: rise-in 220ms var(--ease-out-soft) both;
+  --animate-slide-in-right: slide-in-right 260ms var(--ease-out-soft) both;
+  --animate-scale-in: scale-in 200ms var(--ease-out-soft) both;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slide-in-right {
+    from { opacity: 0.4; transform: translateX(32px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: #dbeafe;
+  }
+}
+
+/* Hormati reduced motion: matikan gerak non-esensial di seluruh aplikasi. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

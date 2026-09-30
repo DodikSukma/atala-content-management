@@ -6,7 +6,8 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
+
 
 # Volume root files
 .DocumentRevisions-V100
@@ -16,3 +17,25 @@ Icon
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
+node_modules
+
+### Node / Next.js
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+
+### Env & data lokal (jangan commit rahasia)
+.env
+.env.local
+.env.*.local
+.env.production
+.data/
+.vercel/
+
+### Hasil uji
+test-results/
+playwright-report/

@@ -1,0 +1,103 @@
+"use client";
+
+import { AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { FORMAT_SHORT_LABELS, STATUS_LABELS, STATUS_TONES, type ContentStatus } from "@/lib/constants";
+import { planDateOf } from "@/lib/planning";
+import { formatTime } from "@/lib/time";
+import type { Content } from "@/lib/validation/schemas";
+
+type Tone = (typeof STATUS_TONES)[ContentStatus];
+
+/** Warna status halus; selalu dipasangkan dengan label teks. */
+const TONE_CLASSES: Record<Tone, { border: string; dot: string; text: string }> = {
+  slate: { border: "border-l-slate-400", dot: "bg-slate-400", text: "text-slate-600" },
+  violet: { border: "border-l-violet-500", dot: "bg-violet-500", text: "text-violet-700" },
+  amber: { border: "border-l-amber-500", dot: "bg-amber-500", text: "text-amber-700" },
+  sky: { border: "border-l-sky-500", dot: "bg-sky-500", text: "text-sky-700" },
+  blue: { border: "border-l-blue-600", dot: "bg-blue-600", text: "text-blue-700" },
+  emerald: { border: "border-l-emerald-600", dot: "bg-emerald-600", text: "text-emerald-700" },
+  rose: { border: "border-l-rose-500", dot: "bg-rose-500", text: "text-rose-700" },
+};
+
+export function toneOf(status: ContentStatus) {
+  return TONE_CLASSES[STATUS_TONES[status]];
+}
+
+export function cardTimeLabel(c: Content): string {
+  const when = planDateOf(c);
+  return when ? formatTime(when) : "--.--";
+}
+
+function accessibleLabel(c: Content, overdue: boolean): string {
+  const parts = [c.title, `${cardTimeLabel(c)} WITA`, `status ${STATUS_LABELS[c.status]}`, FORMAT_SHORT_LABELS[c.format]];
+  if (overdue) parts.push("terlambat");
+  return `${parts.join(", ")}. Buka detail`;
+}
+
+interface CalendarCardProps {
+  content: Content;
+  overdue: boolean;
+  /** compact = sel bulan (satu baris di tablet); full = kolom minggu dan daftar hari. */
+  variant: "compact" | "full";
+  onOpen: (id: string) => void;
+  dimmed?: boolean;
+}
+
+export function CalendarCard({ content, overdue, variant, onOpen, dimmed }: CalendarCardProps) {
+  const tone = toneOf(content.status);
+  const time = cardTimeLabel(content);
+  const label = accessibleLabel(content, overdue);
+
+  const base = cn(
+    "block w-full min-w-0 rounded-lg border border-line border-l-[3px] bg-surface text-left",
+    "transition-[box-shadow,transform,border-color] duration-150 ease-out hover:-translate-y-px hover:shadow-card hover:border-line-strong",
+    "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand",
+    tone.border,
+    overdue && "bg-danger-soft/60",
+    dimmed && "opacity-70",
+  );
+
+  if (variant === "compact") {
+    return (
+      <button type="button" className={cn(base, "px-1.5 py-1")} onClick={() => onOpen(content.id)} aria-label={label} title={content.title}>
+        <span className="flex min-w-0 items-center gap-1 text-[11px] leading-4">
+          {overdue ? <AlertTriangle aria-hidden size={12} className="shrink-0 text-danger" /> : null}
+          <span className="shrink-0 tabular-nums text-ink-muted">{time}</span>
+          <span className="min-w-0 truncate font-medium text-ink">{content.title}</span>
+        </span>
+        <span className="mt-0.5 hidden min-w-0 items-center gap-1 text-[11px] leading-4 lg:flex">
+          <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone.dot)} />
+          <span className={cn("truncate", overdue ? "font-medium text-danger" : tone.text)}>
+            {overdue ? "Terlambat" : STATUS_LABELS[content.status]}
+          </span>
+          <span className="shrink-0 text-ink-muted">· {FORMAT_SHORT_LABELS[content.format]}</span>
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <button type="button" className={cn(base, "px-2.5 py-2")} onClick={() => onOpen(content.id)} aria-label={label}>
+      <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs leading-4 text-ink-muted">
+        <span className="tabular-nums font-medium text-ink-soft">{time}</span>
+        <span>· {FORMAT_SHORT_LABELS[content.format]}</span>
+      </span>
+      <span className="mt-1 block text-sm font-semibold leading-5 text-ink [overflow-wrap:anywhere] line-clamp-3">
+        {content.title}
+      </span>
+      <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs leading-4">
+        <span className="inline-flex items-center gap-1">
+          <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
+          <span className={tone.text}>{STATUS_LABELS[content.status]}</span>
+        </span>
+        {overdue ? (
+          <span className="inline-flex items-center gap-1 font-medium text-danger">
+            <AlertTriangle aria-hidden size={14} />
+            Terlambat
+          </span>
+        ) : null}
+      </span>
+    </button>
+  );
+}

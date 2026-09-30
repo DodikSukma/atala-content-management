@@ -24,6 +24,7 @@ Atala Project perlu rutin menerbitkan konten pendidikan, dengan target awal tiga
 - Tiga slot unggahan terdekat, konten terlambat, dan tombol utama “Buat Konten”.
 - Target tiga unggahan per minggu sebagai indikator perencanaan; admin dapat mengubah target menjadi tujuh.
 - Angka berasal dari data nyata di Google Sheets, bukan nilai contoh permanen.
+- Dashboard memakai infografis beranimasi halus dari data nyata: KPI (total konten aktif, rencana pekan ini, siap unggah, terbit bulan ini, terlambat, ide di bank), cincin target mingguan, pipeline status, tren produksi 8 pekan, distribusi pilar, format, dan kanal. Halaman **Laporan** (`/insights`) memperdalamnya: heatmap konsistensi 12 pekan, keseimbangan pilar, performa target, rata-rata waktu produksi, dan konversi ide.
 
 ### 3.2 Bank ide dan konten
 
@@ -101,3 +102,20 @@ Atala Project perlu rutin menerbitkan konten pendidikan, dengan target awal tiga
 - Foto perlu penyimpanan file terpisah dan dapat menimbulkan biaya penyimpanan/transfer sesuai penggunaan Vercel. Tanpa konfigurasi Blob, unggah hanya sementara dan fitur “Simpan Desain” harus dinonaktifkan dengan pesan jelas.
 - Desain memakai pola Triton, tetapi logo, nama, dan konten Triton tidak dipakai. Palet dapat disesuaikan ketika pedoman merek Atala tersedia.
 - Multi-user, auto-post, AI, dan pembayaran diputuskan setelah alur konten manual dipakai secara nyata.
+
+## 9. Kontrak rilis yang dibekukan (AT-02, 30 September 2026)
+
+Nilai berikut dikunci di `src/lib/validation/schemas.ts` dan `src/lib/constants.ts`; perubahan harus memperbarui dokumen ini, skema, dan uji sekaligus.
+
+| Hal | Nilai kanonis (disimpan) | Label UI |
+|---|---|---|
+| Status | `idea`, `draft`, `review`, `ready`, `scheduled`, `published`, `cancelled` | Ide, Draf, Review, Siap, Terjadwal (= rencana unggah manual), Terbit, Dibatalkan |
+| Format | `feed` (1080 × 1080), `story` (1080 × 1920) | Feed, Story |
+| Kanal | `instagram_feed`, `instagram_story`, `facebook`, `tiktok` | Instagram Feed, Instagram Story, Facebook, TikTok (dua terakhir hanya dicatat, tanpa ekspor khusus) |
+| Pilar awal | Edukasi, Tips, Pengumuman, Promosi Program, Testimoni, Komunitas Atala | Dapat diubah admin di Pengaturan |
+| Target mingguan | 3 (bawaan) atau 7 | "konten per pekan" |
+| Zona waktu | `Asia/Makassar` (WITA, UTC+8, tanpa DST); disimpan ISO UTC | Tanggal/jam ditampilkan dan diedit dalam WITA |
+| Pekan | Senin 00:00 – Minggu 23:59 WITA | — |
+| Transisi status | Maju satu atau beberapa langkah; mundur diperbolehkan; mundur dari `published` wajib konfirmasi; `scheduled` wajib jadwal; `published` wajib tanggal terbit | Tombol "Tandai Sudah Terbit" meminta tanggal dan URL unggahan opsional |
+
+Navigasi rilis pertama hanya: Dashboard, Laporan, Kalender, Konten, Bank Ide, Studio Desain, Pengaturan. Laporan hanya merangkum data produksi internal dari Sheet (bukan analitik platform sosial). Tidak ada menu atau model data untuk proyek klien, pembayaran, AI, Ads, atau auto-post.

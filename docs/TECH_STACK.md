@@ -9,7 +9,7 @@ Keputusan untuk rilis pertama: satu aplikasi Next.js yang dapat di-deploy di Ver
 | Web | Next.js App Router + React + TypeScript | Routing, UI, dan fungsi server dalam satu proyek; sesuai target Vercel. |
 | Gaya | Tailwind CSS + token desain lokal | Memudahkan implementasi bahasa visual Triton dengan identitas Atala. |
 | Komponen | Komponen internal; ikon Lucide | UI konsisten tanpa membawa pustaka dashboard besar atau ikon emoji. |
-| Animasi | CSS transform/opacity; Framer Motion hanya bila perlu | Gerak halus tanpa menambah ketergantungan pada seluruh halaman. |
+| Animasi | CSS transform/opacity + `motion` 13.4.6 (penerus Framer Motion) untuk infografis dan transisi | Dipasang dari npm (bukan tag skrip CDN) agar versi terkunci di lockfile, tidak bergantung pada server pihak ketiga saat runtime, dan ikut tree-shaking. `MotionConfig reducedMotion="user"` mematikan gerak saat reduced motion. |
 | Validasi | Skema TypeScript dan validasi runtime di server, misalnya Zod | Data Google Sheet tetap bersih dan input klien tidak dipercaya. |
 | Poster | Komponen React template, `html-to-image` untuk PNG; logika ekspor dari Poster Generator ditinjau ulang | Memakai fondasi yang sudah dikenal, dipisahkan dari data tur. |
 | Data | Google Sheets API dari server | Penyimpanan awal tanpa database baru; mudah diperiksa manual. |
@@ -112,6 +112,16 @@ Google Sheets API mendukung baca/tulis data dan memiliki batas permintaan; lihat
 ## 7. Kontrak operasi aplikasi
 
 UI boleh memakai server actions atau route handlers; pilih satu pola yang konsisten. Kontrak minimal: `login`, `logout`, `getSession`, `list/create/update/archive ideas`, `list/get/create/update/archive contents`, `save/get design`, `upload/get asset`, `update settings`. Semua mutasi memvalidasi input dan sesi, mengembalikan pesan gagal yang dapat dibaca UI, serta mencatat error server tanpa rahasia.
+
+## 7a. Keputusan implementasi (30 September 2026)
+
+- **Versi terkunci:** Next.js 16.3.7, React 19.3.0, TypeScript 5.9.3 (TypeScript 7 native belum dipakai karena Next memerlukan API compiler JS), Tailwind CSS 4.3.3, zod 4.6.5, jose 6.2.12, html-to-image 1.11.13, @vercel/blob 2.8.0, google-auth-library 11.1.0, image-size 2.0.4, vitest 5.0.3, ESLint 9.39.5. Node ≥ 20.9.
+- **Pola operasi:** server actions untuk semua mutasi data; route handler hanya untuk aset (`POST /api/assets`, `GET /api/assets/[id]`). Setiap action/route memanggil `requireActionSession()` sebelum menyentuh data; halaman memakai `requireSession()` di layout grup `(app)`. `src/proxy.ts` (pengganti middleware di Next 16) hanya pemeriksaan optimistis.
+- **Hash kata sandi:** `scrypt` bawaan Node (`crypto.scrypt`) dengan format `scrypt$N$r$p$salt$hash`; buat dengan `npm run hash-password`. Sesi = JWT HS256 (jose) di cookie `atala_session` (HttpOnly, SameSite=Lax, Secure di produksi, 7 hari).
+- **Mode demo & fixture:** `admin/admin123` dan adapter fixture (`.data/fixture.json`, `.data/assets/`) hanya aktif bila env produksi tidak diisi **dan** bukan Vercel (`VERCEL !== "1"`) **dan** (`NODE_ENV !== "production"` atau `ALLOW_DEMO_LOGIN=true` / `DATA_ADAPTER=fixture` untuk uji lokal `next start`). UI menampilkan banner "Mode fixture lokal" agar tidak disangka data produksi.
+- **Batas body Vercel:** fungsi Vercel menolak body > 4,5 MB, sedangkan batas file 10 MB. Browser memvalidasi file asli (tipe, ≤ 10 MB, sisi terpendek ≥ 800 px), lalu memperkecil sisi terpanjang ke ≤ 2400 px sebelum unggah. Server tetap memvalidasi ulang magic bytes, ukuran, dan dimensi.
+- **Model tambahan:** `Content.sourceIdeaId` menautkan konten ke ide asalnya sehingga konversi ide tidak menggandakan data.
+- **Ekspor PNG:** node template ukuran asli (1080 px) dirender terpisah dari pratinjau berskala; `html-to-image` dipanggil setelah `document.fonts.ready` dan `img.decode()`, lalu dimensi hasil diverifikasi sebelum diunduh.
 
 ## 8. Migrasi dan fase berikutnya
 

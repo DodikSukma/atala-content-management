@@ -8,6 +8,8 @@ Dokumen ini menjadi acuan implementasi visual dan interaksi. Fokus pada desktop 
 
 **Acuan Poster Generator lokal:** `../../../Project/Poster-Generator/poster-generator/poster-generator/src/`. Ambil gagasan registry template, slot foto, pratinjau rasio final, dan ekspor PNG. Desain baru harus lebih rapi, fleksibel untuk pendidikan, bisa menyimpan konfigurasi, dan mendukung unggah foto sendiri.
 
+**Catatan 30 September 2026:** kedua repo lokal di atas tidak tersedia di laptop pelaksana. Acuan yang dipakai: situs Triton `https://user-docs-triton.atalaproject.com/` (bahasa visual) dan aplikasi `https://poster-generator.jeepsunrisebali.com/` (pola Poster Studio). Rincian yang diadaptasi dan yang tidak disalin ada di [REFERENCES.md](./REFERENCES.md).
+
 **Referensi open source:** [Postiz](https://github.com/gitroomhq/postiz-app) dan [TryPost](https://github.com/trypostit/trypost) sebagai referensi pola kalender editorial, daftar konten, dan status. Pelajari alurnya; jangan salin source, komponen, aset, atau identitas merek. Periksa lisensi sebelum memakai kode pihak ketiga.
 
 Prinsip: satu tindakan utama per layar, konten lebih penting daripada dekorasi, data nyata lebih penting daripada kartu metrik kosong, dan setiap perubahan harus memberi umpan balik yang jelas.
@@ -54,6 +56,8 @@ Prinsip: satu tindakan utama per layar, konten lebih penting daripada dekorasi, 
 - Hero pendek berisi salam dan tanggal lokal; warna biru bergradasi ringan seperti Triton tanpa dekorasi berlebihan.
 - Empat kartu: rencana minggu ini, siap diunggah, sudah terbit, dan melewati jadwal. Kartu dapat diklik menuju daftar terfilter.
 - Kalender mini tujuh hari dan daftar tiga konten berikutnya. Empty state memberi tindakan “Buat ide pertama”.
+- Infografis (30 September 2026): KPI dengan hitung naik, cincin target, pipeline status, grafik kolom 8 pekan dengan garis target, batang pilar, donat format. Grafik berupa SVG aksesibel (label teks + ringkasan untuk pembaca layar), animasi sekali jalan lewat `motion`, dan tampil sebagai kerangka kosong berpenjelasan bila belum ada data.
+- Laporan `/insights`: rentang 4/8/12 pekan, heatmap konsistensi unggah, keseimbangan pilar, funnel status, performa target, waktu produksi, konversi ide.
 - Indikator target mingguan menggunakan data asli; jangan tampilkan angka contoh yang tampak produksi.
 
 ### 4.3 Kalender `/calendar`
@@ -90,6 +94,8 @@ Prinsip: satu tindakan utama per layar, konten lebih penting daripada dekorasi, 
 ## 5. Template pendidikan
 
 Sepuluh template Feed wajib memiliki komposisi berbeda: `Fact Focus`, `Step by Step`, `Quote Educator`, `Myth vs Fact`, `Checklist`, `Question Hook`, `Program Highlight`, `Testimonial`, `Statistic`, dan `Announcement`. Empat Story: `Story Frame`, `Quick Tip`, `Question`, dan `Announcement`. Nama dapat dilokalkan pada UI.
+
+Tambahan infografis (30 September 2026): Feed `Infografis Grafik Batang`, `Infografis Persentase`, `Infografis Linimasa`, `Infografis Perbandingan`; Story `Infografis Angka Story` dan `Infografis Alur Story`. Data grafik diisi sebagai teks (`Label: angka` per baris), dirender sebagai SVG statis agar ekspor PNG tetap tajam. Galeri Studio memiliki filter kategori termasuk "Infografis".
 
 Semua template memakai token Atala, menerima panjang teks realistis, menyediakan slot foto atau fallback grafis, dan lolos pemeriksaan 1080 px. Variasi warna saja tidak dihitung sebagai template baru. Jangan memakai data harga/tur bawaan Poster Generator.
 

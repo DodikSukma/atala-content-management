@@ -1,0 +1,47 @@
+{
+  "name": "atala-konten",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Atala Konten — manajemen konten, kalender unggah manual, dan Studio PNG untuk Atala Project.",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "hash-password": "node scripts/hash-password.mjs",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "backup-assets": "node scripts/backup-assets.mjs"
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.0",
+    "google-auth-library": "11.1.0",
+    "html-to-image": "1.11.13",
+    "image-size": "2.0.4",
+    "jose": "6.2.12",
+    "lucide-react": "1.49.0",
+    "motion": "13.4.6",
+    "next": "16.3.7",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.20.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.7",
+    "playwright": "1.63.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
+  }
+}
