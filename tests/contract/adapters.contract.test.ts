@@ -1,10 +1,10 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createFixtureStore } from "@/lib/data/fixture-store";
 import { createSheetsStore } from "@/lib/data/sheets-store";
-import { StorageError } from "@/lib/data/types";
+import { ConflictError, StorageError } from "@/lib/data/types";
 import { createFakeSheets } from "./fake-sheets";
 import { defineRepositoryContract } from "./repository-contract";
 
@@ -47,6 +47,60 @@ describe("khusus Google Sheets (HTTP mock)", () => {
       store.ideas.create({ title: "Ide", pillar: "Tips", hook: "", summary: "", sourceUrl: "", sourceCheckedAt: null, tags: [] }),
     ).rejects.toBeInstanceOf(StorageError);
     expect(await store.ideas.list()).toEqual([]);
+  });
+
+  it("tab Designs v1 + Settings schemaVersion 1 dimigrasikan ke Design v2 saat store dibuka", async () => {
+    const fake = createFakeSheets();
+    const contentId = "11111111-1111-4111-8111-111111111111";
+    const designId = "22222222-2222-4222-8222-222222222222";
+    const slots = [{ slotId: "photo", assetId: "33333333-3333-4333-8333-333333333333", crop: { x: 30, y: 70, zoom: 1.6 } }];
+    const text = { headline: "Otak butuh jeda", body: "Belajar 25 menit, istirahat 5 menit." };
+    // Persis seperti ditulis aplikasi v1: tanpa kolom pages, version sebagai angka.
+    fake.tabs.set("Designs", [
+      ["id", "contentId", "templateId", "format", "textFields", "imageSlots", "version", "updatedAt", "Catatan admin"],
+      [designId, contentId, "feed-fact-focus", "feed", JSON.stringify(text), JSON.stringify(slots), 4, "2026-09-20T03:00:00.000Z", "jangan dihapus"],
+    ]);
+    fake.tabs.set("Settings", [
+      ["key", "value"],
+      ["weeklyTarget", "7"],
+      ["schemaVersion", "1"],
+    ]);
+    const make = () => createSheetsStore("sheet-migrasi", FAKE_CREDENTIALS, { fetch: fake.fetch, getToken: fake.getToken });
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    try {
+      const design = await make().designs.getByContentId(contentId);
+      expect(design).toEqual({
+        id: designId,
+        contentId,
+        format: "feed",
+        pages: [{ id: "p1", templateId: "feed-fact-focus", textFields: text, imageSlots: slots }],
+        version: 4,
+        updatedAt: "2026-09-20T03:00:00.000Z",
+      });
+
+      const settingsTab = fake.tabs.get("Settings")!;
+      expect(settingsTab.find((row) => row[0] === "schemaVersion")?.[1]).toBe("2");
+      expect(settingsTab.find((row) => row[0] === "weeklyTarget")?.[1]).toBe("7");
+
+      const [header, row] = fake.tabs.get("Designs")!;
+      const cell = (name: string) => row[header.indexOf(name)];
+      expect(header).toContain("pages");
+      expect(JSON.parse(String(cell("pages")))).toEqual(design!.pages);
+      expect(cell("templateId")).toBe("");
+      expect(cell("textFields")).toBe("{}");
+      expect(cell("imageSlots")).toBe("[]");
+      expect(cell("Catatan admin")).toBe("jangan dihapus");
+
+      // Store baru (proses lain): tidak ada migrasi ulang; data v2 terbaca identik dan simpan tetap memeriksa versi.
+      const again = make();
+      expect(await again.designs.getByContentId(contentId)).toEqual(design);
+      expect((await again.settings.get()).schemaVersion).toBe(2);
+      await expect(again.designs.save({ contentId, format: "feed", pages: design!.pages }, 3)).rejects.toBeInstanceOf(ConflictError);
+      expect((await again.designs.save({ contentId, format: "feed", pages: design!.pages }, 4)).version).toBe(5);
+      expect(info).toHaveBeenCalledTimes(1);
+    } finally {
+      info.mockRestore();
+    }
   });
 
   it("header yang diurutkan ulang manual tetap terbaca benar", async () => {

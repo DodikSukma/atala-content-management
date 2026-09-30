@@ -166,13 +166,49 @@ export const imageSlotSchema = z.object({
 });
 export type ImageSlot = z.infer<typeof imageSlotSchema>;
 
+/** Batas halaman per desain (carousel Instagram maksimal 10 slide). */
+export const DESIGN_MAX_PAGES = 10;
+/**
+ * Batas ukuran JSON `pages` saat menyimpan. Seluruh halaman tersimpan dalam satu
+ * sel Google Sheets (maks. 50.000 karakter); template terpanjang hanya ~650
+ * karakter teks per halaman, jadi batas ini hanya menolak input tidak wajar.
+ */
+export const DESIGN_PAGES_MAX_CHARS = 45_000;
+
+/**
+ * Satu halaman desain (Design v2, F2-06). Desain v1 dimigrasikan menjadi satu
+ * halaman ber-id "p1". Tempat untuk `motion` (MT-10) dan `tone` per halaman
+ * kelak ditambahkan di sini sebagai field opsional.
+ */
+export const designPageSchema = z.object({
+  /** Stabil selama desain hidup (bukan indeks), unik dalam satu desain, mis. "p1". */
+  id: z.string().min(1).max(40),
+  templateId: z.string().min(1).max(60),
+  textFields: z.record(z.string().max(60), z.string().max(1200)),
+  imageSlots: z.array(imageSlotSchema).max(8),
+});
+export type DesignPage = z.infer<typeof designPageSchema>;
+
+const designPagesSchema = z
+  .array(designPageSchema)
+  .min(1, "Desain minimal berisi satu halaman")
+  .max(DESIGN_MAX_PAGES, `Desain maksimal ${DESIGN_MAX_PAGES} halaman`)
+  .superRefine((pages, ctx) => {
+    const seen = new Set<string>();
+    pages.forEach((page, index) => {
+      if (seen.has(page.id)) {
+        ctx.addIssue({ code: "custom", path: [index, "id"], message: "ID halaman ganda pada desain" });
+      }
+      seen.add(page.id);
+    });
+  });
+
+/** Design v2: halaman berurutan; `format` berlaku untuk semua halaman. */
 export const designSchema = z.object({
   id: idSchema,
   contentId: idSchema,
-  templateId: z.string().min(1).max(60),
   format: contentFormatSchema,
-  textFields: z.record(z.string().max(60), z.string().max(1200)),
-  imageSlots: z.array(imageSlotSchema).max(8),
+  pages: designPagesSchema,
   version: z.number().int().min(1),
   updatedAt: isoDateTime,
 });
@@ -180,10 +216,11 @@ export type Design = z.infer<typeof designSchema>;
 
 export const designInputSchema = z.object({
   contentId: idSchema,
-  templateId: z.string().min(1).max(60),
   format: contentFormatSchema,
-  textFields: z.record(z.string().max(60), z.string().max(1200)),
-  imageSlots: z.array(imageSlotSchema).max(8),
+  pages: designPagesSchema.refine(
+    (pages) => JSON.stringify(pages).length <= DESIGN_PAGES_MAX_CHARS,
+    "Desain terlalu besar untuk disimpan. Kurangi teks atau jumlah halaman.",
+  ),
   /** Versi yang dibuka editor; null bila desain baru. Dipakai untuk deteksi konflik. */
   expectedVersion: z.union([z.number().int().min(1), z.null()]),
 });

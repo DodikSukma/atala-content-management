@@ -169,23 +169,18 @@ describe("fixture store (.data/fixture.json)", () => {
   it("desain memakai versi untuk deteksi konflik", async () => {
     const store = createFixtureStore({ dir });
     const content = await store.contents.create(contentInput());
-    const base = {
-      contentId: content.id,
-      templateId: "feed-edu-headline",
-      format: "feed" as const,
-      textFields: { headline: "Judul" },
-      imageSlots: [],
-    };
+    const page = { id: "p1", templateId: "feed-edu-headline", textFields: { headline: "Judul" }, imageSlots: [] };
+    const base = { contentId: content.id, format: "feed" as const, pages: [page] };
     const v1 = await store.designs.save(base, null);
     expect(v1.version).toBe(1);
-    const v2 = await store.designs.save({ ...base, textFields: { headline: "Judul baru" } }, 1);
+    const v2 = await store.designs.save({ ...base, pages: [{ ...page, textFields: { headline: "Judul baru" } }] }, 1);
     expect(v2.version).toBe(2);
     expect(v2.id).toBe(v1.id);
     await expect(store.designs.save(base, 1)).rejects.toBeInstanceOf(ConflictError);
     await expect(store.designs.save({ ...base, contentId: "22222222-2222-4222-8222-222222222222" }, 3)).rejects.toBeInstanceOf(
       ConflictError,
     );
-    expect((await store.designs.getByContentId(content.id))?.textFields.headline).toBe("Judul baru");
+    expect((await store.designs.getByContentId(content.id))?.pages[0].textFields.headline).toBe("Judul baru");
   });
 
   it("metadata aset tersimpan dan terbaca", async () => {

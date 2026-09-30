@@ -15,8 +15,19 @@ import { StatusPanel } from "./status-panel";
 
 export interface DesignSummary {
   updatedAt: string;
-  /** Jumlah slot foto yang sudah terisi. */
+  /** Jumlah slot foto yang sudah terisi di semua halaman. */
   photoCount: number;
+  /** Nama template halaman pertama; null bila template tersebut sudah tidak ada. */
+  templateName: string | null;
+  /** Jumlah halaman desain (Design v2); > 1 untuk carousel. */
+  pageCount: number;
+}
+
+function designSummaryText(design: DesignSummary): string {
+  const name = design.templateName ? ` ${design.templateName}` : "";
+  const pages = design.pageCount > 1 ? ` · ${design.pageCount} halaman` : "";
+  const photos = design.photoCount ? ` dengan ${design.photoCount} foto` : "";
+  return `Desain${name}${pages} tersimpan${photos}, diperbarui ${formatRelative(design.updatedAt)}.`;
 }
 
 export interface ContentDetailProps {
@@ -193,7 +204,7 @@ export function ContentDetail({ content: serverContent, contents, pillars, desig
                 <h2 className="text-base font-bold tracking-tight text-ink">Desain PNG</h2>
                 <p className="mt-0.5 text-sm text-ink-soft" suppressHydrationWarning>
                   {design
-                    ? `Desain tersimpan${design.photoCount ? ` dengan ${design.photoCount} foto` : ""}, diperbarui ${formatRelative(design.updatedAt)}.`
+                    ? designSummaryText(design)
                     : designUnavailable
                       ? "Status desain belum dapat dimuat. Buka Studio untuk memeriksa."
                       : `Belum ada desain. Kanvas ${FORMAT_LABELS[content.format]} px.`}

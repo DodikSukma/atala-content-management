@@ -10,20 +10,24 @@ import { designInputSchema, type Design, type DesignInput } from "@/lib/validati
 const TEMPLATE_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
 /**
- * Simpan desain Studio (AT-21). Validasi di server, pastikan setiap aset
- * foto benar-benar ada, lalu simpan dengan pemeriksaan versi (konflik).
+ * Simpan desain Studio (AT-21, Design v2 F2-06). Validasi di server, pastikan
+ * setiap aset foto di semua halaman benar-benar ada, lalu simpan seluruh
+ * halaman dengan pemeriksaan versi (konflik).
  */
 export async function saveDesignAction(input: DesignInput): Promise<ActionResult<Design>> {
   try {
     await requireActionSession();
     const parsed = designInputSchema.parse(input);
 
-    if (!TEMPLATE_ID_PATTERN.test(parsed.templateId)) {
-      return fail("Template tidak dikenal. Pilih template dari galeri.", "VALIDATION");
-    }
-    const slotIds = parsed.imageSlots.map((s) => s.slotId);
-    if (new Set(slotIds).size !== slotIds.length) {
-      return fail("Slot foto ganda pada desain. Muat ulang Studio lalu coba lagi.", "VALIDATION");
+    for (const [index, page] of parsed.pages.entries()) {
+      const where = parsed.pages.length > 1 ? ` pada halaman ${index + 1}` : "";
+      if (!TEMPLATE_ID_PATTERN.test(page.templateId)) {
+        return fail(`Template tidak dikenal${where}. Pilih template dari galeri.`, "VALIDATION");
+      }
+      const slotIds = page.imageSlots.map((s) => s.slotId);
+      if (new Set(slotIds).size !== slotIds.length) {
+        return fail(`Slot foto ganda${where}. Muat ulang Studio lalu coba lagi.`, "VALIDATION");
+      }
     }
 
     const store = getDataStore();
@@ -33,7 +37,11 @@ export async function saveDesignAction(input: DesignInput): Promise<ActionResult
     }
 
     const assetIds = Array.from(
-      new Set(parsed.imageSlots.map((s) => s.assetId).filter((id): id is string => typeof id === "string")),
+      new Set(
+        parsed.pages.flatMap((page) =>
+          page.imageSlots.map((s) => s.assetId).filter((id): id is string => typeof id === "string"),
+        ),
+      ),
     );
     const assets = await Promise.all(assetIds.map((id) => store.assets.get(id)));
     const missing = assetIds.filter((_, i) => !assets[i]);
@@ -47,13 +55,7 @@ export async function saveDesignAction(input: DesignInput): Promise<ActionResult
     }
 
     const design = await store.designs.save(
-      {
-        contentId: parsed.contentId,
-        templateId: parsed.templateId,
-        format: parsed.format,
-        textFields: parsed.textFields,
-        imageSlots: parsed.imageSlots,
-      },
+      { contentId: parsed.contentId, format: parsed.format, pages: parsed.pages },
       parsed.expectedVersion,
     );
 

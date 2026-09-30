@@ -78,9 +78,14 @@ docs/
 
 `id`, `title`, `pillar`, `hook`, `summary`, `sourceUrl`, `sourceCheckedAt`, `tags[]`, `createdAt`, `updatedAt`, `archivedAt`, `convertedContentId`.
 
-### `Design`
+### `Design` (v2, F2-06)
 
-`id`, `contentId`, `templateId`, `format`, `textFields` (objek tervalidasi), `imageSlots[]` (ID aset dan data crop/position), `version`, `updatedAt`.
+`id`, `contentId`, `format` (berlaku untuk semua halaman), `pages[]`, `version`, `updatedAt`.
+
+- `pages`: 1–10 `DesignPage` berurutan; `DesignPage = { id, templateId, textFields, imageSlots[] }`. `id` halaman (1–40 karakter, unik dalam satu desain) stabil saat halaman diurutkan ulang; desain v1 dan desain baru memakai `p1`. `textFields` adalah objek tervalidasi, `imageSlots[]` berisi ID aset serta data crop/posisi (maks. 8 per halaman).
+- Di tab `Designs`, semua halaman tersimpan sebagai JSON di kolom `pages` (maks. 45.000 karakter karena batas sel Sheets 50.000). Kolom lama `templateId`, `textFields`, dan `imageSlots` dipertahankan hanya agar baris v1 bisa dimigrasikan; baris v2 menulisnya kosong (`""`, `{}`, `[]`).
+- `version` naik setiap simpan dan dipakai untuk deteksi konflik (`expectedVersion`) atas seluruh halaman sekaligus.
+- Field per halaman berikutnya (mis. `motion` untuk MT-10, `tone`) ditambahkan sebagai field opsional pada `DesignPage`.
 
 ### `Asset`
 
@@ -124,6 +129,7 @@ UI boleh memakai server actions atau route handlers; pilih satu pola yang konsis
 - **Ekspor PNG:** node template ukuran asli (1080 px) dirender terpisah dari pratinjau berskala; `html-to-image` dipanggil setelah `document.fonts.ready` dan `img.decode()`, lalu dimensi hasil diverifikasi sebelum diunduh.
 
 - **Versi skema data (F2-03):** `Settings.schemaVersion` (data lama tanpa kunci = 1). `src/lib/data/migrations.ts` berisi migrasi murni per versi; `engine.ts` menjalankannya sekali per proses sebelum operasi pertama dan menolak data berversi lebih baru. Setiap adapter wajib lulus `tests/contract/`.
+- **Skema v2 (F2-06, Design v2):** versi terkini = 2. Migrasi v1→v2 memindahkan `templateId`/`textFields`/`imageSlots` setiap desain ke `pages: [{ id: "p1", ... }]` dan mengosongkan kolom lama; baris yang sudah punya `pages` tidak disentuh (idempoten, aman diulang bila proses terhenti), baris v1 yang memang rusak dibiarkan apa adanya. Migrasi berjalan otomatis saat operasi data pertama setelah deploy, lalu `schemaVersion` menjadi 2; aplikasi v1 akan menolak data ini, jadi rollback ke build lama memerlukan pemulihan dari backup Sheet. Penyimpanan yang masih kosong tidak ditulis saat dibaca; versinya dicatat pada penulisan pertama.
 - **Lapisan integrasi (F2-02):** semua layanan luar lewat `src/lib/integrations/`; lihat [INTEGRATIONS.md](./INTEGRATIONS.md).
 
 ## 8. Migrasi dan fase berikutnya

@@ -6,6 +6,7 @@ import { ContentDetail, type DesignSummary } from "@/components/content/content-
 import { requireSession } from "@/lib/auth/session";
 import { getDataStore } from "@/lib/data";
 import { toActionFailure } from "@/lib/data/errors";
+import { getTemplate } from "@/lib/studio/registry";
 import { idSchema, type Content } from "@/lib/validation/schemas";
 
 type ContentDetailPageProps = {
@@ -75,7 +76,14 @@ export default async function ContentDetailPage({ params }: ContentDetailPagePro
   ]);
   if (designResult.status === "fulfilled") {
     const d = designResult.value;
-    design = d ? { updatedAt: d.updatedAt, photoCount: d.imageSlots.filter((s) => s.assetId).length } : null;
+    design = d
+      ? {
+          updatedAt: d.updatedAt,
+          photoCount: d.pages.reduce((sum, page) => sum + page.imageSlots.filter((s) => s.assetId).length, 0),
+          templateName: getTemplate(d.pages[0].templateId)?.name ?? null,
+          pageCount: d.pages.length,
+        }
+      : null;
   } else {
     designUnavailable = true;
   }

@@ -182,3 +182,35 @@ Kendala/keputusan: masih ada kelas warna mentah di komponen (latar segmented con
   dimigrasikan di MT-02; screenshot semua halaman dua tema dicatat di MT-02.
 Langkah berikutnya: MT-02.
 ```
+
+```text
+Tanggal (Asia/Makassar): 30 September 2026
+Tugas: F2-06
+Status: selesai
+Perubahan:
+- Design v2: { id, contentId, format, pages: DesignPage[1..10], version, updatedAt } dengan
+  DesignPage = { id, templateId, textFields, imageSlots }; ID halaman unik; JSON pages maksimal 45.000 karakter
+  (batas sel Sheets 50.000). Kolom Sheets baru "pages"; kolom lama tetap dibaca untuk migrasi lalu dikosongkan.
+- Migrasi skema v1 -> v2 (CURRENT_SCHEMA_VERSION = 2): desain lama menjadi satu halaman "p1", idempoten, tidak
+  menambah/menghapus baris; baris v1 tidak valid dibiarkan. Clone snapshot kini sadar JSON rusak dari Sheets.
+- Store kosong tidak ditulis saat dibaca; versi dicatat tepat sebelum penulisan baris pertama.
+- Perbaikan bug F2-03: regex schemaVersion di parseSettings (/^d{1,4}$/ -> /^\d{1,4}$/).
+- Studio: state editor sadar halaman (currentPageIndex, selectPage, riwayat undo per dokumen), simpan mengirim
+  seluruh pages, validasi aset di semua halaman, design-document.ts (editorDocumentFromDesign,
+  designPagesFromDocument, templateForPage). Detail konten menampilkan template halaman 1 dan "N halaman".
+Bukti uji:
+- npm run check: 23 file / 474 uji lulus (contract suite fixture + Sheets mock: desain 3 halaman terbuka ulang
+  identik, batas 10 halaman, ID ganda ditolak; migrasi v1->v2 termasuk seed tab Designs v1 di Sheets palsu dan
+  fixture.json v1; tests/design-document.test.ts 6 kasus paritas TemplateRenderProps v1 vs v2).
+- npm run build: lulus.
+- tests/e2e/design-v2.mjs (next start, fixture v1 buatan, Chrome): 9/9 — desain v1 (versi 4, 4 teks, crop
+  30/70/1.6, foto 1600x1200) terbuka dengan teks/crop/foto sama, fixture.json menjadi schemaVersion 2 dengan
+  pages[0] = data v1, simpan -> versi 5, muat ulang identik, pratinjau sebelum/sesudah berbeda 4 dari 334.662 piksel
+  (derau antialias <= 1 level), PNG 1080x1080, tanpa galat konsol. Log server: "Skema data dimigrasikan dari versi
+  1 ke 2."
+Hasil: kriteria "Selesai jika" F2-06 terpenuhi.
+Kendala/keputusan: migrasi di Sheets memakai 2 panggilan API per desain; dengan ratusan desain dapat menyentuh kuota
+  60 permintaan/menit, tetapi aman dilanjutkan karena idempoten dan versi dicatat di akhir. Rollback ke build v1
+  memerlukan pemulihan backup Sheet (v1 menolak data versi 2).
+Langkah berikutnya: MT-04 dan F2-07 (UI halaman carousel memakai aksi add/duplicate/remove/move di editor-state).
+```

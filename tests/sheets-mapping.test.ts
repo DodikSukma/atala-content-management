@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TableBackend } from "@/lib/data/backend";
 import { createRepositoryStore } from "@/lib/data/engine";
+import { CURRENT_SCHEMA_VERSION } from "@/lib/data/migrations";
 import {
   EPOCH_ISO,
   TABLES,
@@ -102,23 +103,33 @@ describe("pemetaan baris Sheets berdasarkan nama header", () => {
     expect(contentSchema.safeParse(record).success).toBe(false);
   });
 
-  it("kolom angka dan JSON objek pada Designs", () => {
-    const headers = ["version", "id", "contentId", "templateId", "format", "textFields", "imageSlots", "updatedAt"];
-    const row: Cell[] = [
-      "2",
-      ID_B,
-      ID_A,
-      "feed-edu-headline",
-      "feed",
-      '{"headline":"Judul"}',
-      '[{"slotId":"foto","assetId":null,"crop":{"x":50,"y":40,"zoom":1.2}}]',
-      "2026-10-01T02:00:00.000Z",
+  it("kolom angka dan JSON objek pada Designs (v2: pages)", () => {
+    const headers = ["version", "id", "contentId", "templateId", "format", "textFields", "imageSlots", "updatedAt", "pages"];
+    const pages = [
+      {
+        id: "p1",
+        templateId: "feed-edu-headline",
+        textFields: { headline: "Judul" },
+        imageSlots: [{ slotId: "foto", assetId: null, crop: { x: 50, y: 40, zoom: 1.2 } }],
+      },
     ];
+    const row: Cell[] = ["2", ID_B, ID_A, "", "feed", "{}", "[]", "2026-10-01T02:00:00.000Z", JSON.stringify(pages)];
     const record = rowToRecord(TABLES.designs, headers, row);
     expect(record.version).toBe(2);
-    expect(record.textFields).toEqual({ headline: "Judul" });
+    expect(record.pages).toEqual(pages);
     const parsed = designSchema.parse(record);
-    expect(parsed.imageSlots[0].crop.zoom).toBe(1.2);
+    expect(parsed.pages[0].imageSlots[0].crop.zoom).toBe(1.2);
+    // Kolom lama tidak ikut ke objek Design.
+    expect(parsed).not.toHaveProperty("templateId");
+  });
+
+  it("baris Designs v1 (tanpa kolom pages) terbaca dengan pages kosong sehingga perlu migrasi", () => {
+    const headers = ["id", "contentId", "templateId", "format", "textFields", "imageSlots", "version", "updatedAt"];
+    const row: Cell[] = [ID_B, ID_A, "feed-edu-headline", "feed", '{"headline":"Judul"}', "[]", 1, "2026-10-01T02:00:00.000Z"];
+    const record = rowToRecord(TABLES.designs, headers, row);
+    expect(record.pages).toEqual([]);
+    expect(record.templateId).toBe("feed-edu-headline");
+    expect(designSchema.safeParse(record).success).toBe(false);
   });
 
   it("recordToRow menulis sesuai urutan header dan mempertahankan kolom milik admin", () => {
@@ -196,10 +207,15 @@ describe("repository membaca baris Sheets", () => {
     expect(String(warn.mock.calls[0][0])).not.toContain("bukan json");
   });
 
-  it("pengaturan kosong memakai bawaan target 3 dan pilar awal", async () => {
+  it("pengaturan kosong memakai bawaan target 3 dan pilar awal; penyimpanan kosong berversi skema terkini", async () => {
     const store = createRepositoryStore(fakeBackend({}));
     const settings = await store.settings.get();
-    expect(settings).toEqual({ weeklyTarget: 3, pillars: [...DEFAULT_PILLARS], updatedAt: EPOCH_ISO, schemaVersion: 1 });
+    expect(settings).toEqual({
+      weeklyTarget: 3,
+      pillars: [...DEFAULT_PILLARS],
+      updatedAt: EPOCH_ISO,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+    });
   });
 });
 
@@ -218,6 +234,14 @@ describe("tab Settings (key/value)", () => {
     });
     expect(parsed).toEqual({ weeklyTarget: 7, pillars: ["Edukasi", "Tips"], updatedAt: "2026-10-01T02:00:00.000Z", schemaVersion: 1 });
     expect(parseSettings(serializeSettings(parsed))).toEqual(parsed);
+  });
+
+  it("parseSettings membaca schemaVersion tersimpan", () => {
+    expect(parseSettings({ schemaVersion: "2" }).schemaVersion).toBe(2);
+    expect(parseSettings({ schemaVersion: " 12 " }).schemaVersion).toBe(12);
+    expect(parseSettings({ schemaVersion: "0" }).schemaVersion).toBe(1);
+    const v2 = { ...parseSettings({}), schemaVersion: 2 };
+    expect(parseSettings(serializeSettings(v2))).toEqual(v2);
   });
 
   it("settingsRowsToMap dan mergeSettingsRows mempertahankan kunci lain", () => {

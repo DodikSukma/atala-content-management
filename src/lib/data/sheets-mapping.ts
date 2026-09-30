@@ -76,8 +76,14 @@ export const TABLES: Record<TableName, TableSpec> = {
   },
   designs: {
     tab: "Designs",
-    columns: ["id", "contentId", "templateId", "format", "textFields", "imageSlots", "version", "updatedAt"],
-    json: { textFields: {}, imageSlots: [] },
+    /**
+     * Design v2 (F2-06) menyimpan semua halaman di kolom JSON `pages`. Kolom lama
+     * `templateId`/`textFields`/`imageSlots` tetap ada agar baris v1 dapat dibaca
+     * migrasi v1->v2; baris v2 menulisnya kosong (`""`, `{}`, `[]`) sehingga
+     * aplikasi versi lama melewati baris v2 alih-alih salah menampilkannya.
+     */
+    columns: ["id", "contentId", "templateId", "format", "textFields", "imageSlots", "version", "updatedAt", "pages"],
+    json: { textFields: {}, imageSlots: [], pages: [] },
     numbers: ["version"],
     nullable: [],
   },
@@ -267,7 +273,7 @@ export function parseSettings(values: Record<string, string>): Settings {
   const updatedAt = rawUpdated && !Number.isNaN(Date.parse(rawUpdated)) ? new Date(rawUpdated).toISOString() : EPOCH_ISO;
 
   const rawVersion = String(values.schemaVersion ?? "").trim();
-  const schemaVersion = /^d{1,4}$/.test(rawVersion) && Number(rawVersion) >= 1 ? Number(rawVersion) : 1;
+  const schemaVersion = /^\d{1,4}$/.test(rawVersion) && Number(rawVersion) >= 1 ? Number(rawVersion) : 1;
 
   return { weeklyTarget, pillars, updatedAt, schemaVersion };
 }

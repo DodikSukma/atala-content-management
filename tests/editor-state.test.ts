@@ -2,14 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   COALESCE_MS,
   DEFAULT_CROP,
+  FIRST_PAGE_ID,
   HISTORY_LIMIT,
   canRedo,
   canUndo,
   createEditorState,
+  createPage,
   createSnapshot,
+  currentPage,
   editorReducer,
+  pageRenderProps,
   renderText,
+  snapshotsEqual,
   textWarnings,
+  type EditorSnapshot,
   type EditorState,
   type TemplateShape,
 } from "@/lib/studio/editor-state";
@@ -54,8 +60,8 @@ describe("createSnapshot", () => {
     const snap = createSnapshot(feedA, { headline: "Belajar" }, [
       { slotId: "side", photoId: "p2", crop: { x: 10, y: 20, zoom: 2 } },
     ]);
-    expect(snap.textFields).toEqual({ headline: "Belajar", body: "Isi bawaan", points: "Satu\nDua" });
-    expect(snap.slots).toEqual([
+    expect(snap.pages[0].textFields).toEqual({ headline: "Belajar", body: "Isi bawaan", points: "Satu\nDua" });
+    expect(snap.pages[0].slots).toEqual([
       { slotId: "main", photoId: null, crop: DEFAULT_CROP },
       { slotId: "side", photoId: "p2", crop: { x: 10, y: 20, zoom: 2 } },
     ]);
@@ -63,7 +69,7 @@ describe("createSnapshot", () => {
 
   it("menjaga crop dalam rentang valid", () => {
     const snap = createSnapshot(feedA, {}, [{ slotId: "main", photoId: "p1", crop: { x: 140, y: -5, zoom: 9 } }]);
-    expect(snap.slots[0].crop).toEqual({ x: 100, y: 0, zoom: 3 });
+    expect(snap.pages[0].slots[0].crop).toEqual({ x: 100, y: 0, zoom: 3 });
   });
 });
 
@@ -75,11 +81,11 @@ describe("editorReducer", () => {
     expect(s.dirty).toBe(true);
     expect(canUndo(s)).toBe(true);
     s = editorReducer(s, { type: "undo" });
-    expect(s.present.textFields.headline).toBe("Belajar");
+    expect(currentPage(s).textFields.headline).toBe("Belajar");
     expect(s.dirty).toBe(false);
     expect(canRedo(s)).toBe(true);
     s = editorReducer(s, { type: "redo" });
-    expect(s.present.textFields.headline).toBe("Baru");
+    expect(currentPage(s).textFields.headline).toBe("Baru");
     expect(s.dirty).toBe(true);
   });
 
@@ -113,12 +119,12 @@ describe("editorReducer", () => {
     s = editorReducer(s, { type: "assignPhoto", slotId: "main", photoId: "p1" });
     s = editorReducer(s, { type: "setCrop", slotId: "main", crop: { x: 30 } });
     s = editorReducer(s, { type: "applyTemplate", template: feedB, defaults: { headline: "x", cta: "Daftar sekarang" } });
-    expect(s.present.templateId).toBe("feed-b");
-    expect(s.present.textFields).toEqual({ headline: "Belajar", cta: "Daftar sekarang" });
-    expect(s.present.slots).toEqual([{ slotId: "hero", photoId: "p1", crop: { x: 30, y: 50, zoom: 1 } }]);
+    expect(currentPage(s).templateId).toBe("feed-b");
+    expect(currentPage(s).textFields).toEqual({ headline: "Belajar", cta: "Daftar sekarang" });
+    expect(currentPage(s).slots).toEqual([{ slotId: "hero", photoId: "p1", crop: { x: 30, y: 50, zoom: 1 } }]);
     s = editorReducer(s, { type: "undo" });
-    expect(s.present.templateId).toBe("feed-a");
-    expect(s.present.textFields.body).toBe("Isi materi");
+    expect(currentPage(s).templateId).toBe("feed-a");
+    expect(currentPage(s).textFields.body).toBe("Isi materi");
   });
 
   it("ganti template tidak membawa teks bawaan template lama yang belum diedit", () => {
@@ -134,7 +140,7 @@ describe("editorReducer", () => {
       defaults: { headline: "Judul B", cta: "Ajakan B", body: "Isi B" },
       previousDefaults: { headline: "Judul bawaan", body: "Isi bawaan", points: "Satu\nDua" },
     });
-    expect(s.present.textFields).toEqual({ headline: "Judul B", cta: "Ajakan B", body: "Isi buatan admin" });
+    expect(currentPage(s).textFields).toEqual({ headline: "Judul B", cta: "Ajakan B", body: "Isi buatan admin" });
   });
 
   it("ganti template: bidang kosong memakai teks awal template baru", () => {
@@ -145,13 +151,13 @@ describe("editorReducer", () => {
       defaults: { headline: "Judul B", cta: "Ajakan B" },
       previousDefaults: { headline: "Judul bawaan", body: "Isi bawaan" },
     });
-    expect(s.present.textFields.headline).toBe("Judul B");
+    expect(currentPage(s).textFields.headline).toBe("Judul B");
   });
 
   it("ganti format lewat template story mengubah format", () => {
     const s = editorReducer(initial(), { type: "applyTemplate", template: story, defaults: {} });
     expect(s.present.format).toBe("story");
-    expect(s.present.slots).toEqual([]);
+    expect(currentPage(s).slots).toEqual([]);
   });
 
   it("reset template mengembalikan teks dan crop tanpa melepas foto", () => {
@@ -159,8 +165,8 @@ describe("editorReducer", () => {
     s = editorReducer(s, { type: "assignPhoto", slotId: "main", photoId: "p1" });
     s = editorReducer(s, { type: "setCrop", slotId: "main", crop: { zoom: 2.5 } });
     s = editorReducer(s, { type: "resetTemplate", template: feedA, defaults: { headline: "Dari konten" } });
-    expect(s.present.textFields).toEqual({ headline: "Dari konten", body: "Isi bawaan", points: "Satu\nDua" });
-    expect(s.present.slots[0]).toEqual({ slotId: "main", photoId: "p1", crop: DEFAULT_CROP });
+    expect(currentPage(s).textFields).toEqual({ headline: "Dari konten", body: "Isi bawaan", points: "Satu\nDua" });
+    expect(currentPage(s).slots[0]).toEqual({ slotId: "main", photoId: "p1", crop: DEFAULT_CROP });
   });
 
   it("menukar slot beserta crop dan melepas foto yang dihapus", () => {
@@ -169,10 +175,10 @@ describe("editorReducer", () => {
     s = editorReducer(s, { type: "assignPhoto", slotId: "side", photoId: "p2" });
     s = editorReducer(s, { type: "setCrop", slotId: "side", crop: { y: 10 } });
     s = editorReducer(s, { type: "swapSlots", a: "main", b: "side" });
-    expect(s.present.slots.map((x) => x.photoId)).toEqual(["p2", "p1"]);
-    expect(s.present.slots[0].crop.y).toBe(10);
+    expect(currentPage(s).slots.map((x) => x.photoId)).toEqual(["p2", "p1"]);
+    expect(currentPage(s).slots[0].crop.y).toBe(10);
     s = editorReducer(s, { type: "removePhoto", photoId: "p2" });
-    expect(s.present.slots[0]).toEqual({ slotId: "main", photoId: null, crop: DEFAULT_CROP });
+    expect(currentPage(s).slots[0]).toEqual({ slotId: "main", photoId: null, crop: DEFAULT_CROP });
   });
 
   it("memasang foto baru mereset crop slot", () => {
@@ -180,7 +186,7 @@ describe("editorReducer", () => {
     s = editorReducer(s, { type: "assignPhoto", slotId: "main", photoId: "p1" });
     s = editorReducer(s, { type: "setCrop", slotId: "main", crop: { zoom: 2 } });
     s = editorReducer(s, { type: "assignPhoto", slotId: "main", photoId: "p3" });
-    expect(s.present.slots[0].crop).toEqual(DEFAULT_CROP);
+    expect(currentPage(s).slots[0].crop).toEqual(DEFAULT_CROP);
   });
 
   it("markSaved menjadikan keadaan sekarang sebagai acuan", () => {
@@ -197,17 +203,120 @@ describe("editorReducer", () => {
     s = editorReducer(s, { type: "assignPhoto", slotId: "main", photoId: "local-1" });
     s = editorReducer(s, { type: "setText", key: "body", value: "Ubah" });
     s = editorReducer(s, { type: "renamePhoto", from: "local-1", to: "asset-1" });
-    expect(s.present.slots[0].photoId).toBe("asset-1");
-    expect(s.past[1].slots[0].photoId).toBe("asset-1");
+    expect(currentPage(s).slots[0].photoId).toBe("asset-1");
+    expect(s.past[1].pages[0].slots[0].photoId).toBe("asset-1");
   });
 
   it("load mengganti seluruh keadaan tanpa riwayat", () => {
     let s = initial();
     s = editorReducer(s, { type: "setText", key: "headline", value: "x" });
     s = editorReducer(s, { type: "load", snapshot: createSnapshot(feedB, {}) });
-    expect(s.present.templateId).toBe("feed-b");
+    expect(currentPage(s).templateId).toBe("feed-b");
     expect(s.past).toHaveLength(0);
     expect(s.dirty).toBe(false);
+  });
+});
+
+describe("dokumen multi-halaman (Design v2)", () => {
+  /** Tiga halaman: feed-a (p1), feed-b (p2), feed-a (p3) — foto "shared" dipakai di p1 dan p3. */
+  function threePages(pageIndex = 0): EditorState {
+    const snapshot: EditorSnapshot = {
+      format: "feed",
+      pages: [
+        createPage(feedA, { headline: "Satu" }, [{ slotId: "main", photoId: "shared" }], "p1"),
+        createPage(feedB, { headline: "Dua" }, [{ slotId: "hero", photoId: "only-p2", crop: { zoom: 2 } }], "p2"),
+        createPage(feedA, { headline: "Tiga" }, [{ slotId: "side", photoId: "shared" }], "p3"),
+      ],
+    };
+    return createEditorState(snapshot, pageIndex);
+  }
+
+  it("createSnapshot membuat satu halaman ber-id p1 dengan format template", () => {
+    const snap = createSnapshot(story, {});
+    expect(snap.format).toBe("story");
+    expect(snap.pages.map((p) => p.id)).toEqual([FIRST_PAGE_ID]);
+    expect(initial().currentPageIndex).toBe(0);
+  });
+
+  it("suntingan hanya mengenai halaman aktif; halaman lain tetap objek yang sama", () => {
+    let s = threePages();
+    s = editorReducer(s, { type: "selectPage", index: 1 });
+    expect(currentPage(s).id).toBe("p2");
+    const before = s.present.pages;
+    s = editorReducer(s, { type: "setText", key: "headline", value: "Dua baru", at: 1 });
+    s = editorReducer(s, { type: "setCrop", slotId: "hero", crop: { x: 10 }, at: 2 });
+    s = editorReducer(s, { type: "applyTemplate", template: feedA, defaults: {} });
+    expect(s.present.pages[0]).toBe(before[0]);
+    expect(s.present.pages[2]).toBe(before[2]);
+    expect(currentPage(s)).toMatchObject({ id: "p2", templateId: "feed-a" });
+    expect(currentPage(s).textFields.headline).toBe("Dua baru");
+    expect(s.dirty).toBe(true);
+    s = editorReducer(s, { type: "undo" });
+    s = editorReducer(s, { type: "undo" });
+    s = editorReducer(s, { type: "undo" });
+    expect(s.dirty).toBe(false);
+    expect(s.present.pages).toEqual(before);
+  });
+
+  it("ketikan pada bidang sama di halaman berbeda tidak digabung", () => {
+    let s = threePages();
+    s = editorReducer(s, { type: "setText", key: "headline", value: "A", at: 1000 });
+    s = editorReducer(s, { type: "selectPage", index: 2 });
+    s = editorReducer(s, { type: "setText", key: "headline", value: "B", at: 1100 });
+    expect(s.past).toHaveLength(2);
+    expect(s.present.pages.map((p) => p.textFields.headline)).toEqual(["A", "Dua", "B"]);
+  });
+
+  it("selectPage bukan langkah undo dan indeks dijaga dalam rentang", () => {
+    let s = threePages();
+    s = editorReducer(s, { type: "selectPage", index: 2 });
+    expect(s.currentPageIndex).toBe(2);
+    expect(canUndo(s)).toBe(false);
+    expect(editorReducer(s, { type: "selectPage", index: 99 }).currentPageIndex).toBe(2);
+    expect(editorReducer(s, { type: "selectPage", index: -3 }).currentPageIndex).toBe(0);
+    expect(threePages(7).currentPageIndex).toBe(2);
+    s = editorReducer(s, { type: "load", snapshot: createSnapshot(feedB, {}), pageIndex: 5 });
+    expect(s.currentPageIndex).toBe(0);
+  });
+
+  it("menghapus foto dari pustaka melepasnya di semua halaman", () => {
+    let s = threePages();
+    s = editorReducer(s, { type: "removePhoto", photoId: "shared" });
+    expect(s.present.pages[0].slots[0].photoId).toBeNull();
+    expect(s.present.pages[2].slots[1].photoId).toBeNull();
+    expect(s.present.pages[1].slots[0].photoId).toBe("only-p2");
+    expect(s.past).toHaveLength(1);
+    expect(editorReducer(s, { type: "removePhoto", photoId: "tidak-ada" })).toBe(s);
+  });
+
+  it("renamePhoto mengganti kunci di semua halaman dan riwayat", () => {
+    let s = threePages(1);
+    s = editorReducer(s, { type: "setText", key: "headline", value: "Ubah" });
+    s = editorReducer(s, { type: "renamePhoto", from: "shared", to: "asset-9" });
+    for (const snap of [s.present, ...s.past]) {
+      expect(snap.pages[0].slots[0].photoId).toBe("asset-9");
+      expect(snap.pages[2].slots[1].photoId).toBe("asset-9");
+    }
+  });
+
+  it("snapshotsEqual membandingkan urutan, id, dan isi setiap halaman", () => {
+    const a = threePages().present;
+    const b: EditorSnapshot = structuredClone(a);
+    expect(snapshotsEqual(a, b)).toBe(true);
+    expect(snapshotsEqual(a, { ...b, pages: [b.pages[1], b.pages[0], b.pages[2]] })).toBe(false);
+    expect(snapshotsEqual(a, { ...b, pages: b.pages.slice(0, 2) })).toBe(false);
+    b.pages[2] = { ...b.pages[2], id: "p9" };
+    expect(snapshotsEqual(a, b)).toBe(false);
+  });
+
+  it("pageRenderProps memakai teks render dan foto per slot halaman", () => {
+    const page = createPage(feedA, { headline: " " }, [{ slotId: "main", photoId: "x", crop: { x: 10 } }]);
+    const props = pageRenderProps(feedA, page, (id) => (id ? `/api/assets/${id}` : null));
+    expect(props.text.headline).toBe("Judul bawaan");
+    expect(props.photos).toEqual({
+      main: { src: "/api/assets/x", crop: { x: 10, y: 50, zoom: 1 } },
+      side: { src: null, crop: DEFAULT_CROP },
+    });
   });
 });
 
