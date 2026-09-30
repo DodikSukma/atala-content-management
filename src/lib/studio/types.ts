@@ -3,8 +3,8 @@ import type { ContentFormat } from "@/lib/constants";
 import type { Crop } from "@/lib/validation/schemas";
 
 /**
- * Kontrak registry template Studio (AT-17).
- * Template dirender pada ukuran final (1080×1080 / 1080×1920) dalam piksel.
+ * Kontrak registry template Studio (AT-17, diperluas MT-04).
+ * Template dirender pada ukuran final (1080×1080 / 1080×1350 / 1080×1920) dalam piksel.
  * Pratinjau memperkecil dengan CSS transform; ekspor memakai node ukuran asli.
  * Menambah template = menambah satu definisi ke registry, tanpa mengubah editor.
  */
@@ -40,6 +40,10 @@ export interface TemplatePhoto {
   crop: Crop;
 }
 
+/** Nada template (MT-04): bagian dari desain, BUKAN tema aplikasi. Bawaan "light". */
+export type TemplateTone = "light" | "dark";
+export const TEMPLATE_TONES: readonly TemplateTone[] = ["light", "dark"];
+
 export interface TemplateRenderProps {
   /** Nilai teks per `TemplateField.key` (sudah terisi default bila kosong). */
   text: Record<string, string>;
@@ -47,6 +51,11 @@ export interface TemplateRenderProps {
   photos: Record<string, TemplatePhoto>;
   /** Tampilkan garis area aman (hanya pratinjau, tidak ikut ekspor). */
   showSafeArea?: boolean;
+  /** Nada template. Template membaca warna lewat useTemplateTokens(tone), bukan hex langsung. */
+  tone?: TemplateTone;
+  /** Carousel (F2-07/MT-09): indeks halaman berbasis 0 dan jumlah halaman. */
+  pageIndex?: number;
+  pageCount?: number;
 }
 
 export type TemplateCategory =
@@ -61,7 +70,60 @@ export type TemplateCategory =
   | "statistik"
   | "pengumuman"
   | "tips"
-  | "frame";
+  | "frame"
+  // MT-04
+  | "kosakata"
+  | "rumus"
+  | "perbandingan"
+  | "timeline"
+  | "kuis"
+  | "jadwal"
+  | "event"
+  | "prestasi"
+  | "galeri"
+  | "ucapan"
+  | "faq"
+  | "tokoh"
+  | "rangkuman"
+  | "hitung-mundur"
+  | "polling"
+  | "carousel";
+
+/** Paket template untuk filter galeri (MT-04). */
+export type TemplatePack = "dasar" | "infografis" | "belajar" | "komunitas" | "potret" | "story" | "carousel";
+
+export const TEMPLATE_PACK_LABELS: Record<TemplatePack, string> = {
+  dasar: "Dasar",
+  infografis: "Infografis",
+  belajar: "Belajar",
+  komunitas: "Program & Komunitas",
+  potret: "Feed Potret 4:5",
+  story: "Story",
+  carousel: "Set Carousel",
+};
+
+/**
+ * Peran lapisan motion (MT-11). Harus sama dengan LayerRole di src/lib/motion/types.ts.
+ * Urutan baca: background → photo → decor → headline → number → body → list-item → path → badge → cta → logo.
+ */
+export type TemplateLayerRole =
+  | "background"
+  | "photo"
+  | "headline"
+  | "body"
+  | "list-item"
+  | "badge"
+  | "cta"
+  | "logo"
+  | "decor"
+  | "number"
+  | "path";
+
+export interface TemplateLayerSpec {
+  id: string;
+  role: TemplateLayerRole;
+  split?: "none" | "line" | "word";
+}
 
 export interface TemplateDefinition {
   /** Stabil, disimpan di Sheet: mis. "feed-fact-focus". */
@@ -75,15 +137,36 @@ export interface TemplateDefinition {
   slots: TemplateSlot[];
   fields: TemplateField[];
   Component: ComponentType<TemplateRenderProps>;
+  /** Kata kunci pencarian galeri (Indonesia, huruf kecil). */
+  tags: string[];
+  /** Paket asal untuk filter galeri. */
+  pack: TemplatePack;
+  /** Path thumbnail khusus; bawaan templateThumbnail(id, tone). */
+  thumbnail?: string;
+  /** Metadata motion (MT-11/MT-12): resep bawaan dan lapisan yang tersedia di template. */
+  motion?: {
+    defaultPresetId: string;
+    layers: TemplateLayerSpec[];
+  };
+}
+
+/** Thumbnail yang dihasilkan `npm run templates:thumbs`. */
+export function templateThumbnail(id: string, tone: TemplateTone): string {
+  return `/templates/thumbs/${id}-${tone}.webp`;
 }
 
 /** Area aman (px) dari tepi kanvas final. Story mengikuti zona UI Instagram. */
 export const SAFE_AREA: Record<ContentFormat, { top: number; right: number; bottom: number; left: number }> = {
   feed: { top: 64, right: 64, bottom: 64, left: 64 },
+  /** 4:5 — grid profil Instagram memotong ke 3:4 (± 34 px kiri/kanan), jadi sisi dibuat lebih lebar. */
+  portrait: { top: 72, right: 80, bottom: 72, left: 80 },
   story: { top: 250, right: 72, bottom: 340, left: 72 },
 };
 
-/** Token warna Atala untuk template (diambil dari logo). */
+/**
+ * Konstanta warna logo Atala. Template baru membaca warna lewat useTemplateTokens(tone)
+ * (src/lib/studio/tokens.ts) agar mendukung nada terang/gelap dan Brand Kit (F2-04).
+ */
 export const ATALA_TOKENS = {
   ink: "#0F172A",
   inkSoft: "#334155",
