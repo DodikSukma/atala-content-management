@@ -80,6 +80,8 @@ Atala Project perlu rutin menerbitkan konten pendidikan, dengan target awal tiga
 
 ## 6. Tidak termasuk rilis pertama
 
+Sebagian butir di bawah dipindahkan ke **fase 2** (lihat §10) pada 30 September 2026. Butir yang tidak disebut di §10 tetap di luar cakupan.
+
 - AI generator gambar/caption/motion, pencarian tren otomatis, dan panggilan API model berbayar.
 - Auto-post ke Instagram/Facebook/TikTok, pengelolaan Ads langsung, analitik platform, dan penarikan metrik otomatis.
 - GIF/WebM/MP4 sebagai syarat rilis. Motion dari Poster Generator adalah kandidat fase berikutnya setelah alur PNG stabil.
@@ -119,3 +121,27 @@ Nilai berikut dikunci di `src/lib/validation/schemas.ts` dan `src/lib/constants.
 | Transisi status | Maju satu atau beberapa langkah; mundur diperbolehkan; mundur dari `published` wajib konfirmasi; `scheduled` wajib jadwal; `published` wajib tanggal terbit | Tombol "Tandai Sudah Terbit" meminta tanggal dan URL unggahan opsional |
 
 Navigasi rilis pertama hanya: Dashboard, Laporan, Kalender, Konten, Bank Ide, Studio Desain, Pengaturan. Laporan hanya merangkum data produksi internal dari Sheet (bukan analitik platform sosial). Tidak ada menu atau model data untuk proyek klien, pembayaran, AI, Ads, atau auto-post.
+
+## 10. Fase 2 (keputusan 30 September 2026)
+
+Pemilik produk memutuskan memulai fase 2 sebelum gerbang rilis pertama terpenuhi (opsi B di [task-2.md](./tasks/task-2.md) F2-01), dengan syarat typecheck, lint, uji, dan build baseline lulus. Tugas AT yang terhalang kredensial Google Sheets, Vercel Blob, dan akses Vercel (AT-07, AT-08, AT-21, AT-26, AT-27) tetap terbuka dan tercatat di PROGRESS.md.
+
+| Fitur | Dipindahkan dari §6 | Tugas | Jalur tanpa API |
+|---|---|---|---|
+| Brand Kit dan template builder tanpa kode | — (baru) | F2-04, F2-05 | Tidak butuh API |
+| Carousel dan seri konten | — (baru) | F2-06, F2-07 | Tidak butuh API |
+| Asisten konten AI (variasi judul/hook/caption/CTA) | AI generator caption | F2-08, F2-09 | Tulis manual |
+| Database Postgres dan pustaka aset pintar | — (migrasi dari Sheets) | F2-10, F2-11 | Sheets tetap didukung untuk entitas rilis pertama |
+| Multi-user, peran, approval | Kolaborasi banyak pengguna, approval berlapis | F2-12, F2-13 | Tidak butuh API |
+| Motion video MP4/WebM/GIF | GIF/WebM/MP4 | MT-10–MT-17 (menggantikan F2-14/F2-15) | Render di browser |
+| Auto-posting Instagram/Facebook/TikTok | Auto-post | F2-16, F2-17 | Unggah manual lalu "Tandai Sudah Terbit" |
+| Analitik performa | Analitik platform, penarikan metrik otomatis | F2-18, F2-19 | Input manual dan impor CSV |
+| Rekomendasi slot dan perencana pekan | — (baru) | F2-20, F2-21 | Dihitung dari data internal |
+| Radar tren | Pencarian tren otomatis | F2-22, F2-23 | RSS dan kalender akademik lokal |
+
+Aturan fase 2:
+
+- Semua panggilan layanan luar hanya lewat `src/lib/integrations/` ([INTEGRATIONS.md](./INTEGRATIONS.md)). Tanpa satu pun kunci API, setiap fitur tetap bisa dipakai lewat jalur manual/lokal.
+- Provider mock hanya untuk simulasi: berlabel "Simulasi", tidak pernah membuat konten `published`, dan mati di Vercel/production.
+- Aplikasi tidak pernah menyebut data "tersimpan", konten "terbit", atau topik "tren" bila operasi gagal atau tanpa sumber.
+- Pengelolaan Ads langsung, proyek klien, tugas operasional umum, tagihan, dan pembayaran tetap di luar cakupan.

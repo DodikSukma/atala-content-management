@@ -15,7 +15,11 @@ Repositori ini berisi spesifikasi yang harus dieksekusi bertahap. Mulai dari [RE
 
 - Aplikasi bernama Atala Konten dan memakai `assets/atala-logo.png`. Triton hanya acuan bahasa visual; jangan tampilkan merek, menu, atau ilustrasi Triton.
 - Tidak boleh ada ikon emoji. Gunakan ikon vektor konsisten, desain bersih, dan animasi halus tanpa loop dekoratif. Hormati reduced motion.
-- Rilis pertama hanya manajemen konten, kalender unggah manual, dan Studio PNG. AI, auto-post, Ads langsung, proyek klien, serta pembayaran berada di backlog.
+- Cakupan per fase:
+  - **Rilis pertama (AT-xx, `docs/tasks/TASKS.md`):** manajemen konten, kalender unggah manual, dan Studio PNG.
+  - **Fase 2 (F2-xx, `docs/tasks/task-2.md`, PRD §10):** Brand Kit, template builder, carousel/seri, asisten AI, Postgres, pustaka aset, multi-user, auto-post, metrik, rekomendasi, dan radar tren — semua fitur ber-API wajib punya jalur manual dan provider mock yang mati di Vercel/production.
+  - **Paket MT (MT-xx, `docs/tasks/task-3.md`):** dark mode, perbanyakan template Instagram, dan motion video. MT-10–MT-17 menggantikan F2-14/F2-15.
+  - Proyek klien, tugas operasional umum, tagihan, dan pembayaran tetap di luar cakupan semua fase di atas.
 - Utamakan desktop dan tablet. Tidak boleh ada kontrol utama yang terpotong pada tablet.
 - Login admin statis harus diverifikasi server. `admin/admin123` hanya boleh untuk demo lokal. Jangan commit password, kunci Google, atau secret sesi.
 - Google Sheets adalah sumber data terstruktur; Vercel Blob privat menyimpan foto. Semua akses dan token penyimpanan berlangsung di server. Jangan menyebut data tersimpan jika operasi gagal.

@@ -143,7 +143,7 @@ export interface ImageAssist {
 
 ## Fase 0 — prasyarat dan fondasi
 
-- [ ] **F2-01 — Baseline dan keputusan cakupan.**
+- [x] **F2-01 — Baseline dan keputusan cakupan.**
   - Pastikan gerbang rilis pertama di [TASKS.md](./TASKS.md) sudah terpenuhi, atau ada keputusan tertulis pemilik produk untuk memulai fase 2 lebih awal (catat di PROGRESS.md).
   - Jalankan `npm run check` dan `npm run build`, lalu catat hasilnya. Masalah baseline yang diketahui saat dokumen ini ditulis:
     - [registry.ts](../../src/lib/studio/registry.ts) meng-import `templates/infographic` yang belum ada;
