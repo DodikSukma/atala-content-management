@@ -236,7 +236,7 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
             color: "#FFFFFF",
           }}
         >
-          <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cta}</span>
+          <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cta}</span>
           <ArrowRight size={28} strokeWidth={2.6} style={{ flexShrink: 0 }} />
         </div>
       ) : null}

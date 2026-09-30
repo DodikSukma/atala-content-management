@@ -147,7 +147,7 @@ export function CalendarToolbar({ params, today, addDate }: CalendarToolbarProps
           </ButtonLink>
         ) : null}
 
-        <p className="flex min-w-0 basis-full items-start gap-2 text-sm text-ink-soft xl:ml-auto xl:basis-auto">
+        <p className="flex min-w-0 basis-full items-start gap-2 text-sm text-ink-soft 2xl:ml-auto 2xl:basis-auto">
           <CalendarClock aria-hidden size={18} className="mt-0.5 shrink-0 text-brand" />
           <span>Jadwal unggah manual — tandai Sudah Terbit setelah Anda mengunggah.</span>
         </p>

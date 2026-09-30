@@ -61,6 +61,7 @@ import { StudioSteps } from "./studio-steps";
 import { TemplateGallery } from "./template-gallery";
 import { TextPanel, type ContentTextSource } from "./text-panel";
 import { usePhotoLibrary, type AssetStorageMode, type LibraryAsset } from "./use-photo-library";
+import { useDesktopCollapsed } from "@/components/layout/shell-state";
 
 export interface StudioContent {
   id: string;
@@ -143,7 +144,11 @@ function SectionTitle({ icon: Icon, children, id }: { icon: LucideIcon; children
 export function StudioEditor({ content, design, assets, storage, storageMessage }: StudioEditorProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const isDesktop = useMinWidth(1200);
+  // Tata letak tiga kolom butuh ruang: dengan sidebar lebar (256 px) pratinjau di
+  // 1280 px hanya ~300 px, jadi tiga kolom baru dipakai mulai 1440 px; bila
+  // sidebar diciutkan (76 px) cukup 1200 px.
+  const sidebarCollapsed = useDesktopCollapsed();
+  const isDesktop = useMinWidth(sidebarCollapsed ? 1200 : 1440);
   const isTablet = useMinWidth(768);
 
   const contentText: ContentTextSource = useMemo(

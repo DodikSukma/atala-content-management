@@ -224,7 +224,7 @@ export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: 
           aria-label="Filter format"
           value={filters.format}
           onChange={(e) => navigate({ format: e.target.value as ContentFilters["format"] })}
-          className="w-[8.5rem]"
+          className="w-[9.75rem]"
         >
           <option value="">Semua format</option>
           {CONTENT_FORMATS.map((f) => (
@@ -266,7 +266,7 @@ export function ContentListView({ rows, filters, pillars, scopeTotal, nowIso }: 
           aria-label="Urutkan"
           value={filters.sort}
           onChange={(e) => navigate({ sort: e.target.value as ContentFilters["sort"] })}
-          className="w-[10.5rem]"
+          className="w-[12.5rem]"
         >
           {SORT_KEYS.map((s) => (
             <option key={s} value={s}>

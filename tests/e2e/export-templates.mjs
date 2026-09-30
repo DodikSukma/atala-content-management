@@ -171,7 +171,10 @@ async function measurePreview(page, format) {
         // Teks lebih tinggi/lebar dari kotaknya dan dipotong tanpa elipsis yang disengaja.
         const clipX = el.scrollWidth > el.clientWidth + 2 && style.overflowX !== "visible" && style.textOverflow !== "ellipsis";
         const clipY = el.scrollHeight > el.clientHeight + 2 && style.overflowY !== "visible" && !clamped;
-        if (clipX || clipY) issues.push({ kind: "terpotong", text: short(el), box });
+        if (clipX || clipY) {
+          const over = Math.max(el.scrollWidth - el.clientWidth, el.scrollHeight - el.clientHeight);
+          issues.push({ kind: "terpotong", text: `${short(el)} (+${over}px ${clipX ? "x" : "y"})`, box });
+        }
         if (clamped && el.scrollHeight > el.clientHeight + 2) issues.push({ kind: "dipangkas-elipsis", text: short(el), box });
         if (box.left < -1 || box.top < -1 || box.right > width + 1 || box.bottom > height + 1) {
           issues.push({ kind: "keluar-kanvas", text: short(el), box });

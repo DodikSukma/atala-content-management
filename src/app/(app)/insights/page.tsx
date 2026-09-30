@@ -309,7 +309,7 @@ export default async function InsightsPage({
                 </>
               }
             />
-            <dl className="grid min-w-0 flex-1 basis-44 grid-cols-2 gap-2">
+            <dl className="grid min-w-0 flex-1 basis-64 grid-cols-2 gap-2">
               <Stat label="Tercapai" value={`${hitRate.hit} / ${hitRate.completed}`} note="pekan selesai" />
               <Stat label="Beruntun" value={`${report.streak} pekan`} note="mundur dari terbaru" />
               <Stat label="Pekan ini" value={`${last?.published ?? 0} / ${target}`} note="terbit / target" />

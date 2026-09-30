@@ -209,3 +209,19 @@ export function longDayMonthYear(date) {
     new Date(`${date}T00:00:00Z`),
   );
 }
+
+/**
+ * Gulir sampai bawah lalu kembali ke atas agar animasi "sekali saat terlihat"
+ * (batang, cincin, hitung naik) sudah berjalan sebelum tangkapan layar halaman penuh.
+ */
+export async function scrollThrough(page) {
+  await page.evaluate(async () => {
+    const step = Math.max(200, Math.round(window.innerHeight * 0.6));
+    for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+      window.scrollTo(0, y);
+      await new Promise((resolve) => setTimeout(resolve, 140));
+    }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(900);
+}

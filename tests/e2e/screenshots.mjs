@@ -5,7 +5,18 @@
 // Hasil: test-results/screens/<lebar>x<tinggi>/<halaman>.png dan test-results/screenshots.json
 
 import { existsSync, readFileSync } from "node:fs";
-import { createReporter, horizontalOverflow, launch, login, newContext, nextWeekMonday, outPath, settle, watchPage } from "./lib.mjs";
+import {
+  createReporter,
+  horizontalOverflow,
+  launch,
+  login,
+  newContext,
+  nextWeekMonday,
+  outPath,
+  scrollThrough,
+  settle,
+  watchPage,
+} from "./lib.mjs";
 
 const report = createReporter("screenshots");
 const problems = [];
@@ -108,6 +119,7 @@ async function main() {
       await report.run(`${tag} ${name}`, async () => {
         await page.goto(url);
         await settle(page, name.startsWith("studio") ? 1500 : 1200);
+        await scrollThrough(page);
         const o = await horizontalOverflow(page);
         const clipped = await clippedControls(page);
         await page.screenshot({ path: outPath("screens", tag, `${name}.png`), fullPage: true });

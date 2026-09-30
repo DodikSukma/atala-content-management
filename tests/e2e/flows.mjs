@@ -17,6 +17,7 @@ import {
   newContext,
   nextWeekMonday,
   outPath,
+  scrollThrough,
   settle,
   watchPage,
 } from "./lib.mjs";
@@ -139,6 +140,12 @@ async function createContent(page, item) {
   await toast(page, "Konten tersimpan");
   const id = page.url().split("/").pop();
   return id;
+}
+
+/** Di bawah tata letak tiga kolom, panel Studio berupa tab (Template/Foto/Teks). */
+async function studioPanel(page, label) {
+  const tabs = page.getByRole("tablist", { name: "Panel Studio" });
+  if (await tabs.count()) await tabs.getByRole("tab", { name: label }).click();
 }
 
 function statusLabel(status) {
@@ -306,6 +313,7 @@ async function main() {
     assert(!/Belum ada format/.test(formats), "donat format masih kosong");
     const pipeline = await page.locator('section[aria-labelledby="pipeline-title"]').innerText();
     assert(!/Buat konten pertama/.test(pipeline), "alur status masih kosong");
+    await scrollThrough(page);
     await shot(page, "c4-dashboard-data");
     return JSON.stringify(kpis);
   });
@@ -316,6 +324,7 @@ async function main() {
     const kpis = await waitForKpis(page, { "Konten aktif": baseInsights["Konten aktif"] + 3 });
     const text = await page.locator("main").innerText();
     for (const p of ["Edukasi", "Tips", "Pengumuman"]) assert(text.includes(p), `pilar ${p} tidak tampil di laporan`);
+    await scrollThrough(page);
     await shot(page, "c5-insights-data");
     return `Konten aktif ${kpis["Konten aktif"]}`;
   });
@@ -514,6 +523,7 @@ async function main() {
       downloadThroughput: 4 * 1024 * 1024,
       uploadThroughput: 96 * 1024,
     });
+    await studioPanel(page, "Foto");
     await page.getByTestId("photo-input").setInputFiles([
       { name: "foto-lanskap.jpg", mimeType: "image/jpeg", buffer: landscape },
       { name: "foto-potret.jpg", mimeType: "image/jpeg", buffer: portrait },
@@ -556,12 +566,16 @@ async function main() {
   // Bidang pertama (Label kategori) dibatasi 24 karakter.
   const studioText = `QA ${RUN} rutin`;
   await report.run("f2 pilih template, pasang foto, ubah teks, crop, simpan", async () => {
+    await studioPanel(page, "Template");
     await page.getByTestId("template-option-feed-fact-focus").click();
     await page.locator('[data-testid="studio-canvas"][data-template-id="feed-fact-focus"]').waitFor();
+    await studioPanel(page, "Foto");
     const slotSelect = page.locator("#studio-sec-photo select").first();
     await slotSelect.selectOption({ label: "foto-lanskap.jpg" });
+    await studioPanel(page, "Teks");
     const firstText = page.locator("#studio-sec-text").locator("input, textarea").first();
     await firstText.fill(studioText);
+    await studioPanel(page, "Foto");
     const crop = page.locator("#studio-sec-crop");
     await crop.locator('input[type="range"]').nth(0).fill("30");
     await crop.locator('input[type="range"]').nth(2).fill("1.5");
@@ -576,8 +590,10 @@ async function main() {
   await report.run("f3 muat ulang memulihkan desain", async () => {
     await page.reload();
     await page.locator('[data-testid="studio-canvas"][data-template-id="feed-fact-focus"]').waitFor({ timeout: 15_000 });
+    await studioPanel(page, "Teks");
     const firstText = page.locator("#studio-sec-text").locator("input, textarea").first();
     assert((await firstText.inputValue()) === studioText, `teks: ${await firstText.inputValue()}`);
+    await studioPanel(page, "Foto");
     const ranges = page.locator('#studio-sec-crop input[type="range"]');
     const x = await ranges.nth(0).inputValue();
     const zoom = await ranges.nth(2).inputValue();
