@@ -29,6 +29,22 @@ ID tugas memakai awalan **MT-** agar tidak tertukar dengan AT- (rilis pertama) d
 | Ekspor | PNG | PNG, MP4, WebM, GIF |
 | Tema aplikasi | terang | Terang / Gelap / Ikuti sistem |
 
+### Keputusan pemilik 1 Oktober 2026 — target dikurangi untuk rilis
+
+Agar rilis lebih cepat, prioritas dipindahkan ke **motion video** dan perbaikan bug. Target untuk rilis ini:
+
+| Hal | Target rilis ini | Ditunda |
+|---|---:|---|
+| Template Feed 1:1 | 14 (yang sudah ada) | Paket Belajar dan Komunitas (MT-05, MT-06) |
+| Template Feed potret 4:5 | 0 | Format potret dan paketnya (bagian MT-04, MT-07) |
+| Template Story | 6 (yang sudah ada) | Paket Story (MT-08) |
+| Set carousel | 0 | MT-09 (carousel manual F2-07 tetap tersedia) |
+| Nada terang/gelap per template | terang | Bagian MT-04 (WIP tersimpan di branch `wip/mt04-templates` dan `mt/04-template-infra`) |
+| Resep motion | 16 | — |
+| Ekspor | PNG, MP4, WebM (GIF bila sempat) | Audio (MT-17), matriks browser lengkap (MT-18) |
+
+Tugas yang ditunda tetap terbuka di daftar di bawah dan dilanjutkan setelah rilis.
+
 ## Cara bekerja
 
 Aturan [task-2.md § Cara bekerja untuk agen](./task-2.md#cara-bekerja-untuk-agen) berlaku di sini:
