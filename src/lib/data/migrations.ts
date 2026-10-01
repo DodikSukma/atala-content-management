@@ -17,9 +17,14 @@ import type { TableName } from "@/lib/data/sheets-mapping";
  * Riwayat versi:
  * - v1: baseline rilis pertama.
  * - v2 (F2-06): Design memuat `pages[]`; kolom templateId/textFields/imageSlots dipindah ke halaman "p1".
+ * - v3 (MT-10): halaman desain boleh memuat `motion` (MotionSpec) opsional. Isi data v2 sudah sah
+ *   sebagai v3, jadi migrasinya hampir identitas (hanya `motion: null` hasil suntingan manual yang
+ *   dibuang). Versi tetap dinaikkan karena build v2 membaca `pages` dengan skema zod lama yang
+ *   membuang kunci tak dikenal: bila build v2 membuka data v3 lalu menyimpan desain, `motion` hilang
+ *   diam-diam. Dengan versi 3 tercatat, build lama menolak data ini (lihat planMigrations).
  */
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export type SnapshotTables = Record<TableName, Record<string, unknown>[]>;
 
@@ -62,6 +67,27 @@ export function migrateDesignRowV1toV2(row: Record<string, unknown>): Record<str
   };
 }
 
+/**
+ * v2 -> v3: halaman desain mendapat `motion` opsional. Halaman tanpa motion tetap tanpa motion,
+ * halaman yang sudah punya motion tidak disentuh (idempoten). Satu-satunya perubahan: kunci
+ * `motion` bernilai null/undefined (mis. dari suntingan manual sel Sheets) dihapus agar baris tetap
+ * lolos skema v3 (`motion` opsional, bukan nullable). Baris tanpa `pages` array (v1 rusak yang
+ * sengaja dibiarkan oleh v1 -> v2) dikembalikan apa adanya. Baris yang tidak berubah dikembalikan
+ * dengan referensi sama sehingga tidak ditulis ulang oleh adapter.
+ */
+export function migrateDesignRowV2toV3(row: Record<string, unknown>): Record<string, unknown> {
+  if (!Array.isArray(row.pages)) return row;
+  let changed = false;
+  const pages = row.pages.map((page: unknown) => {
+    if (!isPlainObject(page) || !Object.prototype.hasOwnProperty.call(page, "motion") || page.motion != null) return page;
+    changed = true;
+    const rest = { ...page };
+    delete rest.motion;
+    return rest;
+  });
+  return changed ? { ...row, pages } : row;
+}
+
 export const MIGRATIONS: readonly Migration[] = [
   {
     from: 1,
@@ -69,6 +95,15 @@ export const MIGRATIONS: readonly Migration[] = [
     description: "Design v2: pages[]",
     up(snapshot) {
       snapshot.tables.designs = snapshot.tables.designs.map(migrateDesignRowV1toV2);
+      return snapshot;
+    },
+  },
+  {
+    from: 2,
+    to: 3,
+    description: "Motion v3: DesignPage.motion opsional",
+    up(snapshot) {
+      snapshot.tables.designs = snapshot.tables.designs.map(migrateDesignRowV2toV3);
       return snapshot;
     },
   },

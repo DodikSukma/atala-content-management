@@ -209,7 +209,7 @@ Aturan ini ditegakkan oleh `validate.ts` (MT-12). Pelanggaran menjadi peringatan
 
 ### Tugas
 
-- [ ] **MT-10 — Mesin timeline dan easing.**
+- [x] **MT-10 — Mesin timeline dan easing.**
   - Implementasikan `types.ts`, `easing.ts`, `timeline.ts`, dan `evaluate.ts` sebagai fungsi murni dan deterministik, tanpa `Date.now` atau `requestAnimationFrame` di dalam logika. Waktu hanya berasal dari parameter `tMs`.
   - Spring dihitung sekali menjadi kurva sampel.
   - Tambahkan skema zod `MotionSpec` dan migrasi versi skema desain (F2-03).

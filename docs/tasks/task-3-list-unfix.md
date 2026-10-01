@@ -50,7 +50,7 @@ Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-bas
 | MT-07 | Belum | ≥ 12 template potret di `templates/portrait/`. |
 | MT-08 | Belum | ≥ 16 Story di `templates/story-pack/` + area stiker (hanya pratinjau). |
 | MT-09 | Belum | ≥ 8 set carousel (1:1 dan 4:5), nomor halaman otomatis lewat `pageIndex`/`pageCount`. Butuh F2-07. |
-| MT-10 | Sebagian (di main) | Tambah `motion` opsional di `designPageSchema` + migrasi skema v2→v3 lewat `src/lib/data/migrations.ts`; samakan `LayerRole` dengan `TemplateLayerRole`. |
+| MT-10 | Selesai (1 Oktober 2026) | — |
 | MT-11 | Belum | `src/components/studio/motion/layer.tsx` (`<Layer id role split>`: tanpa konteks render apa adanya; `split` memecah ke span `data-sublayer`), bungkus semua template, uji snapshot PNG tidak berubah. |
 | MT-12 | Sebagian (di main) | Resep + validator ada; tambahkan uji "setiap resep × setiap template kompatibel" setelah MT-11, dan sembunyikan resep yang `requiresRoles`-nya tidak ada. |
 | MT-13 | Belum | `compositor.ts` (rasterisasi lapisan sekali lalu komposisi per frame), fallback `motionRender: "dom"`, `player.tsx`; frame terakhir = PNG (selisih ≤ 0,5%), ≥ 30 fps. |

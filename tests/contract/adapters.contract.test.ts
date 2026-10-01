@@ -3,8 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createFixtureStore } from "@/lib/data/fixture-store";
+import { CURRENT_SCHEMA_VERSION } from "@/lib/data/migrations";
 import { createSheetsStore } from "@/lib/data/sheets-store";
 import { ConflictError, StorageError } from "@/lib/data/types";
+import type { DesignPage } from "@/lib/validation/schemas";
 import { createFakeSheets } from "./fake-sheets";
 import { defineRepositoryContract } from "./repository-contract";
 
@@ -49,7 +51,7 @@ describe("khusus Google Sheets (HTTP mock)", () => {
     expect(await store.ideas.list()).toEqual([]);
   });
 
-  it("tab Designs v1 + Settings schemaVersion 1 dimigrasikan ke Design v2 saat store dibuka", async () => {
+  it("tab Designs v1 + Settings schemaVersion 1 dimigrasikan ke Design v2 (skema terkini v3) saat store dibuka", async () => {
     const fake = createFakeSheets();
     const contentId = "11111111-1111-4111-8111-111111111111";
     const designId = "22222222-2222-4222-8222-222222222222";
@@ -79,7 +81,7 @@ describe("khusus Google Sheets (HTTP mock)", () => {
       });
 
       const settingsTab = fake.tabs.get("Settings")!;
-      expect(settingsTab.find((row) => row[0] === "schemaVersion")?.[1]).toBe("2");
+      expect(settingsTab.find((row) => row[0] === "schemaVersion")?.[1]).toBe("3");
       expect(settingsTab.find((row) => row[0] === "weeklyTarget")?.[1]).toBe("7");
 
       const [header, row] = fake.tabs.get("Designs")!;
@@ -94,9 +96,59 @@ describe("khusus Google Sheets (HTTP mock)", () => {
       // Store baru (proses lain): tidak ada migrasi ulang; data v2 terbaca identik dan simpan tetap memeriksa versi.
       const again = make();
       expect(await again.designs.getByContentId(contentId)).toEqual(design);
-      expect((await again.settings.get()).schemaVersion).toBe(2);
+      expect((await again.settings.get()).schemaVersion).toBe(3);
       await expect(again.designs.save({ contentId, format: "feed", pages: design!.pages }, 3)).rejects.toBeInstanceOf(ConflictError);
       expect((await again.designs.save({ contentId, format: "feed", pages: design!.pages }, 4)).version).toBe(5);
+      expect(info).toHaveBeenCalledTimes(1);
+    } finally {
+      info.mockRestore();
+    }
+  });
+
+  it("tab Designs v2 + Settings schemaVersion 2 naik ke v3 tanpa menulis ulang sel pages; motion tersimpan di sel pages", async () => {
+    const fake = createFakeSheets();
+    const contentId = "11111111-1111-4111-8111-111111111111";
+    const designId = "22222222-2222-4222-8222-222222222222";
+    const pages: DesignPage[] = [
+      { id: "p1", templateId: "feed-fact-focus", textFields: { headline: "Otak butuh jeda" }, imageSlots: [] },
+      { id: "p2", templateId: "feed-checklist", textFields: { items: "Satu\nDua" }, imageSlots: [] },
+    ];
+    const pagesCell = JSON.stringify(pages);
+    // Persis seperti ditulis aplikasi v2.
+    fake.tabs.set("Designs", [
+      ["id", "contentId", "templateId", "format", "textFields", "imageSlots", "version", "updatedAt", "pages"],
+      [designId, contentId, "", "feed", "{}", "[]", 2, "2026-09-25T03:00:00.000Z", pagesCell],
+    ]);
+    fake.tabs.set("Settings", [
+      ["key", "value"],
+      ["schemaVersion", "2"],
+    ]);
+    const make = () => createSheetsStore("sheet-migrasi-v3", FAKE_CREDENTIALS, { fetch: fake.fetch, getToken: fake.getToken });
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    try {
+      const design = await make().designs.getByContentId(contentId);
+      expect(design?.pages).toEqual(pages);
+      for (const page of design!.pages) expect(page).not.toHaveProperty("motion");
+      expect(fake.tabs.get("Settings")!.find((row) => row[0] === "schemaVersion")?.[1]).toBe("3");
+      const [header, row] = fake.tabs.get("Designs")!;
+      expect(row[header.indexOf("pages")]).toBe(pagesCell);
+      expect(row[header.indexOf("version")]).toBe(2);
+
+      const motion = {
+        presetId: "editorial",
+        durationMs: 8000,
+        fps: 60 as const,
+        kenBurns: { enabled: true, scaleTo: 1.06 },
+        loopEnding: true,
+        layerOverrides: { "headline-1": { split: "line" as const } },
+      };
+      const saved = await make().designs.save({ contentId, format: "feed", pages: [{ ...pages[0], motion }, pages[1]] }, 2);
+      const [header2, row2] = fake.tabs.get("Designs")!;
+      expect(JSON.parse(String(row2[header2.indexOf("pages")]))).toEqual([{ ...pages[0], motion }, pages[1]]);
+      const reopened = await make().designs.getByContentId(contentId);
+      expect(reopened).toEqual(saved);
+      expect(reopened?.pages[0].motion).toEqual(motion);
+      expect(reopened?.pages[1]).not.toHaveProperty("motion");
       expect(info).toHaveBeenCalledTimes(1);
     } finally {
       info.mockRestore();
@@ -125,7 +177,7 @@ describe("khusus Google Sheets (HTTP mock)", () => {
     };
     // Salinan: server palsu mengubah baris header di tempat saat kolom baru ditambahkan.
     fake.tabs.set("Contents", [[...legacyHeaders], legacyHeaders.map((h) => legacyRow[h] ?? "")]);
-    fake.tabs.set("Settings", [["key", "value"], ["schemaVersion", "2"]]);
+    fake.tabs.set("Settings", [["key", "value"], ["schemaVersion", String(CURRENT_SCHEMA_VERSION)]]);
     const make = () => createSheetsStore("sheet-seri-lama", FAKE_CREDENTIALS, { fetch: fake.fetch, getToken: fake.getToken });
     const store = make();
     expect(await store.contents.get(id)).toMatchObject({ id, seriesId: null, seriesIndex: null });
@@ -144,10 +196,10 @@ describe("khusus Google Sheets (HTTP mock)", () => {
     expect(oldRow[header.indexOf("Catatan admin")]).toBe("jangan dihapus");
     expect(await make().contents.get(part.id)).toEqual(part);
     // Skema data tidak dinaikkan: kolom nullable baru tidak butuh migrasi.
-    expect((await make().settings.get()).schemaVersion).toBe(2);
+    expect((await make().settings.get()).schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   });
 
-  it("fixture.json lama tanpa kunci seri terbaca null dan tetap schemaVersion 2", async () => {
+  it("fixture.json v2 lama tanpa kunci seri terbaca null; baris konten tidak berubah saat naik ke versi terkini", async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), "atala-seri-lama-"));
     try {
       const id = "55555555-5555-4555-8555-555555555555";
@@ -163,7 +215,7 @@ describe("khusus Google Sheets (HTTP mock)", () => {
       );
       const store = createFixtureStore({ dir });
       expect(await store.contents.get(id)).toEqual({ ...row, seriesId: null, seriesIndex: null });
-      expect((await store.settings.get()).schemaVersion).toBe(2);
+      expect((await store.settings.get()).schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

@@ -255,6 +255,44 @@ export function defineRepositoryContract(name: string, makeHarness: () => Promis
         expect(again?.pages[2]).toEqual(pages[2]);
       });
 
+      it("motion per halaman (MT-10) tersimpan dan terbuka ulang identik; halaman tanpa motion tetap tanpa kunci motion", async () => {
+        const c = await h.store.contents.create(content());
+        const motion: NonNullable<DesignPage["motion"]> = {
+          presetId: "kinetik",
+          durationMs: 7000,
+          fps: 30,
+          kenBurns: { enabled: true, scaleTo: 1.04 },
+          loopEnding: false,
+          layerOverrides: {
+            headline: { entrance: { type: "rise", delayMs: 120, durationMs: 700, easing: "out-quint" }, split: "word" },
+            "list-item-2": { disabled: true },
+          },
+          audio: { assetId: "55555555-5555-4555-8555-555555555555", startMs: 0, volume: 0.6, fadeInMs: 300, fadeOutMs: 800 },
+        };
+        const pages: DesignPage[] = [page({ id: "p1", motion }), page({ id: "p2", templateId: "feed-checklist", imageSlots: [] })];
+        const saved = await h.store.designs.save(base(c.id, pages), null);
+        expect(saved.pages).toEqual(pages);
+        const reopened = await h.reopen().designs.getByContentId(c.id);
+        expect(reopened).toEqual(saved);
+        expect(reopened?.pages[0].motion).toEqual(motion);
+        expect(reopened?.pages[1]).not.toHaveProperty("motion");
+        // Desain tanpa motion sama persis secara JSON (tidak ada kunci motion: undefined/null).
+        expect(JSON.stringify(reopened?.pages[1])).toBe(JSON.stringify(pages[1]));
+
+        // Motion dilepas dari halaman: tersimpan tanpa kunci motion.
+        const cleared = await h.store.designs.save(base(c.id, [page({ id: "p1" }), pages[1]]), saved.version);
+        const again = await h.reopen().designs.getByContentId(c.id);
+        expect(again).toEqual(cleared);
+        expect(again?.pages[0]).not.toHaveProperty("motion");
+      });
+
+      it("motion tidak valid ditolak tanpa menyimpan apa pun", async () => {
+        const c = await h.store.contents.create(content());
+        const bad = { presetId: "tenang", durationMs: 120_000, fps: 24, kenBurns: { enabled: true, scaleTo: 2 }, loopEnding: false, layerOverrides: {} };
+        await expect(h.store.designs.save(base(c.id, [page({ motion: bad as never })]), null)).rejects.toThrow();
+        expect(await h.reopen().designs.getByContentId(c.id)).toBeNull();
+      });
+
       it("batas 10 halaman dan minimal 1 halaman ditegakkan tanpa menyimpan apa pun", async () => {
         const c = await h.store.contents.create(content());
         const ten = Array.from({ length: 10 }, (_, i) => page({ id: `p${i + 1}` }));

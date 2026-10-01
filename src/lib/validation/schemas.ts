@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { motionSpecSchema } from "@/lib/motion/schema";
 
 /**
  * Kontrak data rilis pertama (AT-02 / AT-06).
@@ -252,8 +253,9 @@ export const DESIGN_PAGES_MAX_CHARS = 45_000;
 
 /**
  * Satu halaman desain (Design v2, F2-06). Desain v1 dimigrasikan menjadi satu
- * halaman ber-id "p1". Tempat untuk `motion` (MT-10) dan `tone` per halaman
- * kelak ditambahkan di sini sebagai field opsional.
+ * halaman ber-id "p1". `motion` (MT-10, skema data v3) opsional: halaman tanpa
+ * motion tetap tanpa kunci `motion` sehingga desain lama tersimpan ulang identik.
+ * `tone` per halaman (MT-04) kelak ditambahkan di sini sebagai field opsional.
  */
 export const designPageSchema = z.object({
   /** Stabil selama desain hidup (bukan indeks), unik dalam satu desain, mis. "p1". */
@@ -261,6 +263,8 @@ export const designPageSchema = z.object({
   templateId: z.string().min(1).max(60),
   textFields: z.record(z.string().max(60), z.string().max(1200)),
   imageSlots: z.array(imageSlotSchema).max(8),
+  /** Spesifikasi motion halaman ini (MT-10). Tidak ada = poster statis saja. */
+  motion: motionSpecSchema.optional(),
 });
 export type DesignPage = z.infer<typeof designPageSchema>;
 

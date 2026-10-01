@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { ContentFormat } from "@/lib/constants";
+import type { LayerRole, SplitMode } from "@/lib/motion/types";
 import type { Crop } from "@/lib/validation/schemas";
 
 /**
@@ -108,26 +109,16 @@ export const TEMPLATE_PACK_LABELS: Record<TemplatePack, string> = {
 };
 
 /**
- * Peran lapisan motion (MT-11). Harus sama dengan LayerRole di src/lib/motion/types.ts.
- * Urutan baca: background → photo → decor → headline → number → body → list-item → path → badge → cta → logo.
+ * Peran lapisan motion (MT-11). Satu sumber kebenaran: `LayerRole` di src/lib/motion/types.ts
+ * (daftar `LAYER_ROLES`), sehingga `motion.layers` template langsung dipakai mesin motion.
+ * Urutan baca: lihat `READING_ORDER` di src/lib/motion/timeline.ts.
  */
-export type TemplateLayerRole =
-  | "background"
-  | "photo"
-  | "headline"
-  | "body"
-  | "list-item"
-  | "badge"
-  | "cta"
-  | "logo"
-  | "decor"
-  | "number"
-  | "path";
+export type TemplateLayerRole = LayerRole;
 
 export interface TemplateLayerSpec {
   id: string;
   role: TemplateLayerRole;
-  split?: "none" | "line" | "word";
+  split?: SplitMode;
 }
 
 export interface TemplateDefinition {

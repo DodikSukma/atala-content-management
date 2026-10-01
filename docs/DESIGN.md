@@ -124,6 +124,7 @@ Semua template memakai token Atala, menerima panjang teks realistis, menyediakan
 - Transisi masuk konten 160–240 ms, hover 120–180 ms, drawer 200–280 ms. Gerak memakai opacity/transform agar ringan.
 - Animasi pratinjau setelah ganti template boleh satu kali; tidak ada loop dekoratif terus-menerus.
 - Saat `prefers-reduced-motion: reduce`, nonaktifkan gerak non-esensial.
+- Motion video (task-3 Bagian C) adalah isi desain, bukan UI: disimpan per halaman di `DesignPage.motion` dan selalu berakhir di posisi desain statis, jadi frame terakhir video sama dengan PNG. Halaman tanpa motion tetap poster statis. Di Studio, pratinjau motion tidak diputar otomatis berulang; saat reduced motion aktif, pratinjau berhenti di frame terakhir sampai pengguna menekan Putar (MT-13).
 - Fokus keyboard jelas, label form terhubung, ikon punya nama aksesibel, kontras memadai, dan status tidak dibedakan dengan warna saja.
 - Loading skeleton meniru bentuk akhir; empty, error, dan success state dirancang untuk setiap layar utama.
 - Uji visual pada 1280×800, 1440×900, dan 834×1112. Ambil screenshot rilis dan inspeksi manual semua template serta layar login/dashboard/kalender/editor.

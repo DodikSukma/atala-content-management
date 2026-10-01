@@ -87,10 +87,11 @@ docs/
 
 `id`, `contentId`, `format` (berlaku untuk semua halaman), `pages[]`, `version`, `updatedAt`.
 
-- `pages`: 1–10 `DesignPage` berurutan; `DesignPage = { id, templateId, textFields, imageSlots[] }`. `id` halaman (1–40 karakter, unik dalam satu desain) stabil saat halaman diurutkan ulang; desain v1 dan desain baru memakai `p1`. `textFields` adalah objek tervalidasi, `imageSlots[]` berisi ID aset serta data crop/posisi (maks. 8 per halaman).
+- `pages`: 1–10 `DesignPage` berurutan; `DesignPage = { id, templateId, textFields, imageSlots[], motion? }`. `id` halaman (1–40 karakter, unik dalam satu desain) stabil saat halaman diurutkan ulang; desain v1 dan desain baru memakai `p1`. `textFields` adalah objek tervalidasi, `imageSlots[]` berisi ID aset serta data crop/posisi (maks. 8 per halaman).
 - Di tab `Designs`, semua halaman tersimpan sebagai JSON di kolom `pages` (maks. 45.000 karakter karena batas sel Sheets 50.000). Kolom lama `templateId`, `textFields`, dan `imageSlots` dipertahankan hanya agar baris v1 bisa dimigrasikan; baris v2 menulisnya kosong (`""`, `{}`, `[]`).
 - `version` naik setiap simpan dan dipakai untuk deteksi konflik (`expectedVersion`) atas seluruh halaman sekaligus.
-- Field per halaman berikutnya (mis. `motion` untuk MT-10, `tone`) ditambahkan sebagai field opsional pada `DesignPage`.
+- `motion` (MT-10, skema data v3) opsional: `MotionSpec = { presetId, durationMs (3000–60000), fps (30|60), kenBurns { enabled, scaleTo 1–1.12 }, loopEnding, layerOverrides{ [layerId]: { disabled?, entrance?, split? } }, audio? }`, divalidasi `motionSpecSchema` (`src/lib/motion/schema.ts`) dan ikut di JSON kolom `pages`. Halaman tanpa motion tidak punya kunci `motion` sama sekali (bukan `null`), sehingga desain lama tersimpan ulang identik. Motion tidak valid menolak seluruh simpan.
+- Field per halaman berikutnya (mis. `tone` untuk MT-04) ditambahkan sebagai field opsional pada `DesignPage`.
 
 ### `Asset`
 
@@ -137,6 +138,8 @@ UI boleh memakai server actions atau route handlers; pilih satu pola yang konsis
 
 - **Versi skema data (F2-03):** `Settings.schemaVersion` (data lama tanpa kunci = 1). `src/lib/data/migrations.ts` berisi migrasi murni per versi; `engine.ts` menjalankannya sekali per proses sebelum operasi pertama dan menolak data berversi lebih baru. Setiap adapter wajib lulus `tests/contract/`.
 - **Skema v2 (F2-06, Design v2):** versi terkini = 2. Migrasi v1→v2 memindahkan `templateId`/`textFields`/`imageSlots` setiap desain ke `pages: [{ id: "p1", ... }]` dan mengosongkan kolom lama; baris yang sudah punya `pages` tidak disentuh (idempoten, aman diulang bila proses terhenti), baris v1 yang memang rusak dibiarkan apa adanya. Migrasi berjalan otomatis saat operasi data pertama setelah deploy, lalu `schemaVersion` menjadi 2; aplikasi v1 akan menolak data ini, jadi rollback ke build lama memerlukan pemulihan dari backup Sheet. Penyimpanan yang masih kosong tidak ditulis saat dibaca; versinya dicatat pada penulisan pertama.
+- **Skema v3 (MT-10, motion):** versi terkini = 3. `DesignPage.motion` opsional. Migrasi v2→v3 murni dan idempoten: halaman tanpa motion tetap tanpa motion, motion yang ada tidak disentuh, hanya `motion: null` (hasil suntingan manual sel) yang dibuang; baris yang tidak berubah tidak ditulis ulang. Versi tetap dinaikkan walau datanya kompatibel karena build v2 mem-parse `pages` dengan skema lama yang membuang kunci tak dikenal: bila build v2 membuka data v3 lalu menyimpan, motion hilang diam-diam. Dengan `schemaVersion` 3, build v2 menolak data ini; rollback memerlukan pemulihan backup Sheet seperti v2.
+- **Mesin motion (MT-10):** `src/lib/motion/` murni dan deterministik (tanpa jam sistem, angka acak, DOM, atau React; waktu hanya dari `tMs`). `TemplateLayerRole` (`src/lib/studio/types.ts`) adalah alias `LayerRole` mesin, jadi `motion.layers` template langsung menjadi `LayerInfo`.
 - **Lapisan integrasi (F2-02):** semua layanan luar lewat `src/lib/integrations/`; lihat [INTEGRATIONS.md](./INTEGRATIONS.md).
 
 ## 8. Migrasi dan fase berikutnya

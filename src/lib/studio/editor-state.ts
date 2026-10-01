@@ -1,4 +1,5 @@
 import type { ContentFormat } from "@/lib/constants";
+import type { MotionSpec } from "@/lib/motion/types";
 import type { TemplateDefinition, TemplatePhoto, TemplateRenderProps } from "@/lib/studio/types";
 import { DESIGN_MAX_PAGES, type Crop } from "@/lib/validation/schemas";
 
@@ -50,6 +51,11 @@ export interface EditorPage {
   templateId: string;
   textFields: Record<string, string>;
   slots: EditorSlot[];
+  /**
+   * Motion halaman (MT-10), disimpan apa adanya di `DesignPage.motion`. Tidak ada = poster
+   * statis; kunci ini tidak pernah diisi `undefined` agar desain tanpa motion tersimpan identik.
+   */
+  motion?: MotionSpec;
 }
 
 /** Satu langkah riwayat: seluruh dokumen desain. */
@@ -147,13 +153,15 @@ export function slotsForTemplate(template: TemplateShape, previous: EditorSlot[]
 
 /**
  * Halaman editor untuk template tertentu. `text` = teks awal (nilai tersimpan
- * yang sudah di-resolve); `savedSlots` = slot tersimpan (boleh kosong).
+ * yang sudah di-resolve); `savedSlots` = slot tersimpan (boleh kosong); `motion` =
+ * motion tersimpan (MT-10), disalin dan hanya dipasang bila ada.
  */
 export function createPage(
   template: TemplateShape,
   text: Record<string, string>,
   savedSlots: { slotId: string; photoId: string | null; crop?: Partial<Crop> }[] = [],
   id: string = FIRST_PAGE_ID,
+  motion?: MotionSpec,
 ): EditorPage {
   // Cocokkan per slotId; bila tak satu pun cocok (template berganti), cocokkan per indeks.
   const matchById = template.slots.some((slot) => savedSlots.some((s) => s.slotId === slot.id));
@@ -167,7 +175,9 @@ export function createPage(
   });
   const textFields: Record<string, string> = {};
   for (const f of template.fields) textFields[f.key] = text[f.key] ?? f.defaultValue;
-  return { id, templateId: template.id, textFields, slots };
+  const page: EditorPage = { id, templateId: template.id, textFields, slots };
+  if (motion) page.motion = cloneMotion(motion);
+  return page;
 }
 
 /** Dokumen satu halaman (desain baru). Format mengikuti template. */
@@ -195,14 +205,50 @@ export function nextPageId(pages: Pick<EditorPage, "id">[]): string {
   return `p${n}`;
 }
 
-/** Salinan halaman dengan ID baru (teks dan slot disalin, bukan dibagi referensinya). */
+/** Salinan halaman dengan ID baru (teks, slot, dan motion disalin, bukan dibagi referensinya). */
 export function clonePage(page: EditorPage, id: string): EditorPage {
-  return {
+  const copy: EditorPage = {
     id,
     templateId: page.templateId,
     textFields: { ...page.textFields },
     slots: page.slots.map((s) => ({ ...s, crop: { ...s.crop } })),
   };
+  if (page.motion) copy.motion = cloneMotion(page.motion);
+  return copy;
+}
+
+/** Salinan dalam MotionSpec (data mirip JSON: objek, array, dan nilai primitif). */
+export function cloneMotion(motion: MotionSpec): MotionSpec {
+  return cloneJson(motion);
+}
+
+function cloneJson<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(cloneJson) as T;
+  if (typeof value === "object" && value !== null) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneJson(item)])) as T;
+  }
+  return value;
+}
+
+/** Kesetaraan dalam untuk data mirip JSON; urutan kunci objek tidak berpengaruh, kunci bernilai undefined diabaikan. */
+function jsonEqual(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) return true;
+  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((item, i) => jsonEqual(item, b[i]));
+  }
+  const ar = a as Record<string, unknown>;
+  const br = b as Record<string, unknown>;
+  const ak = Object.keys(ar).filter((k) => ar[k] !== undefined);
+  const bk = Object.keys(br).filter((k) => br[k] !== undefined);
+  if (ak.length !== bk.length) return false;
+  return ak.every((k) => Object.prototype.hasOwnProperty.call(br, k) && jsonEqual(ar[k], br[k]));
+}
+
+/** Motion dua halaman sama (keduanya tidak ada, atau isinya sama). */
+export function motionEqual(a: MotionSpec | undefined, b: MotionSpec | undefined): boolean {
+  return jsonEqual(a ?? null, b ?? null);
 }
 
 /**
@@ -266,7 +312,7 @@ export function pagesEqual(a: EditorPage, b: EditorPage): boolean {
     if (x.slotId !== y.slotId || x.photoId !== y.photoId) return false;
     if (x.crop.x !== y.crop.x || x.crop.y !== y.crop.y || x.crop.zoom !== y.crop.zoom) return false;
   }
-  return true;
+  return motionEqual(a.motion, b.motion);
 }
 
 export function snapshotsEqual(a: EditorSnapshot, b: EditorSnapshot): boolean {

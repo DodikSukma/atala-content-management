@@ -9,6 +9,7 @@ import {
   SchemaVersionError,
   changedRows,
   migrateDesignRowV1toV2,
+  migrateDesignRowV2toV3,
   migrateSnapshot,
   parseSchemaVersion,
   planMigrations,
@@ -16,6 +17,8 @@ import {
   type Migration,
 } from "@/lib/data/migrations";
 import { ConflictError, StorageError } from "@/lib/data/types";
+import type { MotionSpec } from "@/lib/motion/types";
+import { designSchema } from "@/lib/validation/schemas";
 
 function snapshot(): DataSnapshot {
   return {
@@ -41,13 +44,13 @@ function snapshot(): DataSnapshot {
   };
 }
 
-/** Migrasi uji v2 -> v3 untuk memastikan rantai langkah berjalan berurutan. */
-const noteV3: Migration = {
-  from: 2,
-  to: 3,
+/** Migrasi uji v3 -> v4 untuk memastikan rantai langkah berjalan berurutan. */
+const noteV4: Migration = {
+  from: 3,
+  to: 4,
   description: "uji: tandai konten",
   up(s) {
-    s.tables.contents = s.tables.contents.map((c) => ({ ...c, catatanV3: true }));
+    s.tables.contents = s.tables.contents.map((c) => ({ ...c, catatanV4: true }));
     return s;
   },
 };
@@ -64,10 +67,11 @@ describe("versi skema", () => {
     expect(() => parseSchemaVersion("0")).toThrow(SchemaVersionError);
   });
 
-  it("versi terkini adalah 2 (Design v2) dan rantai migrasi dari v1 lengkap", () => {
-    expect(CURRENT_SCHEMA_VERSION).toBe(2);
-    expect(planMigrations(1).map((m) => `${m.from}->${m.to}`)).toEqual(["1->2"]);
-    expect(MIGRATIONS[0].description).toBe("Design v2: pages[]");
+  it("versi terkini adalah 3 (motion MT-10) dan rantai migrasi dari v1 lengkap", () => {
+    expect(CURRENT_SCHEMA_VERSION).toBe(3);
+    expect(planMigrations(1).map((m) => `${m.from}->${m.to}`)).toEqual(["1->2", "2->3"]);
+    expect(planMigrations(2).map((m) => `${m.from}->${m.to}`)).toEqual(["2->3"]);
+    expect(MIGRATIONS.map((m) => m.description)).toEqual(["Design v2: pages[]", "Motion v3: DesignPage.motion opsional"]);
   });
 
   it("migrasi v1 -> v1 adalah no-op", () => {
@@ -88,20 +92,20 @@ describe("versi skema", () => {
 
   it("menolak data berversi lebih baru dari aplikasi", () => {
     expect(() => planMigrations(3, 2)).toThrow(/versi 3/);
-    expect(() => planMigrations(3)).toThrow(/versi 3/);
+    expect(() => planMigrations(4)).toThrow(/versi 4/);
   });
 
   it("menolak rantai migrasi yang terputus", () => {
     expect(() => planMigrations(1, 2, [])).toThrow(/belum tersedia/);
-    expect(() => planMigrations(1, 3)).toThrow(/2 ke 3/);
+    expect(() => planMigrations(1, 4)).toThrow(/3 ke 4/);
   });
 
   it("menerapkan rantai langkah berurutan dan mencatat versi akhir", () => {
-    const { snapshot: after, applied } = migrateSnapshot(snapshot(), 1, 3, [...MIGRATIONS, noteV3]);
-    expect(applied.map((m) => m.to)).toEqual([2, 3]);
-    expect(after.settings.schemaVersion).toBe("3");
+    const { snapshot: after, applied } = migrateSnapshot(snapshot(), 1, 4, [...MIGRATIONS, noteV4]);
+    expect(applied.map((m) => m.to)).toEqual([2, 3, 4]);
+    expect(after.settings.schemaVersion).toBe("4");
     expect(designsOf(after)[0].pages).toHaveLength(1);
-    expect(after.tables.contents[0]).toMatchObject({ catatanV3: true });
+    expect(after.tables.contents[0]).toMatchObject({ catatanV4: true });
   });
 
   it("migrasi yang menghapus baris ditolak", () => {
@@ -163,7 +167,7 @@ describe("migrasi v1 -> v2 (Design v2: pages[])", () => {
     for (const table of ["contents", "ideas", "assets", "integrationLogs"] as const) {
       expect(after.tables[table]).toEqual(before.tables[table]);
     }
-    expect(after.settings).toEqual({ ...before.settings, schemaVersion: "2" });
+    expect(after.settings).toEqual({ ...before.settings, schemaVersion: String(CURRENT_SCHEMA_VERSION) });
   });
 
   it("baris v1 yang memang tidak valid dibiarkan apa adanya (tidak ada data yang hilang)", () => {
@@ -180,6 +184,121 @@ describe("migrasi v1 -> v2 (Design v2: pages[])", () => {
     const { snapshot: after } = migrateSnapshot(before, 1);
     expect(designsOf(after)[2].textFields).toBe(broken);
     expect(changedRows(before, after).map((c) => c.row.id)).toEqual(["d1", "d2"]);
+  });
+});
+
+/** MotionSpec lengkap (semua nilai bawaan terisi) seperti ditulis aplikasi v3. */
+const MOTION = {
+  presetId: "tenang",
+  durationMs: 6000,
+  fps: 30,
+  kenBurns: { enabled: true, scaleTo: 1.05 },
+  loopEnding: false,
+  layerOverrides: { judul: { entrance: { type: "rise", delayMs: 200, easing: "out-cubic" }, split: "word" }, logo: { disabled: true } },
+} satisfies MotionSpec;
+
+/** Snapshot v2: halaman tanpa motion, halaman dengan motion, motion null hasil suntingan manual, dan baris v1 rusak. */
+function snapshotV2(): DataSnapshot {
+  const v2 = migrateSnapshot(snapshot(), 1, 2).snapshot;
+  v2.tables.designs.push(
+    {
+      id: "d3",
+      contentId: "c3",
+      templateId: "",
+      format: "story",
+      textFields: {},
+      imageSlots: [],
+      pages: [
+        { id: "p1", templateId: "story-frame", textFields: { headline: "Satu" }, imageSlots: [], motion: MOTION },
+        { id: "p2", templateId: "story-frame", textFields: {}, imageSlots: [], motion: null },
+        { id: "p3", templateId: "story-frame", textFields: {}, imageSlots: [] },
+      ],
+      version: 2,
+    },
+    { id: "x1", contentId: "c4", templateId: "", textFields: { headline: "v1 rusak" }, imageSlots: [] },
+  );
+  return v2;
+}
+
+describe("migrasi v2 -> v3 (motion opsional per halaman)", () => {
+  it("halaman tanpa motion tetap tanpa motion; data v2 tidak ditulis ulang", () => {
+    const before = migrateSnapshot(snapshot(), 1, 2).snapshot;
+    const { snapshot: after, applied } = migrateSnapshot(before, 2);
+    expect(applied.map((m) => `${m.from}->${m.to}`)).toEqual(["2->3"]);
+    expect(after.settings.schemaVersion).toBe("3");
+    expect(after.tables).toEqual(before.tables);
+    expect(JSON.stringify(after.tables)).toBe(JSON.stringify(before.tables));
+    for (const design of designsOf(after)) {
+      for (const page of design.pages as Row[]) expect(page).not.toHaveProperty("motion");
+    }
+    expect(changedRows(before, after)).toEqual([]);
+  });
+
+  it("motion yang ada tidak disentuh; motion null dibuang; baris tanpa pages dibiarkan", () => {
+    const before = snapshotV2();
+    const { snapshot: after } = migrateSnapshot(before, 2);
+    const d3 = designsOf(after).find((d) => d.id === "d3")!;
+    const pages = d3.pages as Row[];
+    expect(pages[0].motion).toEqual(MOTION);
+    expect(pages[1]).toEqual({ id: "p2", templateId: "story-frame", textFields: {}, imageSlots: [] });
+    expect(pages[1]).not.toHaveProperty("motion");
+    expect(pages[2]).toEqual((before.tables.designs[2].pages as Row[])[2]);
+    expect(designsOf(after).find((d) => d.id === "x1")).toEqual(before.tables.designs[3]);
+    // Hanya baris dengan motion null yang berubah.
+    expect(changedRows(before, after).map((c) => `${c.table}:${c.row.id}`)).toEqual(["designs:d3"]);
+    // Input tidak diubah (murni).
+    expect((before.tables.designs[2].pages as Row[])[1]).toHaveProperty("motion", null);
+  });
+
+  it("baris yang tidak berubah dikembalikan dengan referensi sama", () => {
+    const rows: Row[] = [
+      { id: "a", pages: [{ id: "p1", templateId: "feed-fact-focus", textFields: {}, imageSlots: [] }] },
+      { id: "b", pages: [{ id: "p1", templateId: "feed-fact-focus", textFields: {}, imageSlots: [], motion: MOTION }] },
+      { id: "c", templateId: "feed-fact-focus" },
+      { id: "d", pages: "bukan array" },
+      { id: "e", pages: ["bukan objek", null] },
+    ];
+    for (const row of rows) expect(migrateDesignRowV2toV3(row)).toBe(row);
+  });
+
+  it("idempoten: migrasi ulang (versi tercatat kembali ke 2) tidak mengubah apa pun", () => {
+    const once = migrateSnapshot(snapshotV2(), 2).snapshot;
+    const twice = migrateSnapshot({ ...once, settings: { ...once.settings, schemaVersion: "2" } }, 2).snapshot;
+    expect(twice.tables).toEqual(once.tables);
+    expect(changedRows(once, twice)).toEqual([]);
+    for (const row of once.tables.designs) expect(migrateDesignRowV2toV3(row)).toBe(row);
+  });
+
+  it("rantai v1 -> v3: desain v1 menjadi satu halaman p1 tanpa motion", () => {
+    const before = snapshot();
+    const { snapshot: after, applied } = migrateSnapshot(before, 1);
+    expect(applied.map((m) => `${m.from}->${m.to}`)).toEqual(["1->2", "2->3"]);
+    expect(after.settings.schemaVersion).toBe("3");
+    const [d1] = designsOf(after);
+    expect(d1.pages).toEqual([
+      {
+        id: "p1",
+        templateId: "feed-fact-focus",
+        textFields: { headline: "H" },
+        imageSlots: [{ slotId: "photo", assetId: ASSET_ID, crop: { x: 30, y: 70, zoom: 1.6 } }],
+      },
+    ]);
+    expect((d1.pages as Row[])[0]).not.toHaveProperty("motion");
+    // Sama persis dengan hasil v1 -> v2 (langkah v2 -> v3 tidak mengubah desain v1).
+    expect(after.tables).toEqual(migrateSnapshot(before, 1, 2).snapshot.tables);
+  });
+
+  it("halaman hasil migrasi lolos skema Design v3, dengan maupun tanpa motion", () => {
+    const meta = { id: DESIGN_ID, contentId: CONTENT_ID, updatedAt: "2026-10-01T00:00:00.000Z" };
+    const { snapshot: after } = migrateSnapshot(snapshotV2(), 2);
+    const d3 = designsOf(after).find((d) => d.id === "d3")!;
+    const parsed = designSchema.safeParse({ ...d3, ...meta });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.pages[0].motion).toEqual(MOTION);
+    expect(parsed.data?.pages[1]).not.toHaveProperty("motion");
+    // Tanpa migrasi, motion null ditolak skema v3 (alasan langkah ini ada).
+    const raw = snapshotV2().tables.designs[2];
+    expect(designSchema.safeParse({ ...raw, ...meta }).success).toBe(false);
   });
 });
 
@@ -257,7 +376,7 @@ describe("runner migrasi pada adapter", () => {
     });
   });
 
-  it("fixture.json v1 dimigrasikan sekali: desain lama menjadi v2 satu halaman dan versi menjadi 2", async () => {
+  it("fixture.json v1 dimigrasikan sekali: desain lama menjadi v2 satu halaman dan versi menjadi terkini (3)", async () => {
     await withTempDir(async (dir) => {
       const file = path.join(dir, "fixture.json");
       await writeFile(
@@ -291,9 +410,11 @@ describe("runner migrasi pada adapter", () => {
           version: 4,
           updatedAt: V1_DESIGN_ROW.updatedAt,
         });
+        expect(design!.pages[0]).not.toHaveProperty("motion");
         const raw = JSON.parse(await readFile(file, "utf8"));
-        expect(raw.settings.schemaVersion).toBe("2");
-        expect(raw.schemaVersion).toBe("2");
+        expect(raw.settings.schemaVersion).toBe("3");
+        expect(raw.schemaVersion).toBe("3");
+        expect(raw.designs[0].pages[0]).not.toHaveProperty("motion");
         expect(raw.settings.weeklyTarget).toBe("7");
         expect(raw.designs[0]).toMatchObject({ templateId: "", textFields: {}, imageSlots: [] });
         expect(raw.contents).toEqual([V1_CONTENT_ROW]);
@@ -307,6 +428,53 @@ describe("runner migrasi pada adapter", () => {
         );
         const saved = await reopened.designs.save({ contentId: CONTENT_ID, format: "feed", pages: design!.pages }, 4);
         expect(saved.version).toBe(5);
+        expect(info).toHaveBeenCalledTimes(1);
+      } finally {
+        info.mockRestore();
+      }
+    });
+  });
+
+  it("fixture.json v2 naik ke v3: desain tanpa motion terbaca dan tersimpan identik, motion bertahan setelah dibuka ulang", async () => {
+    await withTempDir(async (dir) => {
+      const file = path.join(dir, "fixture.json");
+      const v2Pages = [
+        { id: "p1", templateId: "feed-fact-focus", textFields: V1_DESIGN_ROW.textFields, imageSlots: V1_DESIGN_ROW.imageSlots },
+      ];
+      const v2Row = { ...V1_DESIGN_ROW, templateId: "", textFields: {}, imageSlots: [], pages: v2Pages };
+      await writeFile(
+        file,
+        JSON.stringify({
+          schemaVersion: "2",
+          contents: [V1_CONTENT_ROW],
+          ideas: [],
+          designs: [v2Row],
+          assets: [],
+          integrationLogs: [],
+          settings: { weeklyTarget: "7", schemaVersion: "2" },
+        }),
+      );
+      const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+      try {
+        const store = createFixtureStore({ dir });
+        const design = await store.designs.getByContentId(CONTENT_ID);
+        expect(design?.pages).toEqual(v2Pages);
+        expect(design?.pages[0]).not.toHaveProperty("motion");
+        const raw = JSON.parse(await readFile(file, "utf8"));
+        expect(raw.settings.schemaVersion).toBe("3");
+        expect(raw.designs).toEqual([v2Row]);
+        expect(info).toHaveBeenCalledTimes(1);
+
+        // Simpan ulang tanpa perubahan: halaman tetap tanpa kunci motion.
+        const resaved = await store.designs.save({ contentId: CONTENT_ID, format: "feed", pages: design!.pages }, 4);
+        expect(JSON.stringify(resaved.pages)).toBe(JSON.stringify(v2Pages));
+
+        // Tambah motion: tersimpan dan terbuka ulang identik di proses baru, tanpa migrasi ulang.
+        const withMotion = [{ ...design!.pages[0], motion: MOTION }];
+        const saved = await store.designs.save({ contentId: CONTENT_ID, format: "feed", pages: withMotion }, 5);
+        const reopened = await createFixtureStore({ dir }).designs.getByContentId(CONTENT_ID);
+        expect(reopened).toEqual(saved);
+        expect(reopened?.pages[0].motion).toEqual(MOTION);
         expect(info).toHaveBeenCalledTimes(1);
       } finally {
         info.mockRestore();

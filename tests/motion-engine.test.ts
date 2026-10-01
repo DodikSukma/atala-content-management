@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import type { TemplateLayerRole, TemplateLayerSpec } from "@/lib/studio/types";
 import {
   EASINGS,
   EASING_NAMES,
@@ -1352,5 +1353,20 @@ describe("batas ekstrem", () => {
         prev = opacity;
       }
     }
+  });
+});
+
+describe("peran lapisan template = LayerRole mesin", () => {
+  it("TemplateLayerRole adalah tipe yang sama dengan LayerRole; motion.layers template langsung dipakai mesin", () => {
+    expectTypeOf<TemplateLayerRole>().toEqualTypeOf<LayerRole>();
+    expectTypeOf<TemplateLayerSpec>().toExtend<LayerInfo>();
+    const layers: TemplateLayerSpec[] = [
+      { id: "latar", role: "background" },
+      { id: "judul", role: "headline", split: "word" },
+      { id: "logo", role: "logo" },
+    ];
+    const tl = buildTimeline(makeSpec(), layers, makePreset());
+    expect(tl.items.map((item) => item.layerId)).toEqual(["latar", "judul", "logo"]);
+    expect(evaluate(tl, tl.durationMs).layers.judul).toEqual(IDENTITY);
   });
 });

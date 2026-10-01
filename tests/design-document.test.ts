@@ -10,6 +10,7 @@ import {
 } from "@/lib/studio/editor-state";
 import { designPagesFromDocument, editorDocumentFromDesign, templateForPage } from "@/lib/studio/design-document";
 import { defaultTemplateFor, getTemplate, resolveText } from "@/lib/studio/registry";
+import type { MotionSpec } from "@/lib/motion/types";
 import type { TemplatePhoto } from "@/lib/studio/types";
 import { designSchema, type Crop, type Design, type DesignPage } from "@/lib/validation/schemas";
 
@@ -244,5 +245,64 @@ describe("simpan dari editor mengirim semua halaman", () => {
     const saved = designPagesFromDocument(loaded.snapshot, (photoId) => (photoId === ASSET_A ? ASSET_A : null));
     expect(saved[0].imageSlots[0].assetId).toBe(ASSET_A);
     expect(saved[2].imageSlots[0].assetId).toBeNull();
+  });
+});
+
+describe("motion per halaman (MT-10) ikut dimuat dan disimpan", () => {
+  const motion: MotionSpec = {
+    presetId: "editorial",
+    durationMs: 8000,
+    fps: 30,
+    kenBurns: { enabled: true, scaleTo: 1.06 },
+    loopEnding: true,
+    layerOverrides: { headline: { entrance: { type: "mask-up", easing: "out-expo" }, split: "line" }, logo: { disabled: true } },
+  };
+  const fields = (id: string) => Object.fromEntries(getTemplate(id)!.fields.map((f) => [f.key, f.defaultValue]));
+  const slots = (id: string) =>
+    getTemplate(id)!.slots.map((slot) => ({ slotId: slot.id, assetId: null, crop: { x: 50, y: 50, zoom: 1 } }));
+  const pages: DesignPage[] = [
+    { id: "p1", templateId: "feed-checklist", textFields: fields("feed-checklist"), imageSlots: slots("feed-checklist"), motion },
+    { id: "p2", templateId: "feed-info-comparison", textFields: fields("feed-info-comparison"), imageSlots: slots("feed-info-comparison") },
+  ];
+  const design = { format: "feed" as const, pages };
+
+  it("buka lalu simpan tanpa suntingan: motion identik, halaman tanpa motion tetap tanpa kunci motion", () => {
+    const loaded = editorDocumentFromDesign(design, "feed", CONTENT_TEXT);
+    expect(loaded.snapshot.pages[0].motion).toEqual(motion);
+    // Disalin, bukan dibagi referensinya dengan data tersimpan.
+    expect(loaded.snapshot.pages[0].motion).not.toBe(motion);
+    expect(loaded.snapshot.pages[1]).not.toHaveProperty("motion");
+    const saved = designPagesFromDocument(loaded.snapshot, (id) => id);
+    expect(JSON.stringify(saved)).toBe(JSON.stringify(pages));
+    expect(designSchema.shape.pages.safeParse(saved).success).toBe(true);
+  });
+
+  it("desain tanpa motion sama sekali tersimpan identik secara JSON", () => {
+    const plain = pages.map((page) => {
+      const copy = { ...page };
+      delete copy.motion;
+      return copy;
+    });
+    const loaded = editorDocumentFromDesign({ format: "feed", pages: plain }, "feed", CONTENT_TEXT);
+    expect(JSON.stringify(designPagesFromDocument(loaded.snapshot, (id) => id))).toBe(JSON.stringify(plain));
+  });
+
+  it("suntingan teks, duplikasi, dan ganti template mempertahankan motion halaman", () => {
+    let state = createEditorState(editorDocumentFromDesign(design, "feed", CONTENT_TEXT).snapshot);
+    state = editorReducer(state, { type: "setText", key: "headline", value: "Judul baru" });
+    state = editorReducer(state, { type: "duplicatePage", index: 0 });
+    const saved = designPagesFromDocument(state.present, (id) => id);
+    expect(saved.map((p) => p.id)).toEqual(["p1", "p3", "p2"]);
+    expect(saved[0].motion).toEqual(motion);
+    expect(saved[1].motion).toEqual(motion);
+    expect(saved[1].motion).not.toBe(saved[0].motion);
+    expect(saved[2]).not.toHaveProperty("motion");
+    const retemplated = editorReducer(state, {
+      type: "applyTemplate",
+      template: getTemplate("feed-fact-focus")!,
+      defaults: resolveText(getTemplate("feed-fact-focus")!, undefined, CONTENT_TEXT),
+    });
+    expect(currentPage(retemplated).templateId).toBe("feed-fact-focus");
+    expect(currentPage(retemplated).motion).toEqual(motion);
   });
 });

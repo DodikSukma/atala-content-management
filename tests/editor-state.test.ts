@@ -6,12 +6,15 @@ import {
   HISTORY_LIMIT,
   canRedo,
   canUndo,
+  clonePage,
   createEditorState,
   createPage,
   createSnapshot,
   currentPage,
   editorReducer,
+  motionEqual,
   pageRenderProps,
+  pagesEqual,
   renderText,
   snapshotsEqual,
   textWarnings,
@@ -19,6 +22,7 @@ import {
   type EditorState,
   type TemplateShape,
 } from "@/lib/studio/editor-state";
+import type { MotionSpec } from "@/lib/motion/types";
 
 const feedA: TemplateShape = {
   id: "feed-a",
@@ -332,5 +336,71 @@ describe("peringatan dan teks render", () => {
 
   it("bidang kosong memakai teks bawaan saat dirender", () => {
     expect(renderText(feedB, { headline: "  ", cta: "Ikut kelas" })).toEqual({ headline: "Judul B", cta: "Ikut kelas" });
+  });
+});
+
+describe("motion halaman (MT-10)", () => {
+  const motion = (): MotionSpec => ({
+    presetId: "tenang",
+    durationMs: 6000,
+    fps: 30,
+    kenBurns: { enabled: false, scaleTo: 1.04 },
+    loopEnding: false,
+    layerOverrides: { headline: { split: "word" }, logo: { disabled: true } },
+  });
+
+  it("createPage tanpa motion tidak membuat kunci motion; dengan motion disalin dalam", () => {
+    const plain = createPage(feedA, {});
+    expect(plain).not.toHaveProperty("motion");
+    const source = motion();
+    const page = createPage(feedA, {}, [], "p1", source);
+    expect(page.motion).toEqual(source);
+    expect(page.motion).not.toBe(source);
+    expect(page.motion!.layerOverrides).not.toBe(source.layerOverrides);
+    expect(page.motion!.layerOverrides.headline).not.toBe(source.layerOverrides.headline);
+  });
+
+  it("clonePage menyalin motion tanpa berbagi referensi; tanpa motion tetap tanpa kunci", () => {
+    const page = createPage(feedA, {}, [], "p1", motion());
+    const copy = clonePage(page, "p2");
+    expect(copy.motion).toEqual(page.motion);
+    expect(copy.motion).not.toBe(page.motion);
+    expect(copy.motion!.kenBurns).not.toBe(page.motion!.kenBurns);
+    expect(clonePage(createPage(feedA, {}), "p2")).not.toHaveProperty("motion");
+  });
+
+  it("motionEqual: urutan kunci tidak berpengaruh, isi berbeda terdeteksi", () => {
+    const a = motion();
+    const reordered: MotionSpec = {
+      layerOverrides: { logo: { disabled: true }, headline: { split: "word" } },
+      loopEnding: false,
+      kenBurns: { scaleTo: 1.04, enabled: false },
+      fps: 30,
+      durationMs: 6000,
+      presetId: "tenang",
+    };
+    expect(motionEqual(a, reordered)).toBe(true);
+    expect(motionEqual(undefined, undefined)).toBe(true);
+    expect(motionEqual(a, undefined)).toBe(false);
+    expect(motionEqual(a, { ...a, durationMs: 7000 })).toBe(false);
+    expect(motionEqual(a, { ...a, layerOverrides: { ...a.layerOverrides, logo: { disabled: false } } })).toBe(false);
+    expect(motionEqual(a, { ...a, layerOverrides: { headline: { split: "word" } } })).toBe(false);
+    expect(motionEqual(a, { ...a, audio: undefined })).toBe(true);
+  });
+
+  it("pagesEqual dan status belum disimpan memperhitungkan motion", () => {
+    const withMotion = createPage(feedA, {}, [], "p1", motion());
+    const without = createPage(feedA, {}, [], "p1");
+    expect(pagesEqual(withMotion, createPage(feedA, {}, [], "p1", motion()))).toBe(true);
+    expect(pagesEqual(withMotion, without)).toBe(false);
+
+    const saved = { format: "feed" as const, pages: [without] };
+    let state = createEditorState(saved);
+    state = editorReducer(state, { type: "replacePages", format: "feed", pages: [withMotion] });
+    expect(state.dirty).toBe(true);
+    expect(snapshotsEqual(state.present, saved)).toBe(false);
+    state = editorReducer(state, { type: "undo" });
+    expect(currentPage(state)).not.toHaveProperty("motion");
+    expect(state.dirty).toBe(false);
   });
 });

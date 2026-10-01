@@ -1,4 +1,5 @@
-// Smoke Design v2 (F2-06): desain v1 lama terbuka tanpa perubahan setelah migrasi skema v1 -> v2.
+// Smoke Design v2 (F2-06): desain v1 lama terbuka tanpa perubahan setelah migrasi skema v1 -> v2 -> v3.
+// MT-10: desain kedua (sudah ber-pages) memuat DesignPage.motion; Studio harus menyimpannya kembali utuh.
 //
 // 1) Siapkan salinan fixture era v1 (satu konten + satu desain v1 berteks & ber-crop + satu foto):
 //      node tests/e2e/design-v2.mjs prepare C:/tmp/atala-design-data
@@ -35,6 +36,36 @@ const V1_DESIGN = {
   imageSlots: [{ slotId: "photo", assetId: ASSET_ID, crop: { x: 30, y: 70, zoom: 1.6 } }],
   version: 4,
   updatedAt: "2026-09-20T03:00:00.000Z",
+};
+/** Desain kedua berformat v2 dengan motion per halaman (MT-10); tidak disentuh migrasi. */
+const MOTION_CONTENT_ID = "6c1d8b2f-3a5e-4d2b-8f4c-7e9a1b3d5f73";
+const MOTION_DESIGN_ID = "8d2e9c3a-4b6f-4e3c-9a5d-8f0b2c4e6a84";
+const MOTION = {
+  presetId: "kinetik",
+  durationMs: 7000,
+  fps: 30,
+  kenBurns: { enabled: true, scaleTo: 1.05 },
+  loopEnding: false,
+  layerOverrides: { headline: { entrance: { type: "rise", delayMs: 150, easing: "out-quint" }, split: "word" }, logo: { disabled: true } },
+};
+const MOTION_DESIGN = {
+  id: MOTION_DESIGN_ID,
+  contentId: MOTION_CONTENT_ID,
+  templateId: "",
+  format: "feed",
+  textFields: {},
+  imageSlots: [],
+  pages: [
+    {
+      id: "p1",
+      templateId: "feed-fact-focus",
+      textFields: V1_DESIGN.textFields,
+      imageSlots: [{ slotId: "photo", assetId: null, crop: { x: 50, y: 50, zoom: 1 } }],
+      motion: MOTION,
+    },
+  ],
+  version: 1,
+  updatedAt: "2026-09-30T03:00:00.000Z",
 };
 /** Urutan bidang template feed-fact-focus di panel Teks. */
 const FIELD_ORDER = ["eyebrow", "headline", "body", "cta"];
@@ -75,9 +106,33 @@ async function prepare(targetDir) {
         updatedAt: "2026-09-20T03:00:00.000Z",
         archivedAt: null,
       },
+      {
+        id: MOTION_CONTENT_ID,
+        title: "Smoke Motion MT-10 — desain bermotion",
+        pillar: "Tips",
+        summary: "",
+        hook: "",
+        caption: "",
+        cta: "",
+        tags: ["uji"],
+        channels: ["instagram_feed"],
+        format: "feed",
+        status: "draft",
+        scheduledAt: null,
+        publishedAt: null,
+        publishedUrl: "",
+        trendSourceUrl: "",
+        trendCheckedAt: null,
+        notes: "",
+        designId: MOTION_DESIGN_ID,
+        sourceIdeaId: null,
+        createdAt: "2026-09-30T03:00:00.000Z",
+        updatedAt: "2026-09-30T03:00:00.000Z",
+        archivedAt: null,
+      },
     ],
     ideas: [],
-    designs: [V1_DESIGN],
+    designs: [V1_DESIGN, MOTION_DESIGN],
     assets: [
       {
         id: ASSET_ID,
@@ -210,14 +265,16 @@ async function smoke() {
       return assertEditorMatchesV1(await readEditor(page), 4);
     });
 
-    await report.run("fixture.json dimigrasikan ke skema v2 (pages[0] = data v1)", async () => {
+    await report.run("fixture.json dimigrasikan ke skema terkini v3 lewat v2 (pages[0] = data v1, tanpa motion)", async () => {
       const data = readData();
-      assert(data.settings.schemaVersion === "2", `settings.schemaVersion = ${data.settings.schemaVersion}`);
+      assert(data.settings.schemaVersion === "3", `settings.schemaVersion = ${data.settings.schemaVersion}`);
       const design = data.designs[0];
       assert(same(design.pages, [expectedPage]), `pages = ${JSON.stringify(design.pages)}`);
+      assert(same(data.designs[1], MOTION_DESIGN), `desain bermotion berubah saat migrasi: ${JSON.stringify(data.designs[1])}`);
       assert(design.templateId === "" && same(design.textFields, {}) && same(design.imageSlots, []), "kolom lama belum dikosongkan");
       assert(design.version === 4, `versi berubah saat migrasi (${design.version})`);
-      return "schemaVersion 2, satu halaman p1, kolom lama kosong, versi tetap 4";
+      assert(!("motion" in design.pages[0]), "halaman v1 tiba-tiba punya kunci motion");
+      return "schemaVersion 3, satu halaman p1 tanpa motion, kolom lama kosong, versi tetap 4";
     });
 
     shots.before = await page.getByTestId("studio-canvas").screenshot({ path: outPath("design-v2", "canvas-before-save.png") });
@@ -262,6 +319,36 @@ async function smoke() {
     });
 
     await page.screenshot({ path: outPath("design-v2", "content-detail.png"), fullPage: true });
+
+    await report.run("MT-10: desain bermotion disunting dan disimpan dari Studio, motion tetap utuh", async () => {
+      await page.goto(`/studio/${MOTION_CONTENT_ID}`);
+      await page.getByTestId("studio-canvas").waitFor({ timeout: 30_000 });
+      await page.getByText("Tersimpan · versi 1").first().waitFor({ timeout: 15_000 });
+      const headline = "Judul baru, motion tetap";
+      await page.locator("#studio-sec-text input, #studio-sec-text textarea").nth(1).fill(headline);
+      await page.locator("#studio-save").click();
+      await page.getByText("Tersimpan · versi 2").first().waitFor({ timeout: 15_000 });
+      const design = readData().designs.find((d) => d.id === MOTION_DESIGN_ID);
+      assert(design?.version === 2, `versi ${design?.version}`);
+      assert(design.pages[0].textFields.headline === headline, `judul ${design.pages[0].textFields.headline}`);
+      assert(same(design.pages[0].motion, MOTION), `motion berubah: ${JSON.stringify(design.pages[0].motion)}`);
+      const v1 = readData().designs.find((d) => d.id === DESIGN_ID);
+      assert(!("motion" in v1.pages[0]), "desain tanpa motion mendapat kunci motion");
+      return "versi 2, judul baru tersimpan, motion identik, desain lain tetap tanpa motion";
+    });
+
+    await report.run("MT-10: muat ulang desain bermotion lalu simpan lagi tanpa suntingan, motion tetap", async () => {
+      await page.reload();
+      await page.getByTestId("studio-canvas").waitFor({ timeout: 30_000 });
+      await page.getByText("Tersimpan · versi 2").first().waitFor({ timeout: 15_000 });
+      const value = await page.locator("#studio-sec-text input, #studio-sec-text textarea").nth(1).inputValue();
+      assert(value === "Judul baru, motion tetap", `judul setelah muat ulang ${value}`);
+      await page.locator("#studio-save").click();
+      await page.getByText("Tersimpan · versi 3").first().waitFor({ timeout: 15_000 });
+      const design = readData().designs.find((d) => d.id === MOTION_DESIGN_ID);
+      assert(same(design.pages[0].motion, MOTION), `motion berubah: ${JSON.stringify(design.pages[0].motion)}`);
+      return `versi ${design.version}, motion identik`;
+    });
     await context.close();
   } finally {
     await browser.close();

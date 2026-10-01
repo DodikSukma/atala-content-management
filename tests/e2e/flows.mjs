@@ -145,7 +145,16 @@ async function createContent(page, item) {
 /** Di bawah tata letak tiga kolom, panel Studio berupa tab (Template/Foto/Teks). */
 async function studioPanel(page, label) {
   const tabs = page.getByRole("tablist", { name: "Panel Studio" });
-  if (await tabs.count()) await tabs.getByRole("tab", { name: label }).click();
+  if (!(await tabs.count())) return;
+  const tab = tabs.getByRole("tab", { name: label });
+  const section = { Template: "#studio-sec-template", Foto: "#studio-sec-photo", Teks: "#studio-sec-text" }[label];
+  // Tab sudah ada di HTML server dan tata letak dapat berganti setelah hidrasi; ulangi sampai bagian panelnya benar-benar tampil.
+  for (let i = 0; i < 20; i += 1) {
+    await tab.click();
+    await page.waitForTimeout(300);
+    if ((await tab.getAttribute("aria-selected")) === "true" && (!section || (await page.locator(section).count()) > 0)) return;
+  }
+  throw new Error(`tab Studio ${label} tidak terpilih`);
 }
 
 function statusLabel(status) {
@@ -588,7 +597,7 @@ async function main() {
   });
 
   await report.run("f3 muat ulang memulihkan desain", async () => {
-    await page.reload();
+    await page.reload({ waitUntil: "networkidle" });
     await page.locator('[data-testid="studio-canvas"][data-template-id="feed-fact-focus"]').waitFor({ timeout: 15_000 });
     await studioPanel(page, "Teks");
     const firstText = page.locator("#studio-sec-text").locator("input, textarea").first();

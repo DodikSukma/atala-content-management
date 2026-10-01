@@ -64,7 +64,7 @@ export function editorDocumentFromDesign(
     const template = templates[index];
     const text = resolveText(template, page.textFields, content);
     const slots = page.imageSlots.map((s) => ({ slotId: s.slotId, photoId: s.assetId, crop: s.crop }));
-    return createPage(template, text, slots, page.id);
+    return createPage(template, text, slots, page.id, page.motion);
   });
   return { snapshot: { format: templates[0].format, pages }, missingTemplatePageIds };
 }
@@ -72,22 +72,27 @@ export function editorDocumentFromDesign(
 /**
  * Halaman desain untuk disimpan: SEMUA halaman dikirim (halaman yang tidak
  * disunting tetap sama). `assetIdFor` memetakan kunci foto editor ke ID aset
- * tersimpan (null bila foto belum tersimpan).
+ * tersimpan (null bila foto belum tersimpan). `motion` (MT-10) hanya dikirim bila
+ * halaman memilikinya, sehingga desain tanpa motion tersimpan identik seperti sebelumnya.
  */
 export function designPagesFromDocument(
   snapshot: EditorSnapshot,
   assetIdFor: (photoId: string) => string | null,
 ): DesignPage[] {
-  return snapshot.pages.map((page) => ({
-    id: page.id,
-    templateId: page.templateId,
-    textFields: page.textFields,
-    imageSlots: page.slots.map((s) => ({
-      slotId: s.slotId,
-      assetId: s.photoId ? assetIdFor(s.photoId) : null,
-      crop: s.crop,
-    })),
-  }));
+  return snapshot.pages.map((page) => {
+    const saved: DesignPage = {
+      id: page.id,
+      templateId: page.templateId,
+      textFields: page.textFields,
+      imageSlots: page.slots.map((s) => ({
+        slotId: s.slotId,
+        assetId: s.photoId ? assetIdFor(s.photoId) : null,
+        crop: s.crop,
+      })),
+    };
+    if (page.motion) saved.motion = page.motion;
+    return saved;
+  });
 }
 
 // ---------- carousel (F2-07) ----------

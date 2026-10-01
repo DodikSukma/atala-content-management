@@ -387,3 +387,32 @@ Langkah pemulihan: bila ekspor PNG bermasalah di peramban tertentu, kembalikan e
   typecheck/lint/test langsung, tetapi pelanggaran harus diperbaiki sebelum merge.
 Langkah berikutnya: putuskan timeout uji motion, centang MT-03, lalu MT-04.
 ```
+
+```text
+Tanggal (Asia/Makassar): 1 Oktober 2026
+Tugas: MT-10
+Status: selesai
+Perubahan:
+- src/lib/motion/: types, easing (cubic-bezier + spring yang dihitung sekali menjadi kurva sampel), timeline,
+  evaluate, schema (motionSpecSchema), presets (16 resep), validate — fungsi murni tanpa Date.now,
+  performance.now, Math.random, requestAnimationFrame, window, atau document.
+- DesignPage.motion opsional (motionSpecSchema) disimpan per halaman; diteruskan lewat editor-state dan
+  design-document tanpa mengubah desain lama yang tidak punya motion.
+- Migrasi skema data v2 -> v3 (murni, idempoten; halaman tanpa motion tetap tanpa motion). Versi tetap dinaikkan
+  agar build lama menolak data yang mungkin memuat motion.
+- LayerRole (motion) dan TemplateLayerRole (template) disatukan menjadi satu tipe.
+- Uji properti motion dipercepat (sampel per frame pada seperempat kasus, validasi penuh pada seperenam kasus,
+  batas waktu blok 60 detik) agar tidak gagal karena CPU sibuk.
+- tests/e2e/flows.mjs: helper tab Studio mengulang klik sampai bagian panel benar-benar tampil, dan muat ulang
+  menunggu jaringan tenang (langkah f3 sebelumnya gagal karena klik tab sebelum hidrasi selesai).
+Bukti uji:
+- tests/motion-engine.test.ts 76 uji (setiap EntranceType dan easing pada t = 0, tengah, akhir; stagger kata/baris;
+  identitas pada t = durasi; determinisme; uji properti LCG) + tests/motion-presets.test.ts lulus.
+- tests/contract: migrasi v2->v3 dan v1->v3 berantai, idempoten; halaman dengan motion terbuka ulang identik pada
+  fixture dan Sheets (HTTP mock).
+- npm run check (check:colors 0 pelanggaran, typecheck, lint, vitest 31 file / 851 uji) lulus; npm run build lulus.
+- E2E next start mode fixture: flows.mjs 31/31 (data bersih), carousel-series.mjs 21/21.
+Hasil: kriteria "Selesai jika" MT-10 terpenuhi.
+Kendala/keputusan: penyimpanan motion belum punya UI (MT-14) dan belum dirender (MT-13).
+Langkah berikutnya: MT-11 (komponen Layer + lapisan pada 20 template).
+```
