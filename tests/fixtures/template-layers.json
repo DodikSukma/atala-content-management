@@ -871,6 +871,17 @@
         }
       },
       {
+        "id": "decor-shapes",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
         "id": "logo",
         "role": "logo",
         "order": 0,
