@@ -107,7 +107,9 @@ export function CountUp({
   format?: (n: number) => string;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, amount: 0.4 });
+  // Mulai begitu ada bagian yang terlihat: dengan ambang lebih besar, kartu yang terlihat sebagian
+  // sempat menampilkan nilai akhir lalu melompat ke 0 saat animasi dimulai.
+  const inView = useInView(ref, { once: true, amount: "some" });
   const reduce = useReducedMotion();
   const formatRef = useRef(format);
   useEffect(() => {

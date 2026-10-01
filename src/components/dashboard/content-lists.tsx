@@ -98,7 +98,7 @@ function ContentRow({ content, warning = false }: { content: Content; warning?: 
       className="group flex items-center justify-between gap-3 py-3 outline-offset-4"
     >
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-ink group-hover:text-brand">{content.title}</span>
+        <span className="line-clamp-2 text-sm font-semibold text-ink group-hover:text-brand">{content.title}</span>
         <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-ink-soft">
           <span className={warning ? "font-semibold text-warning" : undefined}>
             {content.scheduledAt ? formatDateTime(content.scheduledAt) : "Belum dijadwalkan"}
@@ -162,7 +162,7 @@ export function RecentList({ items, nowIso, className }: { items: Content[]; now
               <span aria-hidden="true" className="absolute left-0 top-[1.1rem] size-[11px] rounded-full border-2 border-surface bg-brand-ring" />
               <Link href={`/content/${c.id}`} className="group flex items-center justify-between gap-3 py-2.5 outline-offset-4">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-ink group-hover:text-brand">{c.title}</span>
+                  <span className="line-clamp-2 text-sm font-semibold text-ink group-hover:text-brand">{c.title}</span>
                   <span className="mt-0.5 block text-xs text-ink-muted">
                     <time dateTime={c.updatedAt}>Diperbarui {formatRelative(c.updatedAt, now)}</time>
                   </span>
