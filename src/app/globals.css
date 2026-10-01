@@ -86,6 +86,39 @@
   --color-chart-axis: #64748b;
   --color-chart-track: #eef2f7;
 
+  /* Turunan grafik (MT-03): isian lunak, trek meter, sorotan, garis acuan. */
+  --color-chart-1-soft: #bfdbfe;
+  --color-chart-1-track: #dbeafe;
+  --color-chart-1-wash: #eff6ff;
+  --color-chart-muted: #f1f5f9;
+  --color-chart-reference: #334155;
+  --color-chart-success: #059669;
+  --color-chart-success-track: #d1fae5;
+  --color-chart-warning: #d97706;
+  --color-chart-warning-track: #fef3c7;
+  --color-chart-teal-track: #ccfbf1;
+  --color-chart-violet: #7c3aed;
+  --color-chart-violet-track: #ede9fe;
+
+  /* Warna data status konten (pipeline, titik status). Selalu disertai label teks. */
+  --color-status-idea: #94a3b8;
+  --color-status-draft: #8b5cf6;
+  --color-status-review: #f59e0b;
+  --color-status-ready: #0ea5e9;
+  --color-status-scheduled: #2563eb;
+  --color-status-published: #10b981;
+  --color-status-cancelled: #f43f5e;
+
+  /* Ramp sekuensial heatmap, tingkat 0–4 (satu hue biru). */
+  --color-heat-0: #f1f5f9;
+  --color-heat-1: #dbeafe;
+  --color-heat-2: #93c5fd;
+  --color-heat-3: #3b82f6;
+  --color-heat-4: #1e40af;
+
+  /* Pelat di belakang logo Atala agar logo berwarna tetap terbaca di tema gelap. */
+  --color-logo-plate: #ffffff;
+
   /* Aksen dari logo Atala — dipakai hemat (tag, ilustrasi). */
   --color-atala-teal: #0fb5ba;
   --color-atala-amber: #f5b301;
@@ -193,6 +226,31 @@
   --color-chart-grid: #24324d;
   --color-chart-axis: #8a9cb8;
   --color-chart-track: #1c2740;
+  --color-chart-1-soft: #2f4c80;
+  --color-chart-1-track: #1d3156;
+  --color-chart-1-wash: #172a4d;
+  --color-chart-muted: #1c2740;
+  --color-chart-reference: #cbd5e1;
+  --color-chart-success: #34d399;
+  --color-chart-success-track: #12392f;
+  --color-chart-warning: #fbbf24;
+  --color-chart-warning-track: #3a2c0f;
+  --color-chart-teal-track: #0f3536;
+  --color-chart-violet: #a78bfa;
+  --color-chart-violet-track: #2a2050;
+  --color-status-idea: #8a9cb8;
+  --color-status-draft: #c084fc;
+  --color-status-review: #fbbf24;
+  --color-status-ready: #38bdf8;
+  --color-status-scheduled: #6ea2ff;
+  --color-status-published: #4ade80;
+  --color-status-cancelled: #fb7185;
+  --color-heat-0: #1c2740;
+  --color-heat-1: #1f3d73;
+  --color-heat-2: #2f63bf;
+  --color-heat-3: #5b95f5;
+  --color-heat-4: #a9cbff;
+  --color-logo-plate: #e6edf7;
   /* Bayangan diganti garis tepi halus dan permukaan bertingkat. */
   --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
   --shadow-raised: 0 0 0 1px rgb(255 255 255 / 0.06), 0 12px 32px rgb(0 0 0 / 0.45);
@@ -253,6 +311,31 @@
     --color-chart-grid: #24324d;
     --color-chart-axis: #8a9cb8;
     --color-chart-track: #1c2740;
+    --color-chart-1-soft: #2f4c80;
+    --color-chart-1-track: #1d3156;
+    --color-chart-1-wash: #172a4d;
+    --color-chart-muted: #1c2740;
+    --color-chart-reference: #cbd5e1;
+    --color-chart-success: #34d399;
+    --color-chart-success-track: #12392f;
+    --color-chart-warning: #fbbf24;
+    --color-chart-warning-track: #3a2c0f;
+    --color-chart-teal-track: #0f3536;
+    --color-chart-violet: #a78bfa;
+    --color-chart-violet-track: #2a2050;
+    --color-status-idea: #8a9cb8;
+    --color-status-draft: #c084fc;
+    --color-status-review: #fbbf24;
+    --color-status-ready: #38bdf8;
+    --color-status-scheduled: #6ea2ff;
+    --color-status-published: #4ade80;
+    --color-status-cancelled: #fb7185;
+    --color-heat-0: #1c2740;
+    --color-heat-1: #1f3d73;
+    --color-heat-2: #2f63bf;
+    --color-heat-3: #5b95f5;
+    --color-heat-4: #a9cbff;
+    --color-logo-plate: #e6edf7;
     --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.03);
     --shadow-raised: 0 0 0 1px rgb(255 255 255 / 0.06), 0 12px 32px rgb(0 0 0 / 0.45);
     --shadow-drawer: 0 0 0 1px rgb(255 255 255 / 0.06), -12px 0 40px rgb(0 0 0 / 0.5);

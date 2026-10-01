@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "hash-password": "node scripts/hash-password.mjs",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check:colors": "node scripts/check-colors.mjs",
+    "check": "npm run check:colors && npm run typecheck && npm run lint && npm run test",
     "backup-assets": "node scripts/backup-assets.mjs"
   },
   "dependencies": {

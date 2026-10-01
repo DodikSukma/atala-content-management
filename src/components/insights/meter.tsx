@@ -3,13 +3,15 @@
 import { motion } from "motion/react";
 import { EASE_OUT_SOFT, useReveal } from "@/components/motion";
 import { cn } from "@/lib/cn";
+import { VIZ } from "./palette";
 
+/** Isian + trek per nada; nilainya variabel CSS sehingga meter berganti tema tanpa render ulang. */
 const TONES = {
-  brand: { fill: "#2563eb", track: "#dbeafe" },
-  success: { fill: "#059669", track: "#d1fae5" },
-  warning: { fill: "#d97706", track: "#fef3c7" },
-  teal: { fill: "#0fb5ba", track: "#ccfbf1" },
-  violet: { fill: "#7c3aed", track: "#ede9fe" },
+  brand: { fill: VIZ.primary, track: VIZ.primaryTrack },
+  success: { fill: VIZ.success, track: VIZ.successSoft },
+  warning: { fill: VIZ.warning, track: VIZ.warningTrack },
+  teal: { fill: VIZ.teal, track: VIZ.tealTrack },
+  violet: { fill: VIZ.violet, track: VIZ.violetTrack },
 } as const;
 
 /** Meter horizontal kecil; trek = tingkat lebih terang dari hue yang sama. */

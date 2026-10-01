@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" },
-    { media: "(prefers-color-scheme: dark)", color: "#0B1220" },
+    { media: "(prefers-color-scheme: light)", color: "#F8FAFC" }, // check-colors: allow meta themeColor tidak bisa memakai variabel CSS; sama dengan --color-canvas terang
+    { media: "(prefers-color-scheme: dark)", color: "#0B1220" }, // check-colors: allow meta themeColor; sama dengan --color-canvas gelap
   ],
   width: "device-width",
   initialScale: 1,

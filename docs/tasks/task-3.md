@@ -77,7 +77,7 @@ Tambahan khusus paket ini:
 
   **Selesai jika:** tidak ada teks/ikon yang hilang atau berkontras rendah di tema gelap pada semua halaman dan state, serta screenshot 1280×800 dan 834×1112 di kedua tema tercatat di PROGRESS.md. Bergantung pada MT-01.
 
-- [ ] **MT-03 — Grafik, login, shell Studio, dan penjaga regresi.**
+- [x] **MT-03 — Grafik, login, shell Studio, dan penjaga regresi.**
   - Ganti warna hex di `src/components/insights/*` (donut, meter, ring-gauge, weekly-chart) dengan variabel CSS, sehingga grafik berganti tema tanpa render ulang data.
   - Halaman login ([brand-panel.tsx](../../src/app/(public)/login/brand-panel.tsx)) mendapat versi gelap. Logo Atala tetap terbaca; bila perlu gunakan pelat terang atau varian logo yang disetujui.
   - Studio: panel, galeri, dan area kerja ikut tema gelap. **Kanvas poster tetap memakai warna template asli.**

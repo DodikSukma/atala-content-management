@@ -139,7 +139,7 @@ export function CountUp({
 
   return (
     <>
-      <span ref={ref} aria-hidden="true" className="tabular-nums">
+      <span ref={ref} aria-hidden="true" data-count-up={value} className="tabular-nums">
         {format(value)}
       </span>
       <span className="sr-only">{format(value)}</span>

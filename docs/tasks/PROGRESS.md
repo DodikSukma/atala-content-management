@@ -312,3 +312,78 @@ Kendala/keputusan: warna hex di grafik (heatmap, meter, ring, batang/garis mingg
   sengaja ditinggalkan untuk MT-03. Belum ada token tone teal/sky; chip KPI teal memakai color-mix.
 Langkah berikutnya: MT-03.
 ```
+
+```text
+Tanggal (Asia/Makassar): 1 Oktober 2026
+Tugas: MT-03
+Status: selesai (setelah rebase ke atas F2-07 yang memuat perbaikan batas waktu uji properti motion:
+  npm run check 31 file / 831 uji lulus, check:colors 0 pelanggaran, npm run build lulus)
+Perubahan:
+- globals.css: token baru di @theme dan kedua blok gelap (nilai gelap identik): chart-1-soft/track/wash,
+  chart-muted, chart-reference, chart-{success,warning,violet} + trek, chart-teal-track,
+  status-{idea,draft,review,ready,scheduled,published,cancelled}, heat-0..4 (gelap #1c2740 -> #a9cbff),
+  logo-plate (terang #ffffff, gelap #e6edf7).
+- Grafik src/components/insights/*: palette.ts hanya berisi var(--color-*) (ditulis utuh agar Tailwind v4
+  memancarkan variabelnya); donut, meter, ring-gauge, weekly-chart memakai style fill/stroke, heatmap dan
+  status-pipeline memakai ramp/status token. Tidak ada lagi literal warna di folder insights.
+- Login: RibbonArt memakai kelas token (fill-brand, stroke-atala-*), opasitas disesuaikan di gelap; pelat logo
+  bg-logo-plate di login, sidebar, dan not-found (menggantikan bg-surface dark:bg-ink).
+- Studio: shell sudah bertoken sejak MT-02; isi [data-template-root] (kanvas + thumbnail) tidak memuat kelas tema.
+- Ekspor PNG (src/lib/studio/export.ts): html-to-image hanya membuat SVG (toSvg); rasterisasi di kanvas 2D
+  willReadFrequently (kanvas perangkat lunak). Alasan: kanvas GPU memberi selisih 1-2 level pada 1-10 piksel
+  glyph besar (feed-statistic) antar-render, sehingga hash berubah-ubah terlepas dari tema.
+- Penjaga warna: scripts/check-colors.mjs + check-colors-lib.mjs (+ .d.mts), opsi --root untuk uji;
+  package.json "check:colors" dan "check" menjalankannya pertama. Pengecualian per baris (4): themeColor
+  layout.tsx (2), latar putih export.ts, isian JPEG image-client.ts.
+- CountUp memberi data-count-up (kait uji). tests/e2e/lib.mjs: themedContext, waitToast, sha256,
+  createContentViaUi, pngPixelDiff; 404 /favicon.ico otomatis Chrome diabaikan watchPage.
+- Dokumen: DESIGN §2 (tema gelap: grafik, logo, Studio) dan §4.1 (login gelap); TECH_STACK §7a (ekspor
+  deterministik, penjaga check:colors).
+Bukti uji:
+- node scripts/check-colors.mjs: lulus, 190 berkas diperiksa, 30 dilewati (allowlist/uji), 4 pengecualian.
+- tests/check-colors.test.ts (36 uji): kelas Tailwind mentah, hex/rgb/hsl/oklch, kolom tepat, allowlist,
+  komentar pengecualian (wajib alasan), repo bersih, CLI exit 1 dengan file:baris pada probe sementara.
+- tests/chart-tokens.test.ts (44 uji): palet = var(--color-*), token ada di 3 blok dan gelap identik, status
+  saling berbeda (dE >= 15 kedua tema; Siap vs Terbit gelap dE >= 40), titik status >= 3:1 di surface gelap,
+  ramp heatmap monoton, pelat logo.
+- npm run check: check:colors lulus, typecheck 0, lint 0; vitest 31 file / 831 uji: 828 lulus, 3 gagal
+  karena timeout (tests/motion-engine.test.ts, uji properti LCG; tidak menyentuh berkas MT-03).
+- npm run build: lulus.
+- tests/e2e/theme-export.mjs (next start -p 3300, fixture, ATALA_DATA_DIR baru, Chrome): 37/37 lulus.
+  * Screenshot terang/gelap x 1280x800/834x1112 untuk login, dashboard, insights, studio/<id> di
+    test-results/theme-mt03/ (16 berkas), tanpa gulir horizontal; pelat logo terukur rgb(255,255,255) /
+    rgb(230,237,247). Gelap diperiksa manual: grafik kolom, donat, heatmap, pipeline, meter, cincin terbaca.
+  * Ekspor identik: 8 template (feed-fact-focus, feed-quote-educator, feed-statistic, feed-info-bar-chart,
+    feed-testimonial, story-frame, story-info-stats, story-quick-tip; 6 dengan foto unggahan). Tiap template
+    diekspor 4 kali: terang, gelap via data-theme, gelap dari cookie setelah muat ulang, terang setelah muat
+    ulang. Keempat SHA-256 sama dan IHDR 1080x1080 / 1080x1920. Hash sama di 3 run berbeda.
+      feed-fact-focus      a671c1f0809c037b3e155b547cbed1e010772a4c12cb91ac35487c8a94b1c6de
+      feed-quote-educator  341f9b4bbde754e0194803b7891acf84e7adc57fca3b4d8f644c59b62d77ff8a
+      feed-statistic       43ee5e472184eebd945b35ae1b260d2f7ec5eb7334c0f01ecb6ac08e81e3cb80
+      feed-info-bar-chart  6027584e23716134d9d9e86c4c2b9e0df08fb22ee3db39faffbe73dd9cb6e45e
+      feed-testimonial     cd501b10b61f43487218c29b030c9180d551d8a89623723ab860cefa4d4f4829
+      story-frame          c96c78ccbb3984a5115aaab78ee81a6f9859a8a06d94a22f8e9c252eaf43649b
+      story-info-stats     cf3682216104f0e831446b28a516472f1b8b3968bd3c8d67545f7da01c244745
+      story-quick-tip      ab145e9b6cca0e9e14593411e130de7f55a49b6328fb5cc011fdff05bc9dc1ba
+    Gaya terhitung semua [data-template-root] (kanvas + 16/8 thumbnail) sama di kedua tema; di dalamnya hanya
+    kelas bawaan ikon lucide.
+  * Animasi sekali: /dashboard gelap setelah animasi selesai, data-theme -> light: 163 elemen (7 CountUp,
+    meter, path/circle SVG) tidak berubah segera maupun 600 ms kemudian, node tidak dipasang ulang, warna meter
+    berganti rgb(110,162,255) -> rgb(37,99,235).
+  * Reduced motion: sampel per bingkai 29 elemen tanpa nilai antara (CountUp selalu nilai akhir, meter/SVG
+    hanya nilai SSR lalu nilai akhir); pembanding tanpa reduced motion: 5 elemen melewati nilai antara.
+  * Probe: src/components/zz-color-probe.tsx berisi bg-white dan #ff0000 -> check-colors exit 1 dengan
+    src/components/zz-color-probe.tsx:2:..., npm run check gagal; file dihapus, check-colors lulus lagi.
+- Regresi (server baru, data kosong): tests/e2e/flows.mjs 31/31, tests/e2e/theme.mjs 10/10,
+  tests/e2e/export-templates.mjs VARIANTS=foto 20/20 (semua template 1080 px; lembar kontak diperiksa).
+Kendala/keputusan:
+- tests/motion-engine.test.ts (MT-10/MT-12): uji properti "setiap frame hingga dan dalam batas" butuh ± 135 dtk
+  sendirian di laptop ini (batas 60 dtk), dua uji lain melewati 5 dtk saat dijalankan paralel. Tidak ada berkas
+  motion yang disentuh MT-03. Perlu diputuskan pemilik MT-10/12: percepat uji atau naikkan batas waktu.
+  Setelah itu MT-03 dapat dicentang.
+- Rasterisasi PNG kini di CPU; waktu ekspor tidak terlihat bertambah pada E2E (ekspor 20 template 48 dtk).
+Langkah pemulihan: bila ekspor PNG bermasalah di peramban tertentu, kembalikan exportNodeToPng ke toPng
+  (satu fungsi di src/lib/studio/export.ts); penjaga warna dapat dilewati sementara dengan menjalankan
+  typecheck/lint/test langsung, tetapi pelanggaran harus diperbaiki sebelum merge.
+Langkah berikutnya: putuskan timeout uji motion, centang MT-03, lalu MT-04.
+```

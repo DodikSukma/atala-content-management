@@ -75,7 +75,7 @@ export function WeeklyChart({
         >
           {ticks.map((t) => (
             <g key={t}>
-              <line x1={m.left} x2={m.left + plotW} y1={y(t)} y2={y(t)} stroke={t === 0 ? VIZ.axis : VIZ.grid} strokeWidth={1} />
+              <line x1={m.left} x2={m.left + plotW} y1={y(t)} y2={y(t)} style={{ stroke: t === 0 ? VIZ.axis : VIZ.grid }} strokeWidth={1} />
               <text x={m.left - 8} y={y(t)} dy="0.32em" textAnchor="end" fontSize={11} className="fill-ink-muted tabular-nums">
                 {Number.isInteger(t) ? t : t.toFixed(1)}
               </text>
@@ -91,23 +91,21 @@ export function WeeklyChart({
             return (
               <g key={w.weekStart}>
                 {active === i ? (
-                  <rect x={m.left + band * i + 2} y={m.top} width={band - 4} height={plotH} rx={6} fill="#f1f5f9" />
+                  <rect x={m.left + band * i + 2} y={m.top} width={band - 4} height={plotH} rx={6} style={{ fill: VIZ.muted }} />
                 ) : null}
                 <motion.path
                   d={columnPath(x, baseY, colW, plannedH)}
-                  fill={VIZ.primarySoft}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: revealed ? 1 : 0 }}
                   transition={growTransition(reduce, i, 0.5)}
-                  style={{ transformOrigin: "bottom", transformBox: "fill-box" }}
+                  style={{ fill: VIZ.primarySoft, transformOrigin: "bottom", transformBox: "fill-box" }}
                 />
                 <motion.path
                   d={columnPath(x, baseY, colW, publishedH)}
-                  fill={VIZ.primary}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: revealed ? 1 : 0 }}
                   transition={growTransition(reduce, i + 2, 0.55)}
-                  style={{ transformOrigin: "bottom", transformBox: "fill-box" }}
+                  style={{ fill: VIZ.primary, transformOrigin: "bottom", transformBox: "fill-box" }}
                 />
                 {w.planned > 0 ? (
                   <motion.text
@@ -151,7 +149,7 @@ export function WeeklyChart({
 
           {target > 0 ? (
             <g pointerEvents="none">
-              <line x1={m.left} x2={m.left + plotW} y1={y(target)} y2={y(target)} stroke={VIZ.reference} strokeWidth={1.5} />
+              <line x1={m.left} x2={m.left + plotW} y1={y(target)} y2={y(target)} style={{ stroke: VIZ.reference }} strokeWidth={1.5} />
               <text x={m.left + plotW + 6} y={y(target)} dy="0.32em" fontSize={11} fontWeight={600} className="fill-ink-soft">
                 Target {target}
               </text>

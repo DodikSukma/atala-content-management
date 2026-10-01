@@ -33,7 +33,7 @@ Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-bas
 | Tugas | Yang sudah ada di main | Yang belum |
 |---|---|---|
 | F2-07 | **Selesai (1 Oktober 2026).** Mode carousel, ekspor ZIP (fflate 0.8.3), dan seri konten diverifikasi di browser: `tests/e2e/carousel-series.mjs` 21/21, tampilan 1280/834 di kedua tema, dan dokumen diperbarui. Rinciannya ada di entri PROGRESS F2-07. | Centang di task-2 ditahan sampai `npm run check` hijau. Satu-satunya uji gagal adalah timeout uji properti `tests/motion-engine.test.ts` (MT-10/12, butuh sekitar 190 dtk dengan batas 60 dtk), bukan bagian F2-07. |
-| MT-03 | `scripts/check-colors.mjs` + `check-colors-lib.mjs` | Lihat tabel bagian 2 |
+| MT-03 | Grafik, login, shell Studio ikut tema; `check:colors` di `npm run check`; ekspor PNG identik antar tema | Selesai (1 Oktober 2026) |
 | MT-04 | Kontrak `src/lib/studio/types.ts` + `src/lib/studio/tokens.ts`; `tags`/`pack` di 20 template | Lihat tabel bagian 2 |
 | MT-10 / MT-12 | `src/lib/motion/` lengkap dengan 16 resep dan validator; 76 + uji preset lulus | Lihat tabel bagian 2 |
 
@@ -43,7 +43,7 @@ Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-bas
 |---|---|---|
 | MT-01 | Selesai | — |
 | MT-02 | Selesai | — |
-| MT-03 | Sebagian (skrip di main) | Grafik `src/components/insights/*` (donut, meter, ring-gauge, weekly-chart, heatmap, status-pipeline, bar-list, chart-kit, `palette.ts`) masih hex → ganti variabel CSS; tambah token `--color-status-*`, `--color-heat-0..4`, `--color-logo-plate` di tiga tempat globals.css (`@theme`, `:root[data-theme="dark"]`, blok `prefers-color-scheme`); dekorasi `RibbonArt` login; shell Studio gelap (kanvas poster tetap warna template); `check:colors` masuk `npm run check` + uji; E2E PNG identik byte (SHA-256) terang vs gelap untuk ≥ 6 template; grafik beranimasi sekali. |
+| MT-03 | Selesai (branch `mt/03-charts-guard`, 1 Oktober 2026); centang di task-3.md menunggu `npm run check` hijau | Kriteria "Selesai jika" lulus: grafik/login/Studio bertoken, `check:colors` di `npm run check`, ekspor PNG identik byte terang vs gelap (8 template), animasi sekali. `npm run check` masih gagal hanya karena 3 uji properti `tests/motion-engine.test.ts` (MT-10/12) kehabisan waktu. Bukti di PROGRESS.md. |
 | MT-04 | Sebagian (kontrak di main) | Format `portrait` 1080×1350 di `CONTENT_FORMATS`, `constants.ts` (label/dimensi), filter kalender/konten/studio, form konten, ekspor; semua `Record<ContentFormat,…>` akan ditandai typecheck. Konversi 20 template lama ke `useTemplateTokens(tone)` + `tags`/`pack` (nada terang harus identik piksel dengan sekarang). Pilihan Nada Terang/Gelap di editor, disimpan per halaman desain (tambah `tone` opsional di `designPageSchema` — butuh F2-06). Galeri: pencarian, filter format/kategori/paket/nada, favorit + baru dipakai (simpan di data store, bukan hanya localStorage), grid tervirtualisasi (uji dengan 80 entri). `npm run templates:thumbs` → `public/templates/thumbs/<id>-<tone>.webp`. `npm run templates:check` (render tiap template × nada × {pendek, maxLength}: tanpa overflow, teks di dalam `SAFE_AREA`, ukuran root = format). |
 | MT-05 | Belum | ≥ 15 template di `templates/feed-learn/` (daftar di task-3.md). |
 | MT-06 | Belum | ≥ 15 template di `templates/feed-community/`. |

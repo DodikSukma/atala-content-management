@@ -16,13 +16,18 @@
  * Pakai hanya untuk warna yang memang harus tetap, misalnya meta themeColor atau isian
  * canvas ekspor. Selain itu gunakan token dari globals.css.
  *
- * Pemakaian: node scripts/check-colors.mjs [--verbose]
+ * Pemakaian: node scripts/check-colors.mjs [--verbose] [--root <dir>]
+ * (--root hanya untuk uji: memeriksa src/ di bawah direktori lain.)
  */
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ALLOWLIST, scanRepo } from "./check-colors-lib.mjs";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const rootArg = process.argv.indexOf("--root");
+const root =
+  rootArg >= 0 && process.argv[rootArg + 1]
+    ? path.resolve(process.argv[rootArg + 1])
+    : path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const verbose = process.argv.includes("--verbose");
 const summary = scanRepo(root);
 

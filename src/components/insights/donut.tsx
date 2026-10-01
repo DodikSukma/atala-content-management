@@ -65,7 +65,7 @@ export function Donut({
               cy={c}
               r={r}
               fill="none"
-              stroke={total === 0 ? VIZ.axis : "#f1f5f9"}
+              style={{ stroke: total === 0 ? VIZ.axis : VIZ.muted }}
               strokeWidth={total === 0 ? 2 : stroke}
               strokeDasharray={total === 0 ? "4 6" : undefined}
             />
@@ -77,7 +77,7 @@ export function Donut({
                   cy={c}
                   r={r}
                   fill="none"
-                  stroke={a.color}
+                  style={{ stroke: a.color }}
                   strokeWidth={stroke}
                   transform={`rotate(${a.start * 360 - 90} ${c} ${c})`}
                   initial={{ pathLength: 0 }}

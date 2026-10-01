@@ -3,6 +3,7 @@
 //   ALLOW_DEMO_LOGIN=true DATA_ADAPTER=fixture npx next start -p 3101
 // lalu: node tests/e2e/flows.mjs  (BASE_URL bawaan http://localhost:3101)
 
+import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
@@ -40,6 +41,8 @@ export function watchPage(page, sink) {
     const text = msg.text();
     // Respons 4xx/5xx yang memang diuji (mis. POST aset tidak valid) dicatat browser sebagai error jaringan.
     if (/Failed to load resource: the server responded with a status of (401|413|422)/.test(text)) return;
+    // Chrome kadang meminta /favicon.ico otomatis walau metadata memakai /atala-logo.png; 404 itu bukan galat aplikasi.
+    if (/status of 404/.test(text) && /\/favicon\.ico$/.test(msg.location()?.url ?? "")) return;
     sink.push({ type: "console", url: page.url(), text });
   });
   page.on("pageerror", (error) => sink.push({ type: "pageerror", url: page.url(), text: String(error?.message ?? error) }));
@@ -224,4 +227,102 @@ export async function scrollThrough(page) {
     window.scrollTo(0, 0);
   });
   await page.waitForTimeout(900);
+}
+
+/** Konteks dengan cookie tema aplikasi (`atala-theme`) dan prefers-color-scheme yang sama. */
+export async function themedContext(browser, theme, options = {}) {
+  const context = await newContext(browser, { colorScheme: theme === "dark" ? "dark" : "light", ...options });
+  await context.addCookies([{ name: "atala-theme", value: theme, url: BASE_URL }]);
+  return context;
+}
+
+/** Tunggu toast/status yang memuat teks tertentu. */
+export async function waitToast(page, text, timeout = 10_000) {
+  await page.locator('[role="status"], [role="alert"]').filter({ hasText: text }).first().waitFor({ timeout });
+}
+
+/** SHA-256 heksadesimal dari Buffer. */
+export function sha256(buffer) {
+  return createHash("sha256").update(buffer).digest("hex");
+}
+
+export const STATUS_LABEL = {
+  idea: "Ide",
+  draft: "Draf",
+  review: "Review",
+  ready: "Siap",
+  scheduled: "Terjadwal",
+  published: "Terbit",
+};
+
+/**
+ * Buat konten lewat formulir /content/new (judul, pilar, format, hook, jadwal, status awal).
+ * Mengembalikan id konten.
+ */
+export async function createContentViaUi(page, item) {
+  await page.goto("/content/new");
+  await page.locator("#content-title").fill(item.title);
+  await page.locator("#content-pillar").selectOption(item.pillar);
+  if (item.format === "story") {
+    await page.getByRole("radiogroup", { name: "Format" }).getByText("Story 9:16").click();
+    await page.getByText("Instagram Story", { exact: true }).click();
+    await page.getByText("Instagram Feed", { exact: true }).click();
+  }
+  if (item.hook) {
+    await page.getByRole("tab", { name: "Copy" }).click();
+    await page.locator("#content-hook").fill(item.hook);
+  }
+  if (item.date) {
+    await page.getByRole("tab", { name: "Jadwal & Status" }).click();
+    await page.locator("#content-scheduleDate").fill(item.date);
+    if (item.time) await page.locator("#content-scheduleTime").fill(item.time);
+    if (item.status && item.status !== "draft") {
+      await page.locator(`ol[aria-label="Pilih status awal"] button[title="Ubah ke ${STATUS_LABEL[item.status]}"]`).click();
+    }
+  }
+  await page.getByRole("button", { name: "Simpan Konten" }).click();
+  await page.waitForURL(/\/content\/[0-9a-f-]{36}$/, { timeout: 15_000 });
+  await waitToast(page, "Konten tersimpan");
+  return page.url().split("/").pop();
+}
+
+/**
+ * Bandingkan dua PNG per piksel di browser (untuk diagnosis bila hash berbeda).
+ * Mengembalikan jumlah piksel berbeda, selisih kanal maksimum, dan kotak pembatasnya.
+ */
+export async function pngPixelDiff(page, a, b) {
+  return page.evaluate(
+    async ([a64, b64]) => {
+      async function load(src) {
+        const img = new Image();
+        img.src = `data:image/png;base64,${src}`;
+        await img.decode();
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        return { data: ctx.getImageData(0, 0, img.width, img.height).data, width: img.width, height: img.height };
+      }
+      const [p, q] = [await load(a64), await load(b64)];
+      if (p.width !== q.width || p.height !== q.height) return { sizeMismatch: true };
+      let pixels = 0;
+      let max = 0;
+      const box = [Infinity, Infinity, -1, -1];
+      for (let i = 0; i < p.data.length; i += 4) {
+        const d = Math.max(...[0, 1, 2, 3].map((k) => Math.abs(p.data[i + k] - q.data[i + k])));
+        if (!d) continue;
+        pixels += 1;
+        max = Math.max(max, d);
+        const x = (i / 4) % p.width;
+        const y = Math.floor(i / 4 / p.width);
+        box[0] = Math.min(box[0], x);
+        box[1] = Math.min(box[1], y);
+        box[2] = Math.max(box[2], x);
+        box[3] = Math.max(box[3], y);
+      }
+      return { pixels, max, box: pixels ? box : null };
+    },
+    [a.toString("base64"), b.toString("base64")],
+  );
 }

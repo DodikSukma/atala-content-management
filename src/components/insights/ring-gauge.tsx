@@ -36,7 +36,7 @@ export function RingGauge({
   const c = size / 2;
   const fraction = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
   const color = tone === "success" ? VIZ.success : tone === "teal" ? VIZ.teal : VIZ.primary;
-  const track = tone === "success" ? VIZ.successSoft : tone === "teal" ? "#ccfbf1" : VIZ.track;
+  const track = tone === "success" ? VIZ.successSoft : tone === "teal" ? VIZ.tealTrack : VIZ.track;
 
   return (
     <div
@@ -52,7 +52,7 @@ export function RingGauge({
           cy={c}
           r={r}
           fill="none"
-          stroke={empty ? VIZ.axis : track}
+          style={{ stroke: empty ? VIZ.axis : track }}
           strokeWidth={empty ? 2 : stroke}
           strokeDasharray={empty ? "4 6" : undefined}
         />
@@ -62,7 +62,7 @@ export function RingGauge({
             cy={c}
             r={r}
             fill="none"
-            stroke={color}
+            style={{ stroke: color }}
             strokeWidth={stroke}
             strokeLinecap="round"
             transform={`rotate(-90 ${c} ${c})`}

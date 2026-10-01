@@ -125,7 +125,7 @@ export async function prepareImageForUpload(file: File): Promise<PreparedImage> 
       }
       // Terlalu besar sebagai PNG: ratakan di atas latar putih lalu JPEG.
       ctx.globalCompositeOperation = "destination-over";
-      ctx.fillStyle = "#FFFFFF";
+      ctx.fillStyle = "#FFFFFF"; // check-colors: allow isian canvas JPEG tetap putih, bukan warna UI
       ctx.fillRect(0, 0, targetW, targetH);
       ctx.globalCompositeOperation = "source-over";
     }

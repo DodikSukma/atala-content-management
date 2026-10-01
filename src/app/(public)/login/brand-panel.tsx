@@ -34,15 +34,31 @@ function RibbonArt({ className }: { className?: string }) {
     >
       <defs>
         <pattern id="login-dots" width="22" height="22" patternUnits="userSpaceOnUse">
-          <circle cx="2" cy="2" r="1.6" fill="#2563EB" opacity="0.14" />
+          <circle cx="2" cy="2" r="1.6" className="fill-brand opacity-[0.14] dark:opacity-[0.22]" />
         </pattern>
       </defs>
       <rect x="20" y="40" width="220" height="176" fill="url(#login-dots)" />
-      <path d="M150 470 L300 160" stroke="#0FB5BA" strokeOpacity="0.13" strokeWidth="78" strokeLinecap="round" />
-      <path d="M318 140 L490 500" stroke="#F5B301" strokeOpacity="0.16" strokeWidth="78" strokeLinecap="round" />
-      <path d="M232 392 L372 392" stroke="#7A2A5C" strokeOpacity="0.11" strokeWidth="60" strokeLinecap="round" />
-      <circle cx="470" cy="96" r="44" stroke="#2563EB" strokeOpacity="0.1" strokeWidth="2" />
-      <circle cx="470" cy="96" r="72" stroke="#2563EB" strokeOpacity="0.06" strokeWidth="2" />
+      {/* Warna dari token (MT-03): opasitas sedikit dinaikkan di tema gelap agar pita tetap terlihat halus. */}
+      <path
+        d="M150 470 L300 160"
+        className="stroke-atala-teal opacity-[0.13] dark:opacity-[0.14]"
+        strokeWidth="78"
+        strokeLinecap="round"
+      />
+      <path
+        d="M318 140 L490 500"
+        className="stroke-atala-amber opacity-[0.16] dark:opacity-[0.1]"
+        strokeWidth="78"
+        strokeLinecap="round"
+      />
+      <path
+        d="M232 392 L372 392"
+        className="stroke-atala-plum opacity-[0.11] dark:stroke-chart-4 dark:opacity-[0.14]"
+        strokeWidth="60"
+        strokeLinecap="round"
+      />
+      <circle cx="470" cy="96" r="44" className="stroke-brand opacity-10 dark:opacity-[0.18]" strokeWidth="2" />
+      <circle cx="470" cy="96" r="72" className="stroke-brand opacity-[0.06] dark:opacity-[0.12]" strokeWidth="2" />
     </svg>
   );
 }
@@ -50,7 +66,7 @@ function RibbonArt({ className }: { className?: string }) {
 export function BrandMarkLogo({ size = 48 }: { size?: number }) {
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-surface shadow-card ring-1 ring-line dark:bg-ink"
+      className="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-control bg-logo-plate shadow-card ring-1 ring-line"
       style={{ width: size, height: size }}
     >
       <Image

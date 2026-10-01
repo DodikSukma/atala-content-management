@@ -22,6 +22,10 @@ Prinsip: satu tindakan utama per layar, konten lebih penting daripada dekorasi, 
 - **Komponen:** radius 12–16 px, border tipis, shadow lembut, ruang antarbagian 16–24 px. Tombol utama solid biru, tombol sekunder outline/netral, tindakan berbahaya merah.
 - **Ikon:** satu set ikon vektor konsisten (misalnya Lucide), ukuran 18–20 px. **Tidak boleh ada ikon emoji** di navigasi, status, empty state, toast, atau template.
 - **Foto:** konten foto pendidikan milik Atala atau berlisensi. Foto contoh tidak boleh mengandalkan URL yang dapat hilang saat ekspor.
+- **Tema gelap (MT-01–MT-03):** semua warna UI berasal dari token semantik di `src/app/globals.css` (nilai terang di `@theme`, nilai gelap identik di `:root[data-theme="dark"]` dan blok `prefers-color-scheme` untuk mode Sistem). Kelas warna bawaan Tailwind dan literal hex/rgb di luar file token dan template poster ditolak `npm run check:colors`.
+  - **Grafik:** donat, meter, cincin, kolom mingguan, heatmap, pipeline status, dan bar list memakai `var(--color-…)` lewat prop `style` (bukan atribut presentasi SVG) dari `src/components/insights/palette.ts`. Pergantian tema hanya mengubah variabel CSS: data tidak dirender ulang dan animasi masuk tidak diputar ulang. Token: `chart-1…6`, turunan `chart-1-soft/track/wash`, `chart-muted`, `chart-reference`, `chart-{success,warning,violet}` + trek, `status-{idea,draft,review,ready,scheduled,published,cancelled}` (dibedakan di kedua tema; Siap biru langit vs Terbit hijau, ΔE ≥ 40 di gelap), dan ramp heatmap `heat-0…4` (gelap: `#1c2740` → `#a9cbff`, makin terang makin banyak).
+  - **Logo:** logo Atala berwarna selalu di atas pelat `bg-logo-plate` (terang `#ffffff`, gelap `#e6edf7`) di login, sidebar, dan halaman 404 agar tetap terbaca di tema gelap.
+  - **Studio:** panel, galeri, dan area kerja ikut tema; isi `[data-template-root]` (kanvas poster dan thumbnail galeri) tidak memakai kelas atau token tema, sehingga PNG ekspor identik byte di tema terang dan gelap.
 
 ## 3. Kerangka aplikasi
 
@@ -50,6 +54,7 @@ Prinsip: satu tindakan utama per layar, konten lebih penting daripada dekorasi, 
 - Layout dua panel mengikuti pola Triton: panel kiri berisi logo Atala, nama produk, ilustrasi/geometri ringan; panel kanan formulir yang fokus.
 - Username dan password dengan label nyata, tombol tampil/sembunyikan password, indikator loading, pesan salah yang tidak membocorkan akun, dan logout yang menghapus sesi.
 - Tidak ada tautan pendaftaran/lupa kata sandi palsu.
+- Versi gelap: gradien panel memakai token `brand-soft`/`canvas`/`surface`; geometri pita dekoratif memakai token warna Atala dengan opasitas sedikit dinaikkan di tema gelap (pita plum diganti ungu `chart-4` agar tetap terlihat), statis tanpa animasi loop.
 
 ### 4.2 Dashboard `/dashboard`
 

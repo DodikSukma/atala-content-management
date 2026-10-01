@@ -84,7 +84,7 @@ export function Sidebar({ desktopCollapsed, tabletExpanded, mobileOpen, onNaviga
             width={40}
             height={40}
             priority
-            className="size-10 shrink-0 rounded-xl border border-line bg-surface object-contain p-0.5 dark:bg-ink"
+            className="size-10 shrink-0 rounded-xl border border-line bg-logo-plate object-contain p-0.5"
           />
           <span className={cn("flex min-w-0 flex-col leading-tight", showWhenExpanded)}>
             <span className="truncate text-[15px] font-extrabold tracking-tight text-ink">{APP_NAME}</span>

@@ -1,4 +1,4 @@
-import { toPng } from "html-to-image";
+import { toSvg } from "html-to-image";
 
 /**
  * Ekspor PNG Studio (AT-22). Selalu merender node berukuran asli
@@ -110,7 +110,43 @@ export function downloadBlob(blob: Blob, fileName: string): void {
 export function exportBackground(node: HTMLElement): string {
   const color = typeof window !== "undefined" ? window.getComputedStyle(node).backgroundColor : "";
   const transparent = !color || color === "transparent" || /^rgba\(\s*0,\s*0,\s*0,\s*0\s*\)$/.test(color);
-  return transparent ? "#FFFFFF" : color;
+  return transparent ? "#FFFFFF" : color; // check-colors: allow latar PNG ekspor tetap putih, tidak mengikuti tema aplikasi
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    // Sama dengan createImage html-to-image: decode lalu tunggu satu bingkai.
+    const ready = () => requestAnimationFrame(() => resolve(img));
+    img.onload = () => {
+      img.decode().then(ready, ready);
+    };
+    img.onerror = () => reject(new ExportError("Hasil render tidak dapat dibaca. Coba lagi."));
+    img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.src = src;
+  });
+}
+
+/**
+ * Rasterisasi SVG (hasil klon html-to-image) menjadi PNG berukuran tepat.
+ * Kanvas dibuat dengan `willReadFrequently` sehingga Chromium memakai kanvas 2D
+ * perangkat lunak: rasterisasi GPU dapat berbeda 1–2 level warna pada beberapa piksel
+ * glyph besar antar-render, sehingga desain yang sama tidak menghasilkan PNG identik
+ * byte (terlihat pada uji MT-03 terang vs gelap). Dengan kanvas perangkat lunak hasilnya
+ * deterministik dan tidak bergantung pada tema aplikasi.
+ */
+async function rasterizeSvg(svgDataUrl: string, width: number, height: number, background: string): Promise<string> {
+  const img = await loadImage(svgDataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new ExportError("Kanvas tidak tersedia di peramban ini.");
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(img, 0, 0, width, height);
+  return canvas.toDataURL("image/png");
 }
 
 export interface ExportOptions {
@@ -137,23 +173,23 @@ export async function exportNodeToPng(node: HTMLElement, opts: ExportOptions): P
   await Promise.all(images.map((img) => waitForImage(img, 20_000)));
 
   onStage?.("rendering");
+  const background = exportBackground(node);
   let dataUrl: string;
   try {
-    dataUrl = await toPng(node, {
+    // html-to-image hanya dipakai untuk mengklon node ke SVG (gaya, font, dan foto tersemat);
+    // rasterisasi ke PNG dilakukan sendiri di kanvas perangkat lunak (lihat rasterizeSvg).
+    const svg = await toSvg(node, {
       width,
       height,
-      canvasWidth: width,
-      canvasHeight: height,
-      pixelRatio: 1,
       cacheBust: false,
-      skipAutoScale: true,
       // html-to-image menimpa background-color akar dengan nilai ini. Pakai warna
       // latar template sendiri (mis. navy) agar PNG sama dengan pratinjau; putih
       // hanya bila akar transparan (latar gradien tetap tergambar di atasnya).
-      backgroundColor: exportBackground(node),
+      backgroundColor: background,
       style: { transform: "none", margin: "0" },
       filter: (el: HTMLElement) => !(el instanceof Element && el.hasAttribute("data-safe-area")),
     });
+    dataUrl = await rasterizeSvg(svg, width, height, background);
   } catch (cause) {
     throw new ExportError("Gagal merender PNG. Coba lagi; bila berulang, muat ulang halaman.", { cause });
   }
