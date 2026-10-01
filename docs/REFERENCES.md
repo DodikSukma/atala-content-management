@@ -32,11 +32,13 @@ Registry template di `src/lib/studio/registry.ts` adalah implementasi baru: pola
 | jose | 6.2.12 | MIT |
 | html-to-image | 1.11.13 | MIT |
 | fflate (ZIP carousel, F2-07) | 0.8.3 | MIT |
+| mediabunny (muxer MP4/WebM, MT-16) | 1.61.0 | MPL-2.0 (copyleft tingkat berkas; dipakai tanpa modifikasi, lihat TECH_STACK §7a) |
+| gifenc (encoder GIF, MT-16) | 1.0.3 | MIT (tanpa berkas tipe; deklarasi minimal di `src/types/gifenc.d.ts`) |
 | image-size | 2.0.4 | MIT |
 | @vercel/blob | 2.8.0 | Apache-2.0 |
 | google-auth-library | 11.1.0 | Apache-2.0 |
 | server-only | 0.0.1 | MIT |
-| Dev: typescript 5.9.3 (Apache-2.0), eslint 9.39.5 (MIT), vitest 5.0.3 (MIT), playwright 1.63.0 (Apache-2.0) | | |
+| Dev: typescript 5.9.3 (Apache-2.0), eslint 9.39.5 (MIT), vitest 5.0.3 (MIT), playwright 1.63.0 (Apache-2.0), ffprobe-static 3.1.0 (MIT; hanya untuk uji E2E video — biner ffprobe 4.0.2 di dalamnya adalah build FFmpeg `--enable-gpl --enable-version3`, dijalankan sebagai proses terpisah saat uji dan tidak ikut dibundel/didistribusikan dengan aplikasi) | | |
 
 Font **Plus Jakarta Sans** dimuat melalui `next/font/google` dan di-host sendiri saat build; lisensinya SIL Open Font License 1.1 (boleh dipakai dan dibundel dalam aplikasi/ekspor gambar).
 
