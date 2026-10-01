@@ -21,13 +21,14 @@ function render(template: TemplateDefinition, text: Record<string, string>, phot
 }
 
 describe("FEED_TEMPLATES_B", () => {
-  it("memuat lima template Feed dengan id dan nama yang diminta", () => {
+  it("memuat enam template Feed dengan id dan nama yang diminta", () => {
     expect(FEED_TEMPLATES_B.map((t) => [t.id, t.name])).toEqual([
       ["feed-question-hook", "Question Hook"],
       ["feed-program-highlight", "Program Highlight"],
       ["feed-testimonial", "Testimonial"],
       ["feed-statistic", "Statistic"],
       ["feed-announcement", "Announcement"],
+      ["feed-learning-media", "Karya Media Pembelajaran"],
     ]);
     for (const t of FEED_TEMPLATES_B) {
       expect(t.format).toBe("feed");

@@ -96,7 +96,7 @@ function variants(preset: Preset, format: MotionFormat): { label: string; spec: 
 }
 
 describe("fixture lapisan template (diukur di Chrome)", () => {
-  it("mencakup tepat 20 template registry", () => {
+  it("mencakup tepat semua template registry", () => {
     expect(Object.keys(fixture.templates).sort()).toEqual(TEMPLATES.map((t) => t.id).sort());
   });
 

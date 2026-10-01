@@ -45,6 +45,7 @@ const CATEGORIES: TemplateCategory[] = [
   "pengumuman",
   "tips",
   "frame",
+  "galeri",
 ];
 
 const EMOJI = /\p{Extended_Pictographic}/u;

@@ -502,3 +502,23 @@ Kendala/keputusan:
   di DOM (tugas compositor).
 Langkah berikutnya: MT-13 (compositor dan pemutar pratinjau).
 ```
+
+```text
+Tanggal (Asia/Makassar): 1 Oktober 2026
+Tugas: Template tambahan atas permintaan pemilik — Karya Media Pembelajaran (feed-learning-media)
+Status: selesai
+Perubahan:
+- Template Feed 1080x1080 baru: foto karya besar, kartu kode QR/barcode (slot foto kedua, object-fit contain agar QR
+  tidak terpotong; kotak putus-putus "Tempel kode QR" bila kosong), ajakan dan tautan di bawah QR, nama pembuat,
+  mapel/kelas, panel judul + deskripsi, logo Atala. Lapisan motion lengkap (resep bawaan Tenang).
+- Uji jumlah template diperbarui (21 template: 15 Feed, 6 Story); kategori galeri; fixture lapisan diukur ulang di Chrome.
+Bukti uji:
+- tests/e2e/export-templates.mjs (ONLY=feed-learning-media): foto, teks-panjang, tanpa-foto -> 1080x1080 tanpa catatan
+  terpotong; PNG diperiksa manual (QR 1200x1600 tampil utuh).
+- tests/e2e/layer-parity.mjs: 87/87 (frame akhir motion = PNG statis).
+- npm run check: 35 file / 1264 uji lulus, check-colors 0 pelanggaran; npm run build lulus.
+Hasil: template tersedia di galeri Studio (Feed).
+Kendala/keputusan: gambar QR yang diunggah tetap mengikuti aturan aset (sisi terpendek minimal 800 px); ekspor QR
+  dari generator dengan ukuran 1000 px atau lebih.
+Langkah berikutnya: lanjutkan UI motion (branch wip/mt13-motion-ui) saat pemilik siap.
+```

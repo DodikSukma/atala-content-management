@@ -858,6 +858,102 @@
         }
       }
     ],
+    "feed-learning-media": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 495,
+          "y": 72,
+          "w": 521,
+          "h": 50
+        },
+        "wordCount": 3,
+        "lineCount": 1
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 176,
+          "w": 612,
+          "h": 528
+        }
+      },
+      {
+        "id": "qr",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 708,
+          "y": 176,
+          "w": 308,
+          "h": 404
+        }
+      },
+      {
+        "id": "meta",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 708,
+          "y": 608,
+          "w": 308,
+          "h": 96.5
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 104,
+          "y": 781.2,
+          "w": 872,
+          "h": 105.6
+        },
+        "wordCount": 7,
+        "lineCount": 2
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 104,
+          "y": 900.8,
+          "w": 872,
+          "h": 70
+        },
+        "wordCount": 14,
+        "lineCount": 2
+      }
+    ],
     "feed-myth-vs-fact": [
       {
         "id": "background",

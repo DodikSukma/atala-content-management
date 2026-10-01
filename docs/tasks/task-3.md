@@ -35,7 +35,7 @@ Agar rilis lebih cepat, prioritas dipindahkan ke **motion video** dan perbaikan 
 
 | Hal | Target rilis ini | Ditunda |
 |---|---:|---|
-| Template Feed 1:1 | 14 (yang sudah ada) | Paket Belajar dan Komunitas (MT-05, MT-06) |
+| Template Feed 1:1 | 15 (14 yang sudah ada + Karya Media Pembelajaran dengan kotak QR) | Paket Belajar dan Komunitas (MT-05, MT-06) |
 | Template Feed potret 4:5 | 0 | Format potret dan paketnya (bagian MT-04, MT-07) |
 | Template Story | 6 (yang sudah ada) | Paket Story (MT-08) |
 | Set carousel | 0 | MT-09 (carousel manual F2-07 tetap tersedia) |
