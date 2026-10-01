@@ -1212,6 +1212,102 @@
         }
       }
     ],
+    "feed-qr-focus": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-shapes",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 678.6,
+          "y": 72,
+          "w": 337.4,
+          "h": 50
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 160,
+          "w": 952,
+          "h": 59.4
+        },
+        "wordCount": 4,
+        "lineCount": 1
+      },
+      {
+        "id": "qr",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 270,
+          "y": 276,
+          "w": 540,
+          "h": 540
+        }
+      },
+      {
+        "id": "url",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 850,
+          "w": 952,
+          "h": 71.2
+        }
+      },
+      {
+        "id": "caption",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 64,
+          "y": 946,
+          "w": 952,
+          "h": 31.2
+        },
+        "wordCount": 8,
+        "lineCount": 1
+      }
+    ],
     "feed-question-hook": [
       {
         "id": "background",

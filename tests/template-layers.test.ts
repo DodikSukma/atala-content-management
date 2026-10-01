@@ -54,9 +54,9 @@ const declared = (t: TemplateDefinition) => t.motion?.layers ?? [];
 const sortById = (list: RenderedLayer[]) => [...list].sort((a, b) => a.id.localeCompare(b.id));
 
 describe("kontrak lapisan template (MT-11)", () => {
-  it("registry berisi 21 template (15 Feed, 6 Story) sesuai keputusan pemilik", () => {
-    expect(TEMPLATES).toHaveLength(21);
-    expect(TEMPLATES.filter((t) => t.format === "feed")).toHaveLength(15);
+  it("registry berisi 22 template (16 Feed, 6 Story) sesuai keputusan pemilik", () => {
+    expect(TEMPLATES).toHaveLength(22);
+    expect(TEMPLATES.filter((t) => t.format === "feed")).toHaveLength(16);
     expect(TEMPLATES.filter((t) => t.format === "story")).toHaveLength(6);
   });
 

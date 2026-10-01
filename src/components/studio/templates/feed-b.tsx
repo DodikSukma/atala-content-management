@@ -1,6 +1,7 @@
 import type { TemplateDefinition } from "@/lib/studio/types";
 import { announcementTemplate } from "./feed-b/announcement";
 import { LEARNING_MEDIA } from "./feed-b/learning-media";
+import { QR_FOCUS } from "./feed-b/qr-focus";
 import { programHighlightTemplate } from "./feed-b/program-highlight";
 import { questionHookTemplate } from "./feed-b/question-hook";
 import { statisticTemplate } from "./feed-b/statistic";
@@ -18,4 +19,5 @@ export const FEED_TEMPLATES_B: TemplateDefinition[] = [
   statisticTemplate,
   announcementTemplate,
   LEARNING_MEDIA,
+  QR_FOCUS,
 ];
