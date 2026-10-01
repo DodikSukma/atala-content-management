@@ -90,6 +90,21 @@ Prinsip: satu tindakan utama per layar, konten lebih penting daripada dekorasi, 
 - Overlay “safe area” dapat ditoggle. Peringatan saat teks melewati batas atau kontras lemah.
 - Riwayat undo/redo dasar untuk teks/crop/template atau setidaknya konfirmasi saat reset. Indikator perubahan belum disimpan wajib ada.
 - Saat unggah foto, tampilkan kemajuan/galat dan batasi tipe/ukuran sesuai [TECH_STACK.md](./TECH_STACK.md).
+- **Carousel (F2-07).** Strip "Halaman n/10" berada di bawah pratinjau dan bergulir horizontal di dalam wadahnya sendiri (halaman tidak ikut melebar di tablet). Setiap halaman tampil sebagai thumbnail nyata dengan label nomor `n/N`.
+  - Urutkan dengan seret (pointer; pada layar sentuh hanya lewat pegangan agar strip tetap bisa digeser jari) atau papan ketik: fokus thumbnail lalu Alt+← / Alt+→, atau tombol Geser kiri/kanan. Pemindahan diumumkan lewat `aria-live` dan fokus tetap pada halaman yang dipindah.
+  - Tombol duplikat, hapus (dengan konfirmasi), "Salin gaya ke semua" (dengan konfirmasi; teks dipertahankan per kunci bidang), dan "Tambah halaman" lewat dialog pemilih template. Template dipilih per halaman.
+  - Di 10 halaman, Tambah dan Duplikat nonaktif dan dijelaskan lewat `aria-describedby` serta teks "Maksimal 10 halaman per carousel (batas Instagram)".
+  - Semua aksi halaman masuk riwayat undo/redo. Simpan menyimpan semua halaman sekaligus, dan muat ulang memulihkan urutan, template, dan teks persis.
+- **Ekspor ZIP.** Tombol "Unduh ZIP" muncul bila halaman > 1, berdampingan dengan "Unduh PNG hal. n". Setiap halaman dirender lewat jalur ekspor PNG yang sama di node ukuran asli, lalu dimensi IHDR diperiksa sebelum masuk ZIP `01.png` … `NN.png` (fflate, tanpa kompresi).
+  - Progres "Halaman i dari N" dapat dibatalkan.
+  - Satu halaman gagal berarti seluruh ZIP gagal dengan pesan halaman mana, dan tidak ada berkas yang diunduh.
+- **Seri konten.** Dialog "Buat seri" (di `/content` dan detail konten) berisi judul dasar, pilar, format, kanal, jumlah bagian (2–12), tanggal mulai, jam WITA, pola mingguan (hari terpilih) atau setiap N hari, dan status awal.
+  - Pratinjau tanggal tiap bagian ditampilkan bersama label "melintasi N bulan".
+  - Bentrok tanggal+jam dengan konten lain ditandai per baris beserta peringatan "Jadwal bentrok". Peringatan ini tidak memblokir.
+  - Hasil (sukses atau sebagian gagal beserta tombol "Coba lagi n bagian") tampil di dalam dialog dan digulir ke atas, bukan toast, karena toast pojok kanan bawah menutupi tombol kaki dialog. Setelah seri tersimpan, bagian seri itu tidak dihitung bentrok dengan dirinya sendiri.
+  - Penanda "Bagian i/N" selalu berupa ikon dan teks (bukan warna saja): pil di daftar dan detail konten, teks kecil di kartu pekan, serta `i/N` ringkas di baris kedua kartu bulan agar judul di sel tablet tidak habis terpotong.
+  - Detail konten memiliki panel "Seri konten" berisi daftar bagian aktif serta tautan Bagian sebelumnya/berikutnya.
+  - Aturan nomor: `i` = `seriesIndex` tersimpan dan tidak pernah dinomori ulang. `N` = jumlah bagian aktif, tetapi tidak lebih kecil dari nomor aktif tertinggi. Contoh: bila bagian 2 dari 4 diarsipkan, bagian lain tetap "1/4", "3/4", "4/4", dan tautan sebelumnya/berikutnya melompati bagian yang diarsipkan.
 
 ## 5. Template pendidikan
 

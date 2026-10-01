@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,7 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createSeriesAction, type SeriesReport } from "@/app/(app)/content/series-actions";
-import { Button, ChipToggleGroup, Dialog, Field, InlineAlert, Input, SegmentedControl, Select, useToast } from "@/components/ui";
+import { Button, ChipToggleGroup, Dialog, Field, InlineAlert, Input, SegmentedControl, Select } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { CHANNEL_LABELS, FORMAT_SHORT_LABELS, type Channel, type ContentFormat } from "@/lib/constants";
 import type { ScheduleSlotItem } from "@/lib/planning";
@@ -127,6 +127,10 @@ type Outcome =
  * mulai, pola ulang mingguan/tiap N hari (WITA), status awal, dan pratinjau tanggal dengan
  * peringatan bentrok (tidak memblokir). Hasil sebagian gagal ditampilkan apa adanya beserta
  * tautan bagian yang sudah tersimpan dan tombol untuk melanjutkan bagian yang belum dibuat.
+ *
+ * Hasil ditampilkan di dalam dialog (bukan toast): toast pojok kanan bawah menutupi tombol
+ * kaki dialog dan berhenti saat disorot sehingga tombol "Selesai" tidak dapat diklik.
+ * Setelah seri tersimpan, bagian seri ini tidak dihitung sebagai bentrok terhadap dirinya.
  */
 export function SeriesDialog({
   open,
@@ -143,7 +147,6 @@ export function SeriesDialog({
   defaults?: SeriesDefaults;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
   // Waktu saat dialog dibuka: acuan tanggal bawaan dan peringatan "sudah lewat".
   const [openedAt] = useState(() => Date.now());
   const today = todayLocal(new Date(openedAt));
@@ -152,6 +155,25 @@ export function SeriesDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<Outcome>({ kind: "idle" });
   const [pending, startTransition] = useTransition();
+  const outcomeRef = useRef<HTMLDivElement>(null);
+
+  const report = outcome.kind === "done" || outcome.kind === "partial" ? outcome.report : null;
+  // Setelah dibuat (atau sebagian), `existing` dari server ikut memuat bagian seri ini: jangan bentrok dengan diri sendiri.
+  const others = useMemo(() => {
+    if (!report) return existing;
+    const own = new Set([...report.created, ...report.existing].map((p) => p.id));
+    return existing.filter((item) => !own.has(item.id));
+  }, [existing, report]);
+
+  // Hasil berada di atas formulir: gulirkan ke sana dan pindahkan fokus agar terlihat dan terbaca.
+  useEffect(() => {
+    if (outcome.kind === "idle") return;
+    const el = outcomeRef.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ block: "nearest", behavior: reduce ? "auto" : "smooth" });
+    el.focus({ preventScroll: true });
+  }, [outcome]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -164,13 +186,13 @@ export function SeriesDialog({
     try {
       const slots = previewSeries(
         { title: parsed.data.title, startDate: parsed.data.startDate, time: parsed.data.time, parts: parsed.data.parts, recurrence: parsed.data.recurrence },
-        existing,
+        others,
       );
       return { slots, problem: null, invalid: {} as Record<string, string> };
     } catch (error) {
       return { slots: [], problem: error instanceof Error ? error.message : "Jadwal tidak valid.", invalid: {} as Record<string, string> };
     }
-  }, [form, existing]);
+  }, [form, others]);
 
   const conflictCount = plan.slots.filter((s) => s.conflicts.length > 0).length;
   const firstInPast = plan.slots.length > 0 && Date.parse(plan.slots[0].scheduledAt) < openedAt;
@@ -190,22 +212,18 @@ export function SeriesDialog({
         const result = await createSeriesAction(input);
         if (result.ok) {
           setOutcome({ kind: "done", report: result.data, message: result.message ?? "Seri dibuat." });
-          toast({ tone: "success", title: "Seri dibuat", description: result.message });
           router.refresh();
           return;
         }
         if (result.report) {
           setOutcome({ kind: "partial", report: result.report, message: result.error });
-          toast({ tone: "error", title: "Seri belum lengkap", description: result.error });
           if (result.report.created.length) router.refresh();
           return;
         }
         if (result.fieldErrors) setErrors(result.fieldErrors);
         setOutcome({ kind: "error", message: result.error });
-        toast({ tone: "error", title: "Seri belum dibuat", description: result.error });
       } catch {
         setOutcome({ kind: "error", message: NETWORK_ERROR });
-        toast({ tone: "error", title: "Seri belum dibuat", description: NETWORK_ERROR });
       }
     });
   }
@@ -216,7 +234,6 @@ export function SeriesDialog({
     submit();
   }
 
-  const report = outcome.kind === "done" || outcome.kind === "partial" ? outcome.report : null;
   const remaining = outcome.kind === "partial" && outcome.report.failed ? [outcome.report.failed.index, ...outcome.report.pending] : [];
   const locked = pending || report !== null;
   const firstSaved = report ? [...report.existing, ...report.created].sort((a, b) => a.index - b.index)[0] : undefined;
@@ -272,11 +289,15 @@ export function SeriesDialog({
       footer={footer}
     >
       <form id="series-form" noValidate onSubmit={onSubmit} className="flex flex-col gap-5" aria-busy={pending}>
-        {report ? <SeriesOutcome outcome={outcome} report={report} /> : null}
-        {outcome.kind === "error" ? (
-          <InlineAlert tone="error" title="Seri belum dibuat">
-            {outcome.message} Isian Anda tetap tersimpan di formulir ini.
-          </InlineAlert>
+        {outcome.kind !== "idle" ? (
+          <div ref={outcomeRef} tabIndex={-1} className="scroll-mt-2 focus:outline-none" data-testid="series-outcome">
+            {report ? <SeriesOutcome outcome={outcome} report={report} /> : null}
+            {outcome.kind === "error" ? (
+              <InlineAlert tone="error" title="Seri belum dibuat">
+                {outcome.message} Isian Anda tetap tersimpan di formulir ini.
+              </InlineAlert>
+            ) : null}
+          </div>
         ) : null}
 
         <fieldset disabled={locked} className="flex min-w-0 flex-col gap-4">

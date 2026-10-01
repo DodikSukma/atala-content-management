@@ -31,6 +31,7 @@ Registry template di `src/lib/studio/registry.ts` adalah implementasi baru: pola
 | zod | 4.6.5 | MIT |
 | jose | 6.2.12 | MIT |
 | html-to-image | 1.11.13 | MIT |
+| fflate (ZIP carousel, F2-07) | 0.8.3 | MIT |
 | image-size | 2.0.4 | MIT |
 | @vercel/blob | 2.8.0 | Apache-2.0 |
 | google-auth-library | 11.1.0 | Apache-2.0 |

@@ -217,7 +217,7 @@ export interface ImageAssist {
 
   **Selesai jika:** desain lama terbuka tanpa perubahan visual, desain multi-halaman tersimpan dan terbuka ulang identik, dan uji migrasi lulus. Bergantung pada F2-03.
 
-- [ ] **F2-07 — Carousel dan seri konten.**
+- [x] **F2-07 — Carousel dan seri konten.**
   - Studio mode carousel: tambah/hapus/urutkan halaman dengan seret dan tombol keyboard, pilih template per halaman, dan salin gaya ke semua halaman.
   - Ekspor ZIP berisi PNG bernama `01.png` … `NN.png`, memakai pustaka ZIP berlisensi MIT yang dikunci versinya.
   - Seri konten:

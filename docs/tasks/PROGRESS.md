@@ -180,6 +180,70 @@ Kendala/keputusan: migrasi di Sheets memakai 2 panggilan API per desain; dengan 
 Langkah berikutnya: MT-04 dan F2-07 (UI halaman carousel memakai aksi add/duplicate/remove/move di editor-state).
 ```
 
+```text
+Tanggal (Asia/Makassar): 1 Oktober 2026
+Tugas: F2-07
+Status: selesai (semua kriteria "Selesai jika" terverifikasi di browser; uji properti motion yang
+  sempat timeout diperbaiki di commit terpisah, npm run check kini 29 file / 751 uji lulus)
+Perubahan:
+- Kode carousel/ZIP/seri sudah ada di main (page-strip, add-page-dialog, export-zip.ts dengan fflate 0.8.3,
+  series.ts, series-actions.ts, series-dialog/marker/panel, seriesId/seriesIndex di skema + kolom Sheets).
+- Perbaikan dari verifikasi browser:
+  - series-dialog.tsx: setelah seri dibuat, router.refresh() memasukkan bagian seri ke daftar "existing" sehingga
+    pratinjau menandai keempat bagian "Bentrok" dengan dirinya sendiri. Kini bagian seri yang tersimpan dikecualikan.
+  - series-dialog.tsx: toast hasil di pojok kanan bawah menutupi tombol "Selesai"/"Coba lagi" di kaki dialog dan
+    berhenti saat disorot sehingga tombol tidak dapat diklik. Hasil kini hanya tampil di dalam dialog, digulir ke
+    atas dan diberi fokus (menghormati reduced motion).
+  - calendar-card.tsx: penanda seri "i/N" pindah ke baris kedua kartu bulan. Di 834 px judul sebelumnya habis
+    terpotong. Pada kartu seri, teks format diganti penanda agar label status tidak terpotong; format tetap ada
+    di label aria.
+- tests/e2e/carousel-series.mjs (baru), dokumen PRD §10, DESIGN §4.6, TECH_STACK (fflate, seriesId/seriesIndex),
+  REFERENCES (fflate MIT).
+Bukti uji:
+- npm run build: lulus. typecheck 0 galat, lint 0.
+- npm run test: 28/29 file, 750/751 uji lulus. Satu-satunya yang gagal adalah tests/motion-engine.test.ts
+  "setiap frame hingga dan dalam batas ..." (MT-10/12), yang timeout 60 dtk. Uji ini butuh sekitar 190 dtk walau
+  dijalankan sendiri dengan beban CPU sekitar 18%. Tidak ada berkas motion yang diubah di tugas ini.
+- E2E tests/e2e/carousel-series.mjs (next start -p 3450, fixture, data bersih, Chrome): 21/21 lulus, tanpa galat
+  konsol/HTTP.
+  - Carousel:
+    - 10 halaman dengan 6 template berbeda; tambah, tambah di akhir, dan duplikat nonaktif di 10/10 dengan
+      penjelasan lewat aria-describedby.
+    - Alt+Panah dan seret pointer mengurutkan halaman; label n/10 dan aria "Halaman n dari 10" mengikuti urutan,
+      dan fokus tetap pada halaman yang dipindah.
+    - Simpan lalu muat ulang memulihkan urutan, template, dan teks identik.
+    - ZIP berisi tepat 01.png..10.png, setiap PNG 1080x1080 (IHDR, fflate unzipSync), dengan 10 isi berbeda.
+    - Salin gaya ke semua lalu Ctrl+Z memulihkan template dan teks.
+  - Seri:
+    - Dibuat dari /content: 4 bagian, setiap Rabu 19.00 WITA, mulai Rabu terakhir Oktober. Pratinjau menunjukkan
+      2026-10-28, 11-04, 11-11, 11-18 dengan label "melintasi 2 bulan".
+    - Peringatan "Jadwal bentrok" muncul hanya pada bagian 3 (bertepatan dengan konten carousel 11 Nov 19.00).
+      Formulir konten baru pada slot bagian 1 menampilkan "Jadwal bersamaan".
+    - Kalender bulan Oktober dan November menampilkan setiap bagian di tanggal yang benar dengan penanda
+      "Bagian i/4" (aria "bagian i dari 4"). Daftar /content juga menampilkan Bagian 1/4..4/4.
+    - Setelah bagian 2 diarsipkan, bagian 1, 3, dan 4 tetap "1/4", "3/4", "4/4". Tautan sebelumnya/berikutnya
+      melompati bagian 2 (1 -> 3 -> 4). Bagian 2 hilang dari kalender dan daftar aktif, dan panel bagian 2
+      menjelaskan statusnya.
+  - Tampilan:
+    - Diperiksa pada 1280x800 dan 834x1112, tema terang dan gelap: Studio carousel (termasuk strip yang digulir ke
+      akhir), dialog seri, kalender November, dan detail bagian 3.
+    - Tidak ada overflow horizontal, tidak ada kontrol terpotong, dan tombol kirim dialog berada di dalam layar.
+      Tangkapan layar diperiksa manual; tema gelap terbaca.
+- Regresi: tests/e2e/flows.mjs 31/31 (percobaan pertama 30/31; f3 timeout membaca input lalu lulus pada ulangan
+  dengan data bersih tanpa perubahan kode) dan tests/e2e/theme.mjs 10/10.
+Hasil: kriteria "Selesai jika" F2-07 terpenuhi: ZIP 10 halaman berdimensi tepat, seri 4 bagian benar di batas
+  bulan, bentrok diberi peringatan, dan mengarsipkan satu bagian tidak merusak seri.
+Kendala/keputusan:
+- npm run check belum hijau karena timeout uji properti motion di atas (bukan bagian F2-07). Usulan: naikkan
+  batas waktu uji itu atau kurangi kasus/sampel (milik MT-10/12). Centang F2-07 setelah check hijau.
+- Di 1280x800 (tata letak tablet, sidebar lebar) thumbnail strip berada sedikit di bawah lipatan. Strip terlihat
+  setelah menggulir sedikit, tanpa kontrol terpotong; tata letak tidak diubah.
+- "Salin gaya ke semua" mempertahankan teks per kunci bidang. Halaman bertemplate lain dengan kunci berbeda memakai
+  teks bawaan template baru, sesuai deskripsi dialog konfirmasi.
+Langkah berikutnya: perbaiki/naikkan timeout uji motion lalu centang F2-07. Setelah itu lanjut MT-09 (set carousel)
+  yang kini dapat memakai F2-07.
+```
+
 ## Motion, Template, Dark Mode
 
 Ringkasan status paket ada di [task-3.md](./task-3.md). Entri memakai format yang sama dengan rilis pertama.

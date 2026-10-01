@@ -129,7 +129,7 @@ Pemilik produk memutuskan memulai fase 2 sebelum gerbang rilis pertama terpenuhi
 | Fitur | Dipindahkan dari §6 | Tugas | Jalur tanpa API |
 |---|---|---|---|
 | Brand Kit dan template builder tanpa kode | — (baru) | F2-04, F2-05 | Tidak butuh API |
-| Carousel dan seri konten | — (baru) | F2-06, F2-07 | Tidak butuh API |
+| Carousel dan seri konten (F2-07 selesai 1 Oktober 2026: carousel maks. 10 halaman per desain, ekspor ZIP `01.png`…`NN.png`, seri N bagian berjadwal berulang WITA dengan penanda "Bagian i/N") | — (baru) | F2-06, F2-07 | Tidak butuh API |
 | Asisten konten AI (variasi judul/hook/caption/CTA) | AI generator caption | F2-08, F2-09 | Tulis manual |
 | Database Postgres dan pustaka aset pintar | — (migrasi dari Sheets) | F2-10, F2-11 | Sheets tetap didukung untuk entitas rilis pertama |
 | Multi-user, peran, approval | Kolaborasi banyak pengguna, approval berlapis | F2-12, F2-13 | Tidak butuh API |

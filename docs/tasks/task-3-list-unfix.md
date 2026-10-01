@@ -32,7 +32,7 @@ Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-bas
 
 | Tugas | Yang sudah ada di main | Yang belum |
 |---|---|---|
-| F2-07 | Mode carousel (strip halaman), ekspor ZIP (`src/lib/studio/export-zip.ts`, fflate 0.8.3), seri konten (`src/lib/series.ts`, dialog, penanda "Bagian i/N"); unit test lulus | E2E `tests/e2e/carousel-series.mjs` (10 halaman → ZIP 01..10.png 1080×1080, seri 4 bagian melewati batas bulan, arsip satu bagian), cek visual 1280/834 kedua tema, dokumen PRD/DESIGN/TECH_STACK/REFERENCES, entri PROGRESS |
+| F2-07 | **Selesai (1 Oktober 2026).** Mode carousel, ekspor ZIP (fflate 0.8.3), dan seri konten diverifikasi di browser: `tests/e2e/carousel-series.mjs` 21/21, tampilan 1280/834 di kedua tema, dan dokumen diperbarui. Rinciannya ada di entri PROGRESS F2-07. | Centang di task-2 ditahan sampai `npm run check` hijau. Satu-satunya uji gagal adalah timeout uji properti `tests/motion-engine.test.ts` (MT-10/12, butuh sekitar 190 dtk dengan batas 60 dtk), bukan bagian F2-07. |
 | MT-03 | `scripts/check-colors.mjs` + `check-colors-lib.mjs` | Lihat tabel bagian 2 |
 | MT-04 | Kontrak `src/lib/studio/types.ts` + `src/lib/studio/tokens.ts`; `tags`/`pack` di 20 template | Lihat tabel bagian 2 |
 | MT-10 / MT-12 | `src/lib/motion/` lengkap dengan 16 resep dan validator; 76 + uji preset lulus | Lihat tabel bagian 2 |
@@ -67,7 +67,7 @@ Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-bas
 |---|---|
 | F2-01, F2-02, F2-03 | Selesai (di stack `mt/02-theme-migration`) |
 | F2-06 | Selesai (di main) |
-| F2-07 | Sebagian (di main, lihat bagian 1) |
+| F2-07 | Selesai (1 Oktober 2026) |
 | F2-04, F2-05, F2-08…F2-13, F2-16…F2-25 | Belum dikerjakan |
 | F2-14, F2-15 | Digantikan MT-10…MT-17 (centang setelah MT-17 selesai) |
 
@@ -79,7 +79,7 @@ Catatan QA yang belum diperbaiki: angka count-up dapat berkedip bila kartu hanya
 
 ## 5. Urutan lanjutan yang disarankan
 
-1. Selesaikan F2-07 dari `main` (E2E + visual + dokumen).
+1. ~~Selesaikan F2-07 dari `main` (E2E + visual + dokumen).~~ Selesai 1 Oktober 2026. Sisa: perbaiki timeout uji motion, lalu centang F2-07.
 2. MT-03 (lanjutkan skrip penjaga warna yang sudah ada).
 3. MT-04 (kontrak sudah ditulis; lanjutkan konversi template ke `useTemplateTokens`, galeri, portrait, dua skrip).
 4. MT-10 (simpan `motion` per halaman desain + migrasi skema v3, samakan `LayerRole` dengan `TemplateLayerRole`), lalu MT-11 (Layer + bungkus template lama).

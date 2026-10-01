@@ -13,7 +13,7 @@ import {
  * tanggal lokal Asia/Makassar (UTC+8, tanpa DST) dan diubah ke ISO UTC lewat
  * `fromLocal`, sehingga pergantian bulan/tahun hanya aritmetika tanggal kalender.
  *
- * Aturan penanda (didokumentasikan juga di DESIGN §4.4):
+ * Aturan penanda (didokumentasikan juga di DESIGN §4.6):
  * - `i` = `seriesIndex` yang tersimpan. Nomor ini tidak pernah diubah saat bagian lain
  *   diarsipkan/dibatalkan, jadi tautan dan caption "Bagian 3" tetap benar.
  * - `N` = jumlah bagian aktif (tidak diarsipkan dan tidak dibatalkan), tetapi tidak pernah

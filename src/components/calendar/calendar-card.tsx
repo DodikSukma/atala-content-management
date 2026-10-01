@@ -83,14 +83,19 @@ export function CalendarCard({ content, overdue, variant, onOpen, dimmed, series
           )}
           <span className="shrink-0 tabular-nums text-ink-muted">{time}</span>
           <span className={cn("min-w-0 flex-1 truncate font-medium", dimmed ? "text-ink-soft" : "text-ink")}>{content.title}</span>
-          {series ? <SeriesMarker variant="compact" index={series.index} total={series.total} className="text-[10px]" /> : null}
         </span>
-        <span className="mt-0.5 hidden min-w-0 items-center gap-1 text-[11px] leading-4 lg:flex">
-          <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone.dot)} />
-          <span className={cn("truncate", overdue ? "font-medium text-danger" : tone.text)}>
-            {overdue ? "Terlambat" : STATUS_LABELS[content.status]}
+        {/* Baris kedua: status + format (lg ke atas) dan penanda seri. Penanda tidak di baris judul
+            agar judul di sel sempit (tablet) tidak habis terpotong. */}
+        <span className={cn("mt-0.5 min-w-0 items-center gap-1 text-[11px] leading-4", series ? "flex" : "hidden lg:flex")}>
+          <span className="hidden min-w-0 flex-1 items-center gap-1 lg:flex">
+            <span aria-hidden className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tone.dot)} />
+            <span className={cn("truncate", overdue ? "font-medium text-danger" : tone.text)}>
+              {overdue ? "Terlambat" : STATUS_LABELS[content.status]}
+            </span>
+            {/* Bagian seri: format diganti penanda agar label status tidak terpotong (format tetap di label aria). */}
+            {series ? null : <span className="shrink-0 text-ink-muted">· {FORMAT_SHORT_LABELS[content.format]}</span>}
           </span>
-          <span className="shrink-0 text-ink-muted">· {FORMAT_SHORT_LABELS[content.format]}</span>
+          {series ? <SeriesMarker variant="compact" index={series.index} total={series.total} className="text-[10px]" /> : null}
         </span>
       </button>
     );
