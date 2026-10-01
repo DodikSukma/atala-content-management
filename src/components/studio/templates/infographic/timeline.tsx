@@ -1,5 +1,6 @@
 import { ArrowRight, BookOpen, CalendarDays, ClipboardCheck, GraduationCap, PencilLine, Route, type LucideIcon } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, SafeAreaGuide } from "../primitives";
 import { ACCENTS, FEED, Pill, WRAP, clampLines, fitSize, parseMilestones, readFields } from "./shared";
 
@@ -98,6 +99,7 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
               color={ATALA_TOKENS.paper}
               background={ATALA_TOKENS.teal}
               icon={<Route size={26} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />}
+              layer={{ id: "badge", role: "badge" }}
             >
               {t.eyebrow}
             </Pill>
@@ -106,7 +108,10 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
           )}
           <BrandMark size={52} color={ATALA_TOKENS.navy} style={{ flexShrink: 0 }} />
         </div>
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: "26px 0 0",
             maxWidth: 900,
@@ -119,11 +124,13 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {t.title}
-        </p>
+        </Layer>
       </div>
 
       {/* Garis utama */}
-      <div
+      <Layer
+        id="path-line"
+        role="path"
         aria-hidden
         style={{
           position: "absolute",
@@ -218,7 +225,9 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
               <Icon size={32} strokeWidth={2.4} color={accent} aria-hidden />
             </div>
             {/* Kartu */}
-            <div
+            <Layer
+              id={`item-${i + 1}`}
+              role="list-item"
               style={{
                 position: "absolute",
                 left: box.left,
@@ -255,14 +264,16 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
               <span style={{ fontSize: bodySize, fontWeight: 600, lineHeight: 1.3, color: ATALA_TOKENS.ink, ...clampLines(4) }}>
                 {item.body}
               </span>
-            </div>
+            </Layer>
           </div>
         );
       })}
 
       {/* Kaki: ajakan */}
       {t.cta ? (
-        <div
+        <Layer
+          id="cta"
+          role="cta"
           style={{
             position: "absolute",
             left: EDGE,
@@ -280,7 +291,7 @@ function Timeline({ text, showSafeArea }: TemplateRenderProps) {
         >
           <ArrowRight size={32} strokeWidth={2.8} color={ATALA_TOKENS.teal} aria-hidden style={{ flexShrink: 0 }} />
           <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.cta}</span>
-        </div>
+        </Layer>
       ) : null}
 
       {showSafeArea ? <SafeAreaGuide {...SAFE_AREA.feed} /> : null}
@@ -299,4 +310,16 @@ export const FEED_INFO_TIMELINE: TemplateDefinition = {
   slots: [],
   fields: FIELDS,
   Component: Timeline,
+  motion: {
+    defaultPresetId: "tumpuk-kartu",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "badge", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "headline", role: "headline" },
+      { id: "path-line", role: "path" },
+      ...Array.from({ length: MAX_ITEMS }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

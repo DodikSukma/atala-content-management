@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, PhotoFrame, SafeAreaGuide, splitList } from "../primitives";
 import { EDGE, FEED_SIZE, WRAP, clampLines, defaultsOf, fitSize, longest, readText } from "./shared";
 
@@ -85,7 +86,9 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
         fallbackTone="navy"
         style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: PHOTO_COLUMN }}
       />
-      <div
+      <Layer
+        id="decor-scrim"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -96,7 +99,12 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
           background: "linear-gradient(180deg, rgba(30,58,95,0) 0%, rgba(30,58,95,0.88) 100%)",
         }}
       />
-      <div aria-hidden style={{ position: "absolute", top: 0, bottom: 0, left: PHOTO_COLUMN, width: 12, background: ATALA_TOKENS.teal }} />
+      <Layer
+        id="decor-divider"
+        role="decor"
+        aria-hidden
+        style={{ position: "absolute", top: 0, bottom: 0, left: PHOTO_COLUMN, width: 12, background: ATALA_TOKENS.teal }}
+      />
       <BrandMark
         size={60}
         color={ATALA_TOKENS.paper}
@@ -116,7 +124,10 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
         }}
       >
         {eyebrow ? (
-          <span
+          <Layer
+            id="badge"
+            role="badge"
+            as="span"
             style={{
               fontSize: 26,
               fontWeight: 800,
@@ -129,10 +140,13 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
             }}
           >
             {eyebrow}
-          </span>
+          </Layer>
         ) : null}
 
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: eyebrow ? "22px 0 0" : 0,
             fontSize: titleSize,
@@ -146,7 +160,7 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {title}
-        </p>
+        </Layer>
 
         <ol
           style={{
@@ -162,7 +176,7 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
           {steps.map((step, index) => {
             const last = index === steps.length - 1;
             return (
-              <li key={index} style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
+              <Layer key={index} id={`item-${index + 1}`} role="list-item" as="li" style={{ display: "flex", gap: 24, alignItems: "stretch" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: CIRCLE, flexShrink: 0 }}>
                   <span
                     style={{
@@ -201,18 +215,18 @@ function StepByStep({ text, photos, showSafeArea }: TemplateRenderProps) {
                 >
                   <span style={{ ...clampLines(3) }}>{step}</span>
                 </p>
-              </li>
+              </Layer>
             );
           })}
         </ol>
 
         {cta ? (
-          <div style={{ marginTop: "auto", paddingTop: 28, display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+          <Layer id="cta" role="cta" style={{ marginTop: "auto", paddingTop: 28, display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
             <span style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.25, color: ATALA_TOKENS.blue, minWidth: 0, ...WRAP, ...clampLines(1) }}>
               {cta}
             </span>
             <ArrowRight size={30} color={ATALA_TOKENS.blue} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -232,4 +246,18 @@ export const STEP_BY_STEP: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto kolom kiri", aspect: PHOTO_COLUMN / FEED_SIZE }],
   fields: FIELDS,
   Component: StepByStep,
+  motion: {
+    defaultPresetId: "daftar",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "photo", role: "photo" },
+      { id: "decor-scrim", role: "decor" },
+      { id: "decor-divider", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      ...Array.from({ length: MAX_STEPS }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

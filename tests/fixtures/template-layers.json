@@ -1,0 +1,2510 @@
+{
+  "generatedBy": "tests/e2e/layer-parity.mjs",
+  "templates": {
+    "feed-announcement": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-lines",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": -80,
+          "y": 600,
+          "w": 560,
+          "h": 560
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 527.9,
+          "y": -152.1,
+          "w": 704.3,
+          "h": 704.3
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "badge-2",
+        "role": "badge",
+        "order": 1,
+        "box": {
+          "x": 64,
+          "y": 190,
+          "w": 220,
+          "h": 250
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 312,
+          "y": 190,
+          "w": 460,
+          "h": 250
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 504.8,
+          "w": 952,
+          "h": 114.4
+        },
+        "wordCount": 8,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 672,
+          "w": 952,
+          "h": 40
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 64,
+          "y": 724,
+          "w": 952,
+          "h": 40
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 792,
+          "w": 952,
+          "h": 70
+        },
+        "wordCount": 15,
+        "lineCount": 2
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 936,
+          "w": 496.6,
+          "h": 72
+        }
+      }
+    ],
+    "feed-checklist": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 480
+        }
+      },
+      {
+        "id": "decor-scrim",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 480
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 232.7,
+          "h": 60
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 704,
+          "y": 69,
+          "w": 312,
+          "h": 50
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 164,
+          "w": 952,
+          "h": 118.8
+        },
+        "wordCount": 6,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 116,
+          "y": 384,
+          "w": 848,
+          "h": 52
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 116,
+          "y": 454,
+          "w": 848,
+          "h": 52
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 116,
+          "y": 524,
+          "w": 848,
+          "h": 52
+        }
+      },
+      {
+        "id": "item-4",
+        "role": "list-item",
+        "order": 3,
+        "box": {
+          "x": 116,
+          "y": 594,
+          "w": 848,
+          "h": 52
+        }
+      },
+      {
+        "id": "item-5",
+        "role": "list-item",
+        "order": 4,
+        "box": {
+          "x": 116,
+          "y": 664,
+          "w": 848,
+          "h": 52
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 116,
+          "y": 912.2,
+          "w": 848,
+          "h": 59.8
+        }
+      }
+    ],
+    "feed-fact-focus": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-scrim",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 300
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 279.3,
+          "h": 72
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 557.8,
+          "w": 291.6,
+          "h": 50
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 664.8,
+          "w": 952,
+          "h": 151.2
+        },
+        "wordCount": 11,
+        "lineCount": 2
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 840,
+          "w": 952,
+          "h": 84
+        },
+        "wordCount": 17,
+        "lineCount": 2
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 960,
+          "w": 952,
+          "h": 56
+        }
+      }
+    ],
+    "feed-info-bar-chart": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-accent",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 810,
+          "y": -90,
+          "w": 360,
+          "h": 360
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 355.5,
+          "h": 52
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 142,
+          "w": 952,
+          "h": 67.2
+        },
+        "wordCount": 5,
+        "lineCount": 1
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 223.2,
+          "w": 952,
+          "h": 37.8
+        },
+        "wordCount": 10,
+        "lineCount": 1
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 96,
+          "y": 423,
+          "w": 389.4,
+          "h": 75
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 96,
+          "y": 507.8,
+          "w": 536.3,
+          "h": 75
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 96,
+          "y": 592.6,
+          "w": 722.7,
+          "h": 75
+        }
+      },
+      {
+        "id": "item-4",
+        "role": "list-item",
+        "order": 3,
+        "box": {
+          "x": 96,
+          "y": 677.4,
+          "w": 829.6,
+          "h": 75
+        }
+      },
+      {
+        "id": "item-5",
+        "role": "list-item",
+        "order": 4,
+        "box": {
+          "x": 96,
+          "y": 762.2,
+          "w": 429.9,
+          "h": 75
+        }
+      },
+      {
+        "id": "body-2",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 64,
+          "y": 971.7,
+          "w": 702.8,
+          "h": 28.6
+        },
+        "wordCount": 8,
+        "lineCount": 1
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 798.8,
+          "y": 958,
+          "w": 217.2,
+          "h": 56
+        }
+      }
+    ],
+    "feed-info-comparison": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 67,
+          "w": 464.5,
+          "h": 50
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 814.3,
+          "y": 66,
+          "w": 201.7,
+          "h": 52
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 173.2,
+          "y": 150,
+          "w": 733.5,
+          "h": 63.8
+        },
+        "wordCount": 5,
+        "lineCount": 1
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 199.3,
+          "y": 225.8,
+          "w": 681.3,
+          "h": 33.8
+        },
+        "wordCount": 8,
+        "lineCount": 1
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 364,
+          "w": 452,
+          "h": 580
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 564,
+          "y": 364,
+          "w": 452,
+          "h": 580
+        }
+      },
+      {
+        "id": "badge-2",
+        "role": "badge",
+        "order": 1,
+        "box": {
+          "x": 486,
+          "y": 434,
+          "w": 108,
+          "h": 108
+        },
+        "wordCount": 1,
+        "lineCount": 1
+      },
+      {
+        "id": "body-2",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 64,
+          "y": 987.4,
+          "w": 502.9,
+          "h": 28.6
+        },
+        "wordCount": 8,
+        "lineCount": 1
+      }
+    ],
+    "feed-info-percentage": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 66,
+          "w": 217.2,
+          "h": 56
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 719,
+          "y": 69,
+          "w": 297,
+          "h": 50
+        }
+      },
+      {
+        "id": "path-ring",
+        "role": "path",
+        "order": 0,
+        "box": {
+          "x": 90,
+          "y": 346,
+          "w": 388,
+          "h": 388
+        }
+      },
+      {
+        "id": "number",
+        "role": "number",
+        "order": 0,
+        "box": {
+          "x": 139.7,
+          "y": 450.2,
+          "w": 288.7,
+          "h": 132
+        },
+        "wordCount": 1,
+        "lineCount": 1
+      },
+      {
+        "id": "body-2",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 230.9,
+          "y": 596.2,
+          "w": 106.1,
+          "h": 33.6
+        },
+        "wordCount": 1,
+        "lineCount": 1
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 552,
+          "y": 274.6,
+          "w": 464,
+          "h": 180
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 552,
+          "y": 482.6,
+          "w": 464,
+          "h": 157.3
+        },
+        "wordCount": 8,
+        "lineCount": 3
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 552,
+          "y": 659.9,
+          "w": 464,
+          "h": 145.6
+        },
+        "wordCount": 16,
+        "lineCount": 4
+      },
+      {
+        "id": "body-3",
+        "role": "body",
+        "order": 2,
+        "box": {
+          "x": 64,
+          "y": 987.4,
+          "w": 952,
+          "h": 28.6
+        },
+        "wordCount": 8,
+        "lineCount": 1
+      }
+    ],
+    "feed-info-timeline": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 67,
+          "w": 351.2,
+          "h": 50
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 814.3,
+          "y": 66,
+          "w": 201.7,
+          "h": 52
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 146,
+          "w": 900,
+          "h": 118.8
+        },
+        "wordCount": 6,
+        "lineCount": 2
+      },
+      {
+        "id": "path-line",
+        "role": "path",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 617,
+          "w": 952,
+          "h": 10
+        }
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 401.8,
+          "w": 300,
+          "h": 154.2
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 199.6,
+          "y": 688,
+          "w": 300,
+          "h": 188
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 390,
+          "y": 401.8,
+          "w": 300,
+          "h": 154.2
+        }
+      },
+      {
+        "id": "item-4",
+        "role": "list-item",
+        "order": 3,
+        "box": {
+          "x": 580.4,
+          "y": 688,
+          "w": 300,
+          "h": 154.2
+        }
+      },
+      {
+        "id": "item-5",
+        "role": "list-item",
+        "order": 4,
+        "box": {
+          "x": 716,
+          "y": 401.8,
+          "w": 300,
+          "h": 154.2
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 974,
+          "w": 952,
+          "h": 42
+        }
+      }
+    ],
+    "feed-myth-vs-fact": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 307,
+          "h": 50
+        },
+        "wordCount": 3,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 144,
+          "w": 700,
+          "h": 103
+        },
+        "wordCount": 8,
+        "lineCount": 2
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 804,
+          "y": 72,
+          "w": 204,
+          "h": 204
+        }
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 348,
+          "w": 459,
+          "h": 580
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 563,
+          "y": 348,
+          "w": 453,
+          "h": 580
+        }
+      },
+      {
+        "id": "badge-2",
+        "role": "badge",
+        "order": 1,
+        "box": {
+          "x": 494,
+          "y": 592,
+          "w": 92,
+          "h": 92
+        },
+        "wordCount": 1,
+        "lineCount": 1
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 960,
+          "w": 217.2,
+          "h": 56
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 544.4,
+          "y": 971.1,
+          "w": 471.6,
+          "h": 33.8
+        }
+      }
+    ],
+    "feed-program-highlight": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 440
+        }
+      },
+      {
+        "id": "decor-gradient",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 220
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 70,
+          "w": 396.3,
+          "h": 50
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 767.8,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "decor-panel",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 0,
+          "y": 400,
+          "w": 1080,
+          "h": 680
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 518,
+          "w": 851.9,
+          "h": 54
+        },
+        "wordCount": 6,
+        "lineCount": 1
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 582,
+          "w": 952,
+          "h": 72.9
+        },
+        "wordCount": 11,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 680,
+          "w": 304,
+          "h": 204
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 388,
+          "y": 680,
+          "w": 304,
+          "h": 204
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 712,
+          "y": 680,
+          "w": 304,
+          "h": 204
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 908,
+          "w": 952,
+          "h": 104
+        }
+      }
+    ],
+    "feed-question-hook": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-glow",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 560,
+          "y": -40,
+          "w": 640,
+          "h": 640
+        }
+      },
+      {
+        "id": "decor-rings",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": -120,
+          "y": 800,
+          "w": 420,
+          "h": 420
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 60,
+          "y": 162,
+          "w": 412.5,
+          "h": 26
+        },
+        "wordCount": 3,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 299.2,
+          "w": 600,
+          "h": 237.6
+        },
+        "wordCount": 12,
+        "lineCount": 4
+      },
+      {
+        "id": "path-question-mark",
+        "role": "path",
+        "order": 0,
+        "box": {
+          "x": 640,
+          "y": 50,
+          "w": 420,
+          "h": 460
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 723,
+          "y": 546,
+          "w": 244,
+          "h": 244
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 648,
+          "w": 600,
+          "h": 240
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 928,
+          "w": 414.5,
+          "h": 64
+        }
+      }
+    ],
+    "feed-quote-educator": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-glow",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 560,
+          "y": 180,
+          "w": 640,
+          "h": 640
+        }
+      },
+      {
+        "id": "decor-arch",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 594,
+          "y": 378,
+          "w": 444,
+          "h": 702
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 616,
+          "y": 400,
+          "w": 400,
+          "h": 680
+        }
+      },
+      {
+        "id": "decor-tint",
+        "role": "decor",
+        "order": 2,
+        "box": {
+          "x": 616,
+          "y": 400,
+          "w": 400,
+          "h": 680
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 767.8,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 236,
+          "w": 520,
+          "h": 294.4
+        },
+        "wordCount": 15,
+        "lineCount": 5
+      },
+      {
+        "id": "decor-rule",
+        "role": "decor",
+        "order": 3,
+        "box": {
+          "x": 64,
+          "y": 836.8,
+          "w": 80,
+          "h": 8
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 866.8,
+          "w": 520,
+          "h": 45.6
+        },
+        "wordCount": 3,
+        "lineCount": 1
+      },
+      {
+        "id": "body-2",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 64,
+          "y": 920.4,
+          "w": 520,
+          "h": 37.8
+        },
+        "wordCount": 4,
+        "lineCount": 1
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 982.2,
+          "w": 520,
+          "h": 33.8
+        }
+      }
+    ],
+    "feed-statistic": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-panel",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 560,
+          "y": 0,
+          "w": 520,
+          "h": 700
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 670.4,
+          "y": 70,
+          "w": 345.6,
+          "h": 50
+        },
+        "wordCount": 3,
+        "lineCount": 1
+      },
+      {
+        "id": "number",
+        "role": "number",
+        "order": 0,
+        "box": {
+          "x": 56,
+          "y": 176,
+          "w": 233.2,
+          "h": 344
+        },
+        "wordCount": 1,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 540,
+          "w": 952,
+          "h": 87.8
+        },
+        "wordCount": 14,
+        "lineCount": 2
+      },
+      {
+        "id": "decor-strip",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 0,
+          "y": 726,
+          "w": 1080,
+          "h": 10
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 736,
+          "w": 1080,
+          "h": 180
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 944,
+          "w": 952,
+          "h": 64
+        }
+      }
+    ],
+    "feed-step-by-step": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 380,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-scrim",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 720,
+          "w": 380,
+          "h": 360
+        }
+      },
+      {
+        "id": "decor-divider",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 380,
+          "y": 0,
+          "w": 12,
+          "h": 1080
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 956,
+          "w": 232.7,
+          "h": 60
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 448,
+          "y": 64,
+          "w": 568,
+          "h": 26
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 448,
+          "y": 112,
+          "w": 568,
+          "h": 184.8
+        },
+        "wordCount": 6,
+        "lineCount": 3
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 448,
+          "y": 336.8,
+          "w": 568,
+          "h": 108.6
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 448,
+          "y": 445.4,
+          "w": 568,
+          "h": 108.6
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 448,
+          "y": 553.9,
+          "w": 568,
+          "h": 108.6
+        }
+      },
+      {
+        "id": "item-4",
+        "role": "list-item",
+        "order": 3,
+        "box": {
+          "x": 448,
+          "y": 662.5,
+          "w": 568,
+          "h": 84.6
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 448,
+          "y": 953,
+          "w": 568,
+          "h": 63
+        }
+      }
+    ],
+    "feed-testimonial": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1080
+        }
+      },
+      {
+        "id": "decor-ring",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": -220,
+          "y": 560,
+          "w": 640,
+          "h": 640
+        }
+      },
+      {
+        "id": "decor-circle",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 800,
+          "y": -160,
+          "w": 420,
+          "h": 420
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 70,
+          "w": 307.1,
+          "h": 46
+        },
+        "wordCount": 3,
+        "lineCount": 1
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 767.8,
+          "y": 64,
+          "w": 248.3,
+          "h": 64
+        }
+      },
+      {
+        "id": "decor-card",
+        "role": "decor",
+        "order": 2,
+        "box": {
+          "x": 64,
+          "y": 250,
+          "w": 952,
+          "h": 640
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 440,
+          "y": 150,
+          "w": 200,
+          "h": 200
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 128,
+          "y": 462.7,
+          "w": 824,
+          "h": 198.7
+        },
+        "wordCount": 19,
+        "lineCount": 4
+      },
+      {
+        "id": "decor-accent",
+        "role": "decor",
+        "order": 3,
+        "box": {
+          "x": 490,
+          "y": 744,
+          "w": 100,
+          "h": 6
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 128,
+          "y": 770,
+          "w": 824,
+          "h": 38.4
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "body-2",
+        "role": "body",
+        "order": 1,
+        "box": {
+          "x": 128,
+          "y": 818,
+          "w": 824,
+          "h": 31.2
+        },
+        "wordCount": 7,
+        "lineCount": 1
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 64,
+          "y": 930,
+          "w": 458,
+          "h": 60
+        }
+      }
+    ],
+    "story-announcement": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 860
+        }
+      },
+      {
+        "id": "decor-shade",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 460
+        }
+      },
+      {
+        "id": "decor-panel",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 0,
+          "y": 780,
+          "w": 1080,
+          "h": 1140
+        }
+      },
+      {
+        "id": "decor-accent",
+        "role": "decor",
+        "order": 2,
+        "box": {
+          "x": 72,
+          "y": 814,
+          "w": 120,
+          "h": 10
+        }
+      },
+      {
+        "id": "decor-ribbon",
+        "role": "decor",
+        "order": 3,
+        "box": {
+          "x": 780,
+          "y": 1670,
+          "w": 340,
+          "h": 340
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 250,
+          "w": 279.3,
+          "h": 72
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 710.5,
+          "y": 258,
+          "w": 297.5,
+          "h": 56
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 852,
+          "w": 936,
+          "h": 142.5
+        },
+        "wordCount": 7,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 1034.5,
+          "w": 936,
+          "h": 64
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 72,
+          "y": 1118.5,
+          "w": 936,
+          "h": 64
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 72,
+          "y": 1202.5,
+          "w": 936,
+          "h": 64
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 1494.8,
+          "w": 507.6,
+          "h": 85.2
+        }
+      }
+    ],
+    "story-frame": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      {
+        "id": "decor-frame",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 32,
+          "y": 32,
+          "w": 1016,
+          "h": 1856
+        }
+      },
+      {
+        "id": "decor-ribbon-top",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 810,
+          "y": -40,
+          "w": 300,
+          "h": 300
+        }
+      },
+      {
+        "id": "decor-ribbon-bottom",
+        "role": "decor",
+        "order": 2,
+        "box": {
+          "x": -40,
+          "y": 1660,
+          "w": 320,
+          "h": 320
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 250,
+          "w": 936,
+          "h": 72
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 86,
+          "y": 372,
+          "w": 908,
+          "h": 775.3
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 112,
+          "y": 398,
+          "w": 265.4,
+          "h": 54
+        },
+        "wordCount": 2,
+        "lineCount": 1
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 120,
+          "y": 1239.3,
+          "w": 840,
+          "h": 114.4
+        },
+        "wordCount": 8,
+        "lineCount": 2
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 120,
+          "y": 1373.7,
+          "w": 840,
+          "h": 88
+        },
+        "wordCount": 13,
+        "lineCount": 2
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 120,
+          "y": 1481.8,
+          "w": 840,
+          "h": 58.3
+        }
+      }
+    ],
+    "story-info-stats": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      {
+        "id": "decor-ribbon",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": -60,
+          "y": 1540,
+          "w": 420,
+          "h": 420
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 252,
+          "w": 232.7,
+          "h": 60
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 726.7,
+          "y": 257,
+          "w": 281.3,
+          "h": 50
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 350,
+          "w": 936,
+          "h": 138.2
+        },
+        "wordCount": 5,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 590.2,
+          "w": 936,
+          "h": 240
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 72,
+          "y": 854.2,
+          "w": 936,
+          "h": 240
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 72,
+          "y": 1118.2,
+          "w": 936,
+          "h": 240
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 1460.2,
+          "w": 561.6,
+          "h": 75.2
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 1551.4,
+          "w": 936,
+          "h": 28.6
+        },
+        "wordCount": 8,
+        "lineCount": 1
+      }
+    ],
+    "story-info-steps": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      {
+        "id": "decor-panel",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 178,
+          "h": 1920
+        }
+      },
+      {
+        "id": "decor-ribbon",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 740,
+          "y": -60,
+          "w": 420,
+          "h": 420
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 255,
+          "w": 286.5,
+          "h": 50
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 790.8,
+          "y": 252,
+          "w": 217.2,
+          "h": 56
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 340,
+          "w": 936,
+          "h": 129.6
+        },
+        "wordCount": 6,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 505.6,
+          "w": 936,
+          "h": 193.4
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 72,
+          "y": 699,
+          "w": 936,
+          "h": 193.5
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 72,
+          "y": 892.5,
+          "w": 936,
+          "h": 193.4
+        }
+      },
+      {
+        "id": "item-4",
+        "role": "list-item",
+        "order": 3,
+        "box": {
+          "x": 72,
+          "y": 1085.9,
+          "w": 936,
+          "h": 193.5
+        }
+      },
+      {
+        "id": "item-5",
+        "role": "list-item",
+        "order": 4,
+        "box": {
+          "x": 72,
+          "y": 1279.4,
+          "w": 936,
+          "h": 193.4
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 1504.8,
+          "w": 542.8,
+          "h": 75.2
+        }
+      }
+    ],
+    "story-question": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      {
+        "id": "decor-question-mark",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 520,
+          "y": 1310,
+          "w": 760,
+          "h": 760
+        }
+      },
+      {
+        "id": "decor-ribbon",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": -50,
+          "y": -60,
+          "w": 300,
+          "h": 300
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 250,
+          "w": 936,
+          "h": 72
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 788,
+          "y": 318,
+          "w": 176,
+          "h": 176
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 128,
+          "y": 438,
+          "w": 451.3,
+          "h": 56
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 128,
+          "y": 534,
+          "w": 824,
+          "h": 204.6
+        },
+        "wordCount": 11,
+        "lineCount": 3
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 846.6,
+          "w": 936,
+          "h": 40
+        }
+      },
+      {
+        "id": "decor-sticker-area",
+        "role": "decor",
+        "order": 2,
+        "box": {
+          "x": 180,
+          "y": 914.6,
+          "w": 720,
+          "h": 340
+        }
+      },
+      {
+        "id": "body",
+        "role": "body",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 1470,
+          "w": 936,
+          "h": 110
+        },
+        "wordCount": 10,
+        "lineCount": 2
+      }
+    ],
+    "story-quick-tip": [
+      {
+        "id": "background",
+        "role": "background",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920
+        }
+      },
+      {
+        "id": "photo",
+        "role": "photo",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 790
+        }
+      },
+      {
+        "id": "decor-shade",
+        "role": "decor",
+        "order": 0,
+        "box": {
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 520
+        }
+      },
+      {
+        "id": "decor-floor",
+        "role": "decor",
+        "order": 1,
+        "box": {
+          "x": 0,
+          "y": 1620,
+          "w": 1080,
+          "h": 300
+        }
+      },
+      {
+        "id": "decor-ribbon",
+        "role": "decor",
+        "order": 2,
+        "box": {
+          "x": 790,
+          "y": 1670,
+          "w": 320,
+          "h": 320
+        }
+      },
+      {
+        "id": "logo",
+        "role": "logo",
+        "order": 0,
+        "box": {
+          "x": 72,
+          "y": 250,
+          "w": 936,
+          "h": 72
+        }
+      },
+      {
+        "id": "badge",
+        "role": "badge",
+        "order": 0,
+        "box": {
+          "x": 124,
+          "y": 752,
+          "w": 264.2,
+          "h": 58
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "order": 0,
+        "box": {
+          "x": 124,
+          "y": 838,
+          "w": 832,
+          "h": 127.6
+        },
+        "wordCount": 7,
+        "lineCount": 2
+      },
+      {
+        "id": "item-1",
+        "role": "list-item",
+        "order": 0,
+        "box": {
+          "x": 124,
+          "y": 1001.6,
+          "w": 832,
+          "h": 60
+        }
+      },
+      {
+        "id": "item-2",
+        "role": "list-item",
+        "order": 1,
+        "box": {
+          "x": 124,
+          "y": 1087.6,
+          "w": 832,
+          "h": 60
+        }
+      },
+      {
+        "id": "item-3",
+        "role": "list-item",
+        "order": 2,
+        "box": {
+          "x": 124,
+          "y": 1173.6,
+          "w": 832,
+          "h": 60
+        }
+      },
+      {
+        "id": "cta",
+        "role": "cta",
+        "order": 0,
+        "box": {
+          "x": 124,
+          "y": 1462.5,
+          "w": 832,
+          "h": 65.5
+        }
+      }
+    ]
+  }
+}

@@ -105,6 +105,16 @@ export const MOTION_LIMITS = {
   durationMaxMs: 60000,
 } as const;
 
+/** Ukuran kanvas asli per format (piksel). */
+export const MOTION_CANVAS: Readonly<Record<MotionFormat, { width: number; height: number }>> = Object.freeze({
+  feed: { width: 1080, height: 1080 },
+  portrait: { width: 1080, height: 1350 },
+  story: { width: 1080, height: 1920 },
+});
+
+/** Zona Story yang tertutup UI Instagram; selaras dengan SAFE_AREA.story (src/lib/studio/types.ts). */
+export const STORY_UNSAFE_ZONE = Object.freeze({ top: 250, bottom: 340 });
+
 // ---------- Lapisan template ----------
 
 export interface LayerBox {
@@ -222,6 +232,8 @@ export interface TimelineItem {
   layerId: string;
   role: LayerRole;
   sublayerIndex?: number;
+  /** Mode pecah efektif bila lapisan dipecah (`<Layer>` memakainya untuk membuat span `data-sublayer`). */
+  split?: "word" | "line";
   entrance: EntranceRule;
   startMs: number;
   endMs: number;

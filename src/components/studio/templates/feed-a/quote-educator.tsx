@@ -1,5 +1,6 @@
 import { ArrowRight, Quote } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, PhotoFrame, SafeAreaGuide } from "../primitives";
 import { EDGE, FEED_SIZE, WRAP, clampLines, defaultsOf, fitSize, readText } from "./shared";
 
@@ -67,7 +68,9 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={FEED_SIZE} height={FEED_SIZE} background={`linear-gradient(155deg, ${ATALA_TOKENS.plum} 0%, #4A1747 100%)`}>
       {/* Lingkaran lembut di belakang potret. */}
-      <div
+      <Layer
+        id="decor-glow"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -80,7 +83,9 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
         }}
       />
       {/* Garis lengkung aksen. */}
-      <div
+      <Layer
+        id="decor-arch"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -106,7 +111,9 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
         }}
       >
         <PhotoFrame photo={photos.portrait} label="Foto pengajar" fallbackTone="amber" style={{ position: "absolute", inset: 0 }} />
-        <div
+        <Layer
+          id="decor-tint"
+          role="decor"
           aria-hidden
           style={{
             position: "absolute",
@@ -138,7 +145,10 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
           flexDirection: "column",
         }}
       >
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: 0,
             fontSize: quoteSize,
@@ -153,12 +163,21 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {quote}
-        </p>
+        </Layer>
 
         <div style={{ marginTop: "auto", paddingTop: 32, flexShrink: 0 }}>
-          <span aria-hidden style={{ display: "block", width: 80, height: 8, borderRadius: 8, background: ATALA_TOKENS.amber }} />
+          <Layer
+            id="decor-rule"
+            role="decor"
+            as="span"
+            aria-hidden
+            style={{ display: "block", width: 80, height: 8, borderRadius: 8, background: ATALA_TOKENS.amber }}
+          />
           {name ? (
-            <p
+            <Layer
+              id="body"
+              role="body"
+              as="p"
               style={{
                 margin: "22px 0 0",
                 fontSize: 38,
@@ -170,10 +189,13 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
               }}
             >
               {name}
-            </p>
+            </Layer>
           ) : null}
           {role ? (
-            <p
+            <Layer
+              id="body-2"
+              role="body"
+              as="p"
               style={{
                 margin: "8px 0 0",
                 fontSize: 28,
@@ -185,15 +207,15 @@ function QuoteEducator({ text, photos, showSafeArea }: TemplateRenderProps) {
               }}
             >
               {role}
-            </p>
+            </Layer>
           ) : null}
           {cta ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24 }}>
+            <Layer id="cta" role="cta" style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 24 }}>
               <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3, color: ATALA_TOKENS.amber, minWidth: 0, ...WRAP, ...clampLines(1) }}>
                 {cta}
               </span>
               <ArrowRight size={28} color={ATALA_TOKENS.amber} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />
-            </div>
+            </Layer>
           ) : null}
         </div>
       </div>
@@ -214,4 +236,20 @@ export const QUOTE_EDUCATOR: TemplateDefinition = {
   slots: [{ id: "portrait", label: "Foto pengajar", aspect: ARCH_WIDTH / ARCH_HEIGHT }],
   fields: FIELDS,
   Component: QuoteEducator,
+  motion: {
+    defaultPresetId: "editorial",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-glow", role: "decor" },
+      { id: "decor-arch", role: "decor" },
+      { id: "photo", role: "photo" },
+      { id: "decor-tint", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "headline", role: "headline" },
+      { id: "decor-rule", role: "decor" },
+      { id: "body", role: "body" },
+      { id: "body-2", role: "body" },
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

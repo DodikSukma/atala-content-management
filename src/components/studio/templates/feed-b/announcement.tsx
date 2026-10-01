@@ -1,6 +1,7 @@
 import { ArrowRight, Clock, MapPin } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
 import { BrandMark, Canvas, PhotoFrame, SafeAreaGuide } from "../primitives";
+import { Layer } from "../../motion/layer";
 import { EDGE, FEED_SIZE, WRAP, clampLines, fitSize, linesFor, textReader } from "./shared";
 
 /**
@@ -103,16 +104,27 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={FEED_SIZE} height={FEED_SIZE} background={ATALA_TOKENS.navy}>
       {/* Garis diagonal halus di kiri bawah */}
-      <svg aria-hidden width={560} height={560} viewBox="0 0 560 560" style={{ position: "absolute", left: -80, bottom: -80, opacity: 0.08 }}>
+      <Layer
+        id="decor-lines"
+        role="decor"
+        as="svg"
+        aria-hidden
+        width={560}
+        height={560}
+        viewBox="0 0 560 560"
+        style={{ position: "absolute", left: -80, bottom: -80, opacity: 0.08 }}
+      >
         <g stroke="#FFFFFF" strokeWidth={14}>
           {Array.from({ length: 12 }, (_, i) => (
             <line key={i} x1={i * 56 - 280} y1={560} x2={i * 56 + 280} y2={0} />
           ))}
         </g>
-      </svg>
+      </Layer>
 
       {ribbon ? (
-        <div
+        <Layer
+          id="badge"
+          role="badge"
           style={{
             position: "absolute",
             left: RIBBON.centerX - RIBBON.length / 2,
@@ -142,14 +154,16 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
           >
             {ribbon}
           </span>
-        </div>
+        </Layer>
       ) : null}
 
       <BrandMark size={64} color="#FFFFFF" style={{ position: "absolute", top: EDGE, left: EDGE }} />
 
       {/* Blok tanggal */}
       {day || month ? (
-        <div
+        <Layer
+          id="badge-2"
+          role="badge"
           style={{
             position: "absolute",
             top: DATE_BLOCK.top,
@@ -204,7 +218,7 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
               {day}
             </span>
           </div>
-        </div>
+        </Layer>
       ) : null}
 
       <PhotoFrame
@@ -226,7 +240,10 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
           alignItems: "center",
         }}
       >
-        <h2
+        <Layer
+          id="headline"
+          role="headline"
+          as="h2"
           style={{
             margin: 0,
             fontSize: titleSize,
@@ -239,30 +256,33 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {title}
-        </h2>
+        </Layer>
       </div>
 
       <div style={{ position: "absolute", top: 672, left: EDGE, width: INNER_WIDTH, display: "flex", flexDirection: "column", gap: 12 }}>
         {time ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 16, height: 40 }}>
+          <Layer id="item-1" role="list-item" style={{ display: "flex", alignItems: "center", gap: 16, height: 40 }}>
             <Clock size={32} strokeWidth={2.2} color={ATALA_TOKENS.amber} style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 26, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {time}
             </span>
-          </div>
+          </Layer>
         ) : null}
         {place ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 16, height: 40 }}>
+          <Layer id="item-2" role="list-item" style={{ display: "flex", alignItems: "center", gap: 16, height: 40 }}>
             <MapPin size={32} strokeWidth={2.2} color={ATALA_TOKENS.amber} style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 26, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {place}
             </span>
-          </div>
+          </Layer>
         ) : null}
       </div>
 
       {details ? (
-        <p
+        <Layer
+          id="body"
+          role="body"
+          as="p"
           style={{
             position: "absolute",
             top: DETAILS_BOX.top,
@@ -278,11 +298,13 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {details}
-        </p>
+        </Layer>
       ) : null}
 
       {cta ? (
-        <div
+        <Layer
+          id="cta"
+          role="cta"
           style={{
             position: "absolute",
             top: 936,
@@ -301,7 +323,7 @@ function Announcement({ text, photos, showSafeArea }: TemplateRenderProps) {
         >
           <span style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cta}</span>
           <ArrowRight size={28} strokeWidth={2.6} style={{ flexShrink: 0 }} />
-        </div>
+        </Layer>
       ) : null}
 
       {showSafeArea ? <SafeAreaGuide {...SAFE_AREA.feed} /> : null}
@@ -320,4 +342,20 @@ export const announcementTemplate: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto kegiatan", aspect: PHOTO.width / PHOTO.height }],
   fields: FIELDS,
   Component: Announcement,
+  motion: {
+    defaultPresetId: "tegas",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-lines", role: "decor" },
+      { id: "badge", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "badge-2", role: "badge" },
+      { id: "photo", role: "photo" },
+      { id: "headline", role: "headline" },
+      { id: "item-1", role: "list-item" },
+      { id: "item-2", role: "list-item" },
+      { id: "body", role: "body" },
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

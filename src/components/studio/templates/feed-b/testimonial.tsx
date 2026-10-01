@@ -1,6 +1,7 @@
 import { ArrowRight, Quote } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide } from "../primitives";
+import { Layer } from "../../motion/layer";
 import { EDGE, FEED_SIZE, WRAP, clampLines, fitSize, linesFor, textReader } from "./shared";
 
 /**
@@ -72,7 +73,9 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={FEED_SIZE} height={FEED_SIZE} background={`linear-gradient(160deg, ${ATALA_TOKENS.teal} 0%, #0E7490 100%)`}>
       {/* Lingkaran dekoratif */}
-      <div
+      <Layer
+        id="decor-ring"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -84,7 +87,9 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
           border: "3px solid rgba(255,255,255,0.14)",
         }}
       />
-      <div
+      <Layer
+        id="decor-circle"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -99,6 +104,7 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
 
       {eyebrow ? (
         <Eyebrow
+          layer={{ id: "badge", role: "badge" }}
           color="#FFFFFF"
           background="rgba(255,255,255,0.18)"
           style={{ position: "absolute", top: EDGE + 6, left: EDGE, maxWidth: 620, whiteSpace: "nowrap", overflow: "hidden", boxSizing: "border-box", fontSize: 22 }}
@@ -109,7 +115,9 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
       <BrandMark size={64} color="#FFFFFF" style={{ position: "absolute", top: EDGE, right: EDGE }} />
 
       {/* Kartu kutipan */}
-      <div
+      <Layer
+        id="decor-card"
+        role="decor"
         style={{
           position: "absolute",
           top: CARD.top,
@@ -128,7 +136,7 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
           fill={ATALA_TOKENS.teal}
           style={{ position: "absolute", top: 40, left: 48, opacity: 0.9 }}
         />
-      </div>
+      </Layer>
 
       {/* Avatar bulat menumpang di tepi atas kartu */}
       <div
@@ -160,7 +168,10 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
           justifyContent: "center",
         }}
       >
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: 0,
             fontSize: quoteSize,
@@ -174,15 +185,20 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {quote}
-        </p>
+        </Layer>
       </div>
 
-      <div
+      <Layer
+        id="decor-accent"
+        role="decor"
         aria-hidden
         style={{ position: "absolute", top: 744, left: FEED_SIZE / 2 - 50, width: 100, height: 6, borderRadius: 3, background: ATALA_TOKENS.amber }}
       />
       {name ? (
-        <p
+        <Layer
+          id="body"
+          role="body"
+          as="p"
           style={{
             position: "absolute",
             top: 770,
@@ -199,10 +215,13 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {name}
-        </p>
+        </Layer>
       ) : null}
       {role ? (
-        <p
+        <Layer
+          id="body-2"
+          role="body"
+          as="p"
           style={{
             position: "absolute",
             top: 818,
@@ -219,11 +238,13 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {role}
-        </p>
+        </Layer>
       ) : null}
 
       {cta ? (
-        <div
+        <Layer
+          id="cta"
+          role="cta"
           style={{
             position: "absolute",
             top: 930,
@@ -238,7 +259,7 @@ function Testimonial({ text, photos, showSafeArea }: TemplateRenderProps) {
         >
           <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cta}</span>
           <ArrowRight size={28} strokeWidth={2.6} style={{ flexShrink: 0 }} />
-        </div>
+        </Layer>
       ) : null}
 
       {showSafeArea ? <SafeAreaGuide {...SAFE_AREA.feed} /> : null}
@@ -257,4 +278,21 @@ export const testimonialTemplate: TemplateDefinition = {
   slots: [{ id: "avatar", label: "Foto siswa atau orang tua", aspect: 1 }],
   fields: FIELDS,
   Component: Testimonial,
+  motion: {
+    defaultPresetId: "editorial",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-ring", role: "decor" },
+      { id: "decor-circle", role: "decor" },
+      { id: "badge", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "decor-card", role: "decor" },
+      { id: "photo", role: "photo" },
+      { id: "headline", role: "headline" },
+      { id: "decor-accent", role: "decor" },
+      { id: "body", role: "body" },
+      { id: "body-2", role: "body" },
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

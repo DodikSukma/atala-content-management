@@ -1286,8 +1286,9 @@ describe("batas ekstrem", () => {
 
   it("20.000 sublapisan tetap terurut", () => {
     const preset = PRESETS.find((p) => p.id === "kinetik")!;
+    // Pecah kata dari override dikunci; tanpa override mesin menurunkannya karena tidak muat (MT-12).
     const tl = buildTimeline(
-      makeSpec({ presetId: preset.id }),
+      makeSpec({ presetId: preset.id, layerOverrides: { judul: { split: "word" } } }),
       [layer("judul", "headline", { wordCount: 20000 })],
       preset,
     );

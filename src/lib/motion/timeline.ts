@@ -1,5 +1,8 @@
+import { entranceDistance } from "./evaluate";
 import {
+  MOTION_CANVAS,
   MOTION_LIMITS,
+  STORY_UNSAFE_ZONE,
   type EntranceRule,
   type LayerInfo,
   type LayerOverride,
@@ -25,6 +28,12 @@ import {
  *   (tidak di bawah batas minimum) agar fase masuk <= 40% durasi dan tahan akhir cukup.
  *   Pelanggaran yang tetap tersisa dilaporkan di `violations`.
  * - `delayMs`/`durationMs` dari override dihormati apa adanya (tidak dikompresi).
+ * - Bila kompresi tetap tidak cukup, pecah kata bawaan resep/template diturunkan menjadi
+ *   pecah baris, lalu tanpa pecah (pecah dari override pengguna tidak diubah). Bila tetap
+ *   tidak muat, jadwal asli dipakai dan pelanggarannya dilaporkan.
+ * - Story: jarak `rise` dari resep diperkecil agar lapisan yang diam di area aman tidak masuk
+ *   dari zona UI Instagram (atas 250 px, bawah 340 px); bila ruangnya < 24 px, lapisan memudar
+ *   saja. Override pengguna tidak diubah (validator memberi error/peringatan).
  */
 
 /** Hierarki baca: latar -> foto -> dekor -> judul -> angka -> isi -> butir -> garis -> badge -> CTA -> logo. */
@@ -151,6 +160,40 @@ interface PlanEntry {
   count: number;
   pinnedStartMs: number | null;
   fixedDurationMs: number | null;
+  /** true bila mode pecah berasal dari override pengguna (tidak boleh diturunkan mesin). */
+  splitLocked: boolean;
+}
+
+/**
+ * Story: perkecil jarak `rise` agar lapisan yang diam di dalam area aman tidak bergerak
+ * masuk dari zona UI Instagram. Ruang < 24 px (batas jarak minimum) -> memudar saja.
+ * Lapisan yang memang berada di zona itu dibiarkan (validator memberi peringatan).
+ */
+export function fitStorySafeZone(rule: EntranceRule, layer: LayerInfo, format: MotionFormat): EntranceRule {
+  if (format !== "story" || rule.type !== "rise" || !layer.box) return rule;
+  const { y, h } = layer.box;
+  if (!isFiniteNumber(y) || !isFiniteNumber(h)) return rule;
+  const top = STORY_UNSAFE_ZONE.top;
+  const bottom = MOTION_CANVAS.story.height - STORY_UNSAFE_ZONE.bottom;
+  if (y < top || y + h > bottom) return rule;
+  const distance = entranceDistance(rule);
+  const room = Math.floor(distance > 0 ? bottom - (y + h) : y - top);
+  if (Math.abs(distance) <= room) return rule;
+  if (room >= MOTION_LIMITS.distanceMinPx) return { ...rule, distancePx: Math.sign(distance) * room };
+  const faded: EntranceRule = { ...rule, type: "fade" };
+  delete faded.distancePx;
+  return faded;
+}
+
+/** Turunkan mode pecah bawaan (bukan dari override) ke `cap`: kata -> baris -> tanpa pecah. */
+function capSplit(entry: PlanEntry, cap: "line" | "none"): PlanEntry {
+  if (entry.splitLocked || entry.mode === "none") return entry;
+  if (cap === "line") {
+    if (entry.mode !== "word") return entry;
+    const lines = positiveCount(entry.layer.lineCount);
+    return lines !== null && lines > 1 ? { ...entry, mode: "line", count: lines } : { ...entry, mode: "none", count: 1 };
+  }
+  return { ...entry, mode: "none", count: 1 };
 }
 
 interface Stagger {
@@ -194,7 +237,10 @@ function schedule(plan: readonly PlanEntry[], stagger: Stagger, timing: number, 
         startMs,
         endMs,
       };
-      if (entry.mode !== "none") item.sublayerIndex = i;
+      if (entry.mode !== "none") {
+        item.sublayerIndex = i;
+        item.split = entry.mode;
+      }
       if (pinned) item.pinned = true;
       items.push(item);
       if (!pinned) autoEndMs = Math.max(autoEndMs, endMs);
@@ -223,7 +269,7 @@ function sanitizeRule(rule: EntranceRule): EntranceRule {
   };
 }
 
-function buildPlan(spec: MotionSpec, sorted: readonly LayerInfo[], preset: Preset) {
+function buildPlan(spec: MotionSpec, sorted: readonly LayerInfo[], preset: Preset, format: MotionFormat) {
   const plan: PlanEntry[] = [];
   const staticKeys: string[] = [];
   for (const layer of sorted) {
@@ -253,8 +299,11 @@ function buildPlan(spec: MotionSpec, sorted: readonly LayerInfo[], preset: Prese
       staticKeys.push(layer.id);
       continue;
     }
+    // Jenis masuk pilihan pengguna (override) dihormati apa adanya; validator yang memperingatkan.
+    if (!custom) rule = fitStorySafeZone(rule, layer, format);
     const { mode, count } = resolveSplit(layer, override, preset);
-    plan.push({ layer, rule, mode, count, pinnedStartMs, fixedDurationMs });
+    const splitLocked = override?.split !== undefined;
+    plan.push({ layer, rule, mode, count, pinnedStartMs, fixedDurationMs, splitLocked });
   }
   return { plan, staticKeys };
 }
@@ -278,7 +327,7 @@ export function buildTimeline(
   const loopEnding = spec.loopEnding === true;
 
   const sorted = sortLayers(layers);
-  const { plan, staticKeys } = buildPlan(spec, sorted, preset);
+  const { plan: basePlan, staticKeys } = buildPlan(spec, sorted, preset, format);
 
   const layerStagger = nonNegative(preset.staggerMs, DEFAULT_STAGGER_MS);
   const stagger: Stagger = {
@@ -297,18 +346,35 @@ export function buildTimeline(
   const limitMs = Math.min(phaseLimitMs, holdEndMs - holdMinMs);
 
   // Kompresi: jeda/stagger dulu, lalu durasi entrance.
-  let timing = 1;
-  let duration = 1;
-  const fits = (k: number, j: number) => schedule(plan, stagger, k, j).autoEndMs <= limitMs;
-  const hasAutoItems = plan.some((entry) => entry.pinnedStartMs === null);
-  if (hasAutoItems && !fits(1, 1)) {
-    if (fits(0, 1)) {
-      timing = searchMaxFactor((k) => fits(k, 1));
-    } else {
-      timing = 0;
-      duration = fits(0, 0) ? searchMaxFactor((j) => fits(0, j)) : 0;
+  const compress = (plan: readonly PlanEntry[]) => {
+    let timing = 1;
+    let duration = 1;
+    const fits = (k: number, j: number) => schedule(plan, stagger, k, j).autoEndMs <= limitMs;
+    const hasAutoItems = plan.some((entry) => entry.pinnedStartMs === null);
+    if (hasAutoItems && !fits(1, 1)) {
+      if (fits(0, 1)) {
+        timing = searchMaxFactor((k) => fits(k, 1));
+      } else {
+        timing = 0;
+        duration = fits(0, 0) ? searchMaxFactor((j) => fits(0, j)) : 0;
+      }
+    }
+    return { plan, timing, duration, ok: !hasAutoItems || fits(timing, duration) };
+  };
+  // Bila jadwal tetap tidak muat, turunkan pecah kata bawaan -> baris -> tanpa pecah.
+  let chosen = compress(basePlan);
+  if (!chosen.ok) {
+    for (const cap of ["line", "none"] as const) {
+      const capped = basePlan.map((entry) => capSplit(entry, cap));
+      if (capped.every((entry, i) => entry === basePlan[i])) continue;
+      const attempt = compress(capped);
+      if (attempt.ok) {
+        chosen = attempt;
+        break;
+      }
     }
   }
+  const { plan, timing, duration } = chosen;
   const { items } = schedule(plan, stagger, timing, duration);
 
   let entranceEndMs = 0;

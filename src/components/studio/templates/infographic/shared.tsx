@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
+import type { LayerRole } from "@/lib/motion/types";
 import { ATALA_TOKENS, type TemplateField } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 
 /**
  * Helper bersama template Infografis (Feed 1080×1080 dan Story 1080×1920).
@@ -204,6 +206,9 @@ export function niceMax(max: number): number {
 
 /* ---------- elemen visual ---------- */
 
+/** Lapisan motion opsional untuk elemen bersama (MT-11). */
+type LayerSpec = { id: string; role: LayerRole };
+
 /** Kapsul label kecil kapital dengan ikon opsional. */
 export function Pill({
   children,
@@ -212,6 +217,7 @@ export function Pill({
   icon,
   size = 24,
   style,
+  layer,
 }: {
   children: ReactNode;
   color: string;
@@ -219,51 +225,73 @@ export function Pill({
   icon?: ReactNode;
   size?: number;
   style?: CSSProperties;
+  /** Jadikan kapsul ini lapisan motion (biasanya role `badge`). */
+  layer?: LayerSpec;
 }) {
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 10,
-        maxWidth: "100%",
-        padding: "12px 22px",
-        borderRadius: 999,
-        background,
-        color,
-        fontSize: size,
-        fontWeight: 800,
-        letterSpacing: "0.12em",
-        textTransform: "uppercase",
-        lineHeight: 1,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        flexShrink: 0,
-        ...style,
-      }}
-    >
+  const css: CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 10,
+    maxWidth: "100%",
+    padding: "12px 22px",
+    borderRadius: 999,
+    background,
+    color,
+    fontSize: size,
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    lineHeight: 1,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    flexShrink: 0,
+    ...style,
+  };
+  const content = (
+    <>
       {icon}
       <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{children}</span>
-    </span>
+    </>
   );
+  if (layer) {
+    return (
+      <Layer id={layer.id} role={layer.role} as="span" style={css}>
+        {content}
+      </Layer>
+    );
+  }
+  return <span style={css}>{content}</span>;
 }
 
 /** Baris sumber data kecil (miring) — selalu satu/dua baris. */
-export function SourceLine({ children, color, style }: { children: ReactNode; color: string; style?: CSSProperties }) {
-  return (
-    <p
-      style={{
-        margin: 0,
-        fontSize: 22,
-        fontStyle: "italic",
-        fontWeight: 500,
-        lineHeight: 1.3,
-        color,
-        ...clampLines(2),
-        ...style,
-      }}
-    >
-      {children}
-    </p>
-  );
+export function SourceLine({
+  children,
+  color,
+  style,
+  layer,
+}: {
+  children: ReactNode;
+  color: string;
+  style?: CSSProperties;
+  /** Jadikan baris ini lapisan motion (biasanya role `body`). */
+  layer?: LayerSpec;
+}) {
+  const css: CSSProperties = {
+    margin: 0,
+    fontSize: 22,
+    fontStyle: "italic",
+    fontWeight: 500,
+    lineHeight: 1.3,
+    color,
+    ...clampLines(2),
+    ...style,
+  };
+  if (layer) {
+    return (
+      <Layer id={layer.id} role={layer.role} as="p" style={css}>
+        {children}
+      </Layer>
+    );
+  }
+  return <p style={css}>{children}</p>;
 }

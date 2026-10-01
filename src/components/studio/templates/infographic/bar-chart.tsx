@@ -1,5 +1,6 @@
 import { ChartColumn } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, FONT_STACK, SafeAreaGuide } from "../primitives";
 import {
   FEED,
@@ -127,7 +128,10 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={FEED} height={FEED} background={ATALA_TOKENS.paper}>
       {/* Aksen sudut kanan atas */}
-      <svg
+      <Layer
+        id="decor-accent"
+        role="decor"
+        as="svg"
         aria-hidden
         viewBox="0 0 300 300"
         style={{ position: "absolute", top: -90, right: -90, width: 360, height: 360, opacity: 0.14, zIndex: 0 }}
@@ -136,7 +140,7 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
           <path d="M40 280 L150 40" stroke={ATALA_TOKENS.blue} />
           <path d="M170 30 L280 270" stroke={ATALA_TOKENS.teal} />
         </g>
-      </svg>
+      </Layer>
 
       {/* Kepala: label + judul + subjudul */}
       <div style={{ position: "absolute", top: EDGE, left: EDGE, right: EDGE, height: 310, display: "flex", flexDirection: "column", zIndex: 1 }}>
@@ -146,11 +150,15 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
             background="#DBE7FD"
             icon={<ChartColumn size={28} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />}
             style={{ alignSelf: "flex-start" }}
+            layer={{ id: "badge", role: "badge" }}
           >
             {t.eyebrow}
           </Pill>
         ) : null}
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: t.eyebrow ? "26px 0 0" : 0,
             fontSize: titleSize,
@@ -162,11 +170,16 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {t.title}
-        </p>
+        </Layer>
         {t.subtitle ? (
-          <p style={{ margin: "14px 0 0", fontSize: 28, fontWeight: 500, lineHeight: 1.35, color: ATALA_TOKENS.inkSoft, ...clampLines(2) }}>
+          <Layer
+            id="body"
+            role="body"
+            as="p"
+            style={{ margin: "14px 0 0", fontSize: 28, fontWeight: 500, lineHeight: 1.35, color: ATALA_TOKENS.inkSoft, ...clampLines(2) }}
+          >
             {t.subtitle}
-          </p>
+          </Layer>
         ) : null}
       </div>
 
@@ -221,7 +234,7 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
               const isMax = row.value === maxValue && maxValue > 0;
               const barY = top + LABEL_SIZE + 14;
               return (
-                <g key={`${row.label}-${i}`}>
+                <Layer key={`${row.label}-${i}`} id={`item-${i + 1}`} role="list-item" as="g">
                   <text x={4} y={top + LABEL_SIZE} fontSize={LABEL_SIZE} fontWeight={700} fill={ATALA_TOKENS.ink}>
                     {row.label}
                   </text>
@@ -239,7 +252,7 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
                   >
                     {truncate(labels[i], 26)}
                   </text>
-                </g>
+                </Layer>
               );
             })
           ) : (
@@ -282,7 +295,7 @@ function BarChart({ text, showSafeArea }: TemplateRenderProps) {
         }}
       >
         <div style={{ flex: 1, minWidth: 0, ...WRAP }}>
-          {t.source ? <SourceLine color={ATALA_TOKENS.inkSoft}>Sumber: {t.source}</SourceLine> : null}
+          {t.source ? <SourceLine color={ATALA_TOKENS.inkSoft} layer={{ id: "body-2", role: "body" }}>Sumber: {t.source}</SourceLine> : null}
         </div>
         <BrandMark size={56} color={ATALA_TOKENS.navy} style={{ flexShrink: 0 }} />
       </div>
@@ -303,4 +316,17 @@ export const FEED_INFO_BAR_CHART: TemplateDefinition = {
   slots: [],
   fields: FIELDS,
   Component: BarChart,
+  motion: {
+    defaultPresetId: "daftar",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-accent", role: "decor" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      { id: "body", role: "body" },
+      ...Array.from({ length: MAX_ROWS }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "body-2", role: "body" },
+      { id: "logo", role: "logo" },
+    ],
+  },
 };

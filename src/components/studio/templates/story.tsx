@@ -12,14 +12,17 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
+import type { LayerRole } from "@/lib/motion/types";
 import {
   ATALA_TOKENS,
   SAFE_AREA,
   type TemplateDefinition,
   type TemplateField,
+  type TemplateLayerSpec,
   type TemplateRenderProps,
 } from "@/lib/studio/types";
 import { BrandMark, Canvas, PhotoFrame, SafeAreaGuide, splitList } from "@/components/studio/templates/primitives";
+import { Layer } from "../motion/layer";
 
 /**
  * Empat template Story 1080×1920 (AT-19).
@@ -87,10 +90,31 @@ const SAFE_COLUMN: CSSProperties = {
   zIndex: 2,
 };
 
-/** Pita diagonal seperti bentuk logo Atala — dekorasi murni. */
-function Ribbons({ style, colors, opacity = 1 }: { style: CSSProperties; colors: readonly [string, string]; opacity?: number }) {
+/** Spesifikasi lapisan motion untuk elemen akar komponen bantu (MT-11). */
+type LayerSpec = { id: string; role: LayerRole };
+
+/** Daftar lapisan butir `item-1`..`item-N` untuk `motion.layers`. */
+function itemLayers(max: number): TemplateLayerSpec[] {
+  return Array.from({ length: max }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const }));
+}
+
+/** Pita diagonal seperti bentuk logo Atala — dekorasi murni (svg akar menjadi lapisan `decor`). */
+function Ribbons({
+  style,
+  colors,
+  opacity = 1,
+  layer,
+}: {
+  style: CSSProperties;
+  colors: readonly [string, string];
+  opacity?: number;
+  layer: LayerSpec;
+}) {
   return (
-    <svg
+    <Layer
+      id={layer.id}
+      role={layer.role}
+      as="svg"
       viewBox="0 0 300 300"
       aria-hidden
       style={{ position: "absolute", pointerEvents: "none", opacity, zIndex: 0, ...style }}
@@ -99,7 +123,7 @@ function Ribbons({ style, colors, opacity = 1 }: { style: CSSProperties; colors:
         <path d="M40 280 L150 40" stroke={colors[0]} />
         <path d="M170 30 L280 270" stroke={colors[1]} />
       </g>
-    </svg>
+    </Layer>
   );
 }
 
@@ -110,15 +134,21 @@ function IconPill({
   color,
   background,
   size = 26,
+  layer,
 }: {
   icon: LucideIcon;
   children: ReactNode;
   color: string;
   background: string;
   size?: number;
+  /** Span akar kapsul menjadi lapisan motion (biasanya role `badge`). */
+  layer: LayerSpec;
 }) {
   return (
-    <span
+    <Layer
+      id={layer.id}
+      role={layer.role}
+      as="span"
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -139,7 +169,7 @@ function IconPill({
     >
       <Icon size={size + 4} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />
       <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{children}</span>
-    </span>
+    </Layer>
   );
 }
 
@@ -199,7 +229,9 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={W} height={H} background={`linear-gradient(180deg, ${ATALA_TOKENS.navy} 0%, ${ATALA_TOKENS.ink} 100%)`}>
       {/* Bingkai tipis di tepi kanvas (dekorasi di luar kolom konten). */}
-      <div
+      <Layer
+        id="decor-frame"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -209,8 +241,18 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
           zIndex: 0,
         }}
       />
-      <Ribbons colors={[ATALA_TOKENS.teal, ATALA_TOKENS.amber]} opacity={0.9} style={{ top: -40, right: -30, width: 300, height: 300 }} />
-      <Ribbons colors={[ATALA_TOKENS.amber, ATALA_TOKENS.cyan]} opacity={0.35} style={{ bottom: -60, left: -40, width: 320, height: 320 }} />
+      <Ribbons
+        layer={{ id: "decor-ribbon-top", role: "decor" }}
+        colors={[ATALA_TOKENS.teal, ATALA_TOKENS.amber]}
+        opacity={0.9}
+        style={{ top: -40, right: -30, width: 300, height: 300 }}
+      />
+      <Ribbons
+        layer={{ id: "decor-ribbon-bottom", role: "decor" }}
+        colors={[ATALA_TOKENS.amber, ATALA_TOKENS.cyan]}
+        opacity={0.35}
+        style={{ bottom: -60, left: -40, width: 320, height: 320 }}
+      />
 
       <div style={{ ...SAFE_COLUMN, gap: 36 }}>
         <BrandMark size={72} color={ATALA_TOKENS.paper} style={{ flexShrink: 0 }} />
@@ -236,7 +278,10 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
           />
           {t.eyebrow ? (
             <div style={{ position: "absolute", top: 26, left: 26, right: 26, zIndex: 1 }}>
-              <span
+              <Layer
+                id="badge"
+                role="badge"
+                as="span"
                 style={{
                   display: "inline-block",
                   maxWidth: "100%",
@@ -256,7 +301,7 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
                 }}
               >
                 {t.eyebrow}
-              </span>
+              </Layer>
             </div>
           ) : null}
         </div>
@@ -276,7 +321,9 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {t.headline ? (
-            <div
+            <Layer
+              id="headline"
+              role="headline"
               style={{
                 fontSize: headlineSize,
                 fontWeight: 800,
@@ -287,15 +334,21 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
               }}
             >
               {t.headline}
-            </div>
+            </Layer>
           ) : null}
           {t.caption ? (
-            <div style={{ fontSize: captionSize, fontWeight: 500, lineHeight: 1.42, color: ATALA_TOKENS.inkSoft, ...clampLines(4) }}>
+            <Layer
+              id="body"
+              role="body"
+              style={{ fontSize: captionSize, fontWeight: 500, lineHeight: 1.42, color: ATALA_TOKENS.inkSoft, ...clampLines(4) }}
+            >
               {t.caption}
-            </div>
+            </Layer>
           ) : null}
           {t.footer ? (
-            <div
+            <Layer
+              id="cta"
+              role="cta"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -307,7 +360,7 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
             >
               <ArrowRight size={34} strokeWidth={2.6} color={ATALA_TOKENS.teal} aria-hidden style={{ flexShrink: 0 }} />
               <span style={{ fontSize: 29, fontWeight: 700, lineHeight: 1.25, ...clampLines(2) }}>{t.footer}</span>
-            </div>
+            </Layer>
           ) : null}
         </div>
       </div>
@@ -320,6 +373,9 @@ function StoryFrame({ text, photos, showSafeArea }: TemplateRenderProps) {
 /* =====================================================================
  * 2. Quick Tip — judul tips + tiga poin singkat + foto
  * ===================================================================== */
+
+/** Jumlah poin tips maksimum (bidang `points`). */
+const TIP_MAX_POINTS = 3;
 
 const TIP_FIELDS: TemplateField[] = [
   {
@@ -343,7 +399,7 @@ const TIP_FIELDS: TemplateField[] = [
     label: "Poin tips",
     kind: "list",
     maxLength: 210,
-    maxItems: 3,
+    maxItems: TIP_MAX_POINTS,
     defaultValue:
       "Matikan notifikasi selama 25 menit belajar\nTulis satu target kecil sebelum mulai\nUlas catatan singkat sebelum tidur",
     hint: "Satu poin per baris, maksimal 3 poin pendek.",
@@ -360,7 +416,7 @@ const TIP_FIELDS: TemplateField[] = [
 
 function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
   const t = readText(TIP_FIELDS, text);
-  const points = splitList(t.points, 3);
+  const points = splitList(t.points, TIP_MAX_POINTS);
   const totalPoints = points.reduce((n, p) => n + p.length, 0);
   const titleSize = stepSize(t.title, [
     [32, 66],
@@ -384,7 +440,9 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
         fallbackTone="teal"
         style={{ position: "absolute", top: 0, left: 0, right: 0, height: 790, zIndex: 0 }}
       />
-      <div
+      <Layer
+        id="decor-shade"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -396,7 +454,9 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
           zIndex: 1,
         }}
       />
-      <div
+      <Layer
+        id="decor-floor"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -408,7 +468,12 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
           zIndex: 0,
         }}
       />
-      <Ribbons colors={[ATALA_TOKENS.teal, ATALA_TOKENS.amber]} opacity={0.55} style={{ bottom: -70, right: -30, width: 320, height: 320 }} />
+      <Ribbons
+        layer={{ id: "decor-ribbon", role: "decor" }}
+        colors={[ATALA_TOKENS.teal, ATALA_TOKENS.amber]}
+        opacity={0.55}
+        style={{ bottom: -70, right: -30, width: 320, height: 320 }}
+      />
 
       <div style={{ ...SAFE_COLUMN }}>
         <BrandMark
@@ -433,14 +498,16 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
         >
           {t.eyebrow ? (
             <div style={{ flexShrink: 0 }}>
-              <IconPill icon={Lightbulb} color={TEAL_DEEP} background="#E0F7F7">
+              <IconPill layer={{ id: "badge", role: "badge" }} icon={Lightbulb} color={TEAL_DEEP} background="#E0F7F7">
                 {t.eyebrow}
               </IconPill>
             </div>
           ) : null}
 
           {t.title ? (
-            <div
+            <Layer
+              id="headline"
+              role="headline"
               style={{
                 marginTop: 28,
                 flexShrink: 0,
@@ -453,7 +520,7 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
               }}
             >
               {t.title}
-            </div>
+            </Layer>
           ) : null}
 
           {points.length ? (
@@ -471,7 +538,7 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
               }}
             >
               {points.map((point, i) => (
-                <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 26 }}>
+                <Layer key={i} id={`item-${i + 1}`} role="list-item" as="li" style={{ display: "flex", alignItems: "flex-start", gap: 26 }}>
                   <span
                     aria-hidden
                     style={{
@@ -503,7 +570,7 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
                   >
                     {point}
                   </span>
-                </li>
+                </Layer>
               ))}
             </ol>
           ) : (
@@ -511,7 +578,9 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
           )}
 
           {t.footer ? (
-            <div
+            <Layer
+              id="cta"
+              role="cta"
               style={{
                 marginTop: 24,
                 flexShrink: 0,
@@ -526,7 +595,7 @@ function StoryQuickTip({ text, photos, showSafeArea }: TemplateRenderProps) {
               <span style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.25, color: ATALA_TOKENS.ink, ...clampLines(2) }}>
                 {t.footer}
               </span>
-            </div>
+            </Layer>
           ) : null}
         </div>
       </div>
@@ -587,10 +656,20 @@ function StoryQuestion({ text, photos, showSafeArea }: TemplateRenderProps) {
 
   return (
     <Canvas width={W} height={H} background={`linear-gradient(160deg, ${ATALA_TOKENS.violet} 0%, ${ATALA_TOKENS.plum} 100%)`}>
-      <div aria-hidden style={{ position: "absolute", right: -200, bottom: -150, color: ATALA_TOKENS.paper, opacity: 0.08, zIndex: 0 }}>
+      <Layer
+        id="decor-question-mark"
+        role="decor"
+        aria-hidden
+        style={{ position: "absolute", right: -200, bottom: -150, color: ATALA_TOKENS.paper, opacity: 0.08, zIndex: 0 }}
+      >
         <CircleQuestionMark size={760} strokeWidth={1.6} aria-hidden />
-      </div>
-      <Ribbons colors={[ATALA_TOKENS.amber, ATALA_TOKENS.cyan]} opacity={0.75} style={{ top: -60, left: -50, width: 300, height: 300 }} />
+      </Layer>
+      <Ribbons
+        layer={{ id: "decor-ribbon", role: "decor" }}
+        colors={[ATALA_TOKENS.amber, ATALA_TOKENS.cyan]}
+        opacity={0.75}
+        style={{ top: -60, left: -50, width: 300, height: 300 }}
+      />
 
       <div style={{ ...SAFE_COLUMN }}>
         <BrandMark size={72} color={ATALA_TOKENS.paper} style={{ flexShrink: 0 }} />
@@ -624,12 +703,20 @@ function StoryQuestion({ text, photos, showSafeArea }: TemplateRenderProps) {
           />
           <div style={{ minHeight: 60, paddingRight: 200 }}>
             {t.eyebrow ? (
-              <IconPill icon={CircleQuestionMark} color={ATALA_TOKENS.violet} background="#F3E8FF" size={24}>
+              <IconPill
+                layer={{ id: "badge", role: "badge" }}
+                icon={CircleQuestionMark}
+                color={ATALA_TOKENS.violet}
+                background="#F3E8FF"
+                size={24}
+              >
                 {t.eyebrow}
               </IconPill>
             ) : null}
           </div>
-          <div
+          <Layer
+            id="headline"
+            role="headline"
             style={{
               marginTop: 36,
               maxHeight: 5 * questionSize * 1.1,
@@ -642,11 +729,13 @@ function StoryQuestion({ text, photos, showSafeArea }: TemplateRenderProps) {
             }}
           >
             {t.question}
-          </div>
+          </Layer>
         </div>
 
         {t.prompt ? (
-          <div
+          <Layer
+            id="cta"
+            role="cta"
             style={{
               marginTop: 48,
               flexShrink: 0,
@@ -659,11 +748,13 @@ function StoryQuestion({ text, photos, showSafeArea }: TemplateRenderProps) {
           >
             <ArrowDown size={36} strokeWidth={2.8} color={ATALA_TOKENS.amber} aria-hidden style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 32, fontWeight: 700, lineHeight: 1.25, textAlign: "center", ...clampLines(2) }}>{t.prompt}</span>
-          </div>
+          </Layer>
         ) : null}
 
         {/* Ruang kosong untuk stiker pertanyaan; label hanya muncul di pratinjau. */}
-        <div
+        <Layer
+          id="decor-sticker-area"
+          role="decor"
           data-sticker-area
           style={{
             position: "relative",
@@ -699,12 +790,14 @@ function StoryQuestion({ text, photos, showSafeArea }: TemplateRenderProps) {
               <span style={{ fontSize: 24, fontWeight: 500, opacity: 0.85 }}>Hanya tampil di pratinjau, tidak ikut ekspor</span>
             </div>
           ) : null}
-        </div>
+        </Layer>
 
         <div style={{ flex: "1 1 auto", minHeight: 24 }} />
 
         {t.note ? (
-          <div
+          <Layer
+            id="body"
+            role="body"
             style={{
               flexShrink: 0,
               paddingTop: 24,
@@ -717,7 +810,7 @@ function StoryQuestion({ text, photos, showSafeArea }: TemplateRenderProps) {
             }}
           >
             {t.note}
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -781,9 +874,9 @@ const ANNOUNCEMENT_FIELDS: TemplateField[] = [
 
 const ONLINE_PATTERN = /\b(daring|online|zoom|meet|webinar|live|siaran)\b/i;
 
-function InfoRow({ icon: Icon, children }: { icon: LucideIcon; children: string }) {
+function InfoRow({ icon: Icon, children, layer }: { icon: LucideIcon; children: string; layer: LayerSpec }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+    <Layer id={layer.id} role={layer.role} style={{ display: "flex", alignItems: "center", gap: 24 }}>
       <span
         aria-hidden
         style={{
@@ -802,7 +895,7 @@ function InfoRow({ icon: Icon, children }: { icon: LucideIcon; children: string 
         <Icon size={32} strokeWidth={2.4} aria-hidden />
       </span>
       <span style={{ fontSize: 34, fontWeight: 600, lineHeight: 1.3, color: ATALA_TOKENS.paper, ...clampLines(2) }}>{children}</span>
-    </div>
+    </Layer>
   );
 }
 
@@ -827,7 +920,9 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
         fallbackTone="navy"
         style={{ position: "absolute", top: 0, left: 0, right: 0, height: PANEL_TOP + 80, zIndex: 0 }}
       />
-      <div
+      <Layer
+        id="decor-shade"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -840,7 +935,9 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
         }}
       />
       {/* Panel informasi: melebar sampai tepi bawah kanvas (dekorasi), isi tetap di area aman. */}
-      <div
+      <Layer
+        id="decor-panel"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -854,7 +951,9 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
           zIndex: 1,
         }}
       />
-      <div
+      <Layer
+        id="decor-accent"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -867,7 +966,12 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
           zIndex: 2,
         }}
       />
-      <Ribbons colors={[ATALA_TOKENS.teal, ATALA_TOKENS.amber]} opacity={0.3} style={{ bottom: -90, right: -40, width: 340, height: 340, zIndex: 1 }} />
+      <Ribbons
+        layer={{ id: "decor-ribbon", role: "decor" }}
+        colors={[ATALA_TOKENS.teal, ATALA_TOKENS.amber]}
+        opacity={0.3}
+        style={{ bottom: -90, right: -40, width: 340, height: 340, zIndex: 1 }}
+      />
 
       {/* Baris merek + label di atas foto. */}
       <div
@@ -886,7 +990,13 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
         <BrandMark size={72} color={ATALA_TOKENS.paper} style={{ flexShrink: 0, textShadow: "0 2px 12px rgba(15,23,42,0.45)" }} />
         {t.eyebrow ? (
           <span style={{ minWidth: 0, display: "flex", justifyContent: "flex-end" }}>
-            <IconPill icon={Megaphone} color={ATALA_TOKENS.ink} background={ATALA_TOKENS.amber} size={24}>
+            <IconPill
+              layer={{ id: "badge", role: "badge" }}
+              icon={Megaphone}
+              color={ATALA_TOKENS.ink}
+              background={ATALA_TOKENS.amber}
+              size={24}
+            >
               {t.eyebrow}
             </IconPill>
           </span>
@@ -907,7 +1017,9 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
         }}
       >
         {t.title ? (
-          <div
+          <Layer
+            id="headline"
+            role="headline"
             style={{
               flexShrink: 0,
               fontSize: titleSize,
@@ -919,19 +1031,33 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
             }}
           >
             {t.title}
-          </div>
+          </Layer>
         ) : null}
 
         <div style={{ marginTop: 40, display: "flex", flexDirection: "column", gap: 20, flex: "0 1 auto", minHeight: 0, overflow: "hidden" }}>
-          {t.date ? <InfoRow icon={CalendarDays}>{t.date}</InfoRow> : null}
-          {t.time ? <InfoRow icon={Clock}>{t.time}</InfoRow> : null}
-          {t.place ? <InfoRow icon={ONLINE_PATTERN.test(t.place) ? Video : MapPin}>{t.place}</InfoRow> : null}
+          {t.date ? (
+            <InfoRow layer={{ id: "item-1", role: "list-item" }} icon={CalendarDays}>
+              {t.date}
+            </InfoRow>
+          ) : null}
+          {t.time ? (
+            <InfoRow layer={{ id: "item-2", role: "list-item" }} icon={Clock}>
+              {t.time}
+            </InfoRow>
+          ) : null}
+          {t.place ? (
+            <InfoRow layer={{ id: "item-3", role: "list-item" }} icon={ONLINE_PATTERN.test(t.place) ? Video : MapPin}>
+              {t.place}
+            </InfoRow>
+          ) : null}
         </div>
 
         <div style={{ flex: "1 1 auto", minHeight: 28 }} />
 
         {t.cta ? (
-          <div
+          <Layer
+            id="cta"
+            role="cta"
             style={{
               flexShrink: 0,
               alignSelf: "flex-start",
@@ -948,7 +1074,7 @@ function StoryAnnouncement({ text, photos, showSafeArea }: TemplateRenderProps) 
           >
             <span style={{ fontSize: ctaSize, fontWeight: 800, lineHeight: 1.2, ...clampLines(2) }}>{t.cta}</span>
             <ArrowRight size={ctaSize + 2} strokeWidth={2.8} aria-hidden style={{ flexShrink: 0 }} />
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -971,6 +1097,21 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
     slots: [{ id: "main", label: "Foto utama", aspect: 1.2 }],
     fields: FRAME_FIELDS,
     Component: StoryFrame,
+    motion: {
+      defaultPresetId: "fokus",
+      layers: [
+        { id: "background", role: "background" },
+        { id: "decor-frame", role: "decor" },
+        { id: "decor-ribbon-top", role: "decor" },
+        { id: "decor-ribbon-bottom", role: "decor" },
+        { id: "logo", role: "logo" },
+        { id: "photo", role: "photo" },
+        { id: "badge", role: "badge" },
+        { id: "headline", role: "headline" },
+        { id: "body", role: "body" },
+        { id: "cta", role: "cta" },
+      ],
+    },
   },
   {
     id: "story-quick-tip",
@@ -983,6 +1124,21 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
     slots: [{ id: "photo", label: "Foto tips", aspect: 1080 / 790 }],
     fields: TIP_FIELDS,
     Component: StoryQuickTip,
+    motion: {
+      defaultPresetId: "daftar",
+      layers: [
+        { id: "background", role: "background" },
+        { id: "photo", role: "photo" },
+        { id: "decor-shade", role: "decor" },
+        { id: "decor-floor", role: "decor" },
+        { id: "decor-ribbon", role: "decor" },
+        { id: "logo", role: "logo" },
+        { id: "badge", role: "badge" },
+        { id: "headline", role: "headline" },
+        ...itemLayers(TIP_MAX_POINTS),
+        { id: "cta", role: "cta" },
+      ],
+    },
   },
   {
     id: "story-question",
@@ -995,6 +1151,21 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
     slots: [{ id: "avatar", label: "Foto pendamping", aspect: 1 }],
     fields: QUESTION_FIELDS,
     Component: StoryQuestion,
+    motion: {
+      defaultPresetId: "pertanyaan",
+      layers: [
+        { id: "background", role: "background" },
+        { id: "decor-question-mark", role: "decor" },
+        { id: "decor-ribbon", role: "decor" },
+        { id: "logo", role: "logo" },
+        { id: "photo", role: "photo" },
+        { id: "badge", role: "badge" },
+        { id: "headline", role: "headline" },
+        { id: "cta", role: "cta" },
+        { id: "decor-sticker-area", role: "decor" },
+        { id: "body", role: "body" },
+      ],
+    },
   },
   {
     id: "story-announcement",
@@ -1007,5 +1178,21 @@ export const STORY_TEMPLATES: TemplateDefinition[] = [
     slots: [{ id: "photo", label: "Foto acara", aspect: 1080 / 880 }],
     fields: ANNOUNCEMENT_FIELDS,
     Component: StoryAnnouncement,
+    motion: {
+      defaultPresetId: "pengumuman",
+      layers: [
+        { id: "background", role: "background" },
+        { id: "photo", role: "photo" },
+        { id: "decor-shade", role: "decor" },
+        { id: "decor-panel", role: "decor" },
+        { id: "decor-accent", role: "decor" },
+        { id: "decor-ribbon", role: "decor" },
+        { id: "logo", role: "logo" },
+        { id: "badge", role: "badge" },
+        { id: "headline", role: "headline" },
+        ...itemLayers(3),
+        { id: "cta", role: "cta" },
+      ],
+    },
   },
 ];

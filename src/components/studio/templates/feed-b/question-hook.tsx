@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide } from "../primitives";
+import { Layer } from "../../motion/layer";
 import { EDGE, FEED_SIZE, WRAP, clampLines, fitSize, linesFor, textReader } from "./shared";
 
 /**
@@ -74,7 +75,9 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={FEED_SIZE} height={FEED_SIZE} background={ATALA_TOKENS.navy}>
       {/* Cahaya lembut di belakang tanda tanya */}
-      <div
+      <Layer
+        id="decor-glow"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -87,7 +90,10 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
         }}
       />
       {/* Pola garis tipis di kiri bawah */}
-      <svg
+      <Layer
+        id="decor-rings"
+        role="decor"
+        as="svg"
         aria-hidden
         width={420}
         height={420}
@@ -99,12 +105,12 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
           <circle cx={210} cy={210} r={130} />
           <circle cx={210} cy={210} r={180} />
         </g>
-      </svg>
+      </Layer>
 
       <BrandMark size={64} color="#FFFFFF" style={{ position: "absolute", top: EDGE, left: EDGE }} />
 
       {eyebrow ? (
-        <Eyebrow color={ATALA_TOKENS.amber} style={{ position: "absolute", top: 162, left: EDGE, maxWidth: 600, whiteSpace: "nowrap", overflow: "hidden" }}>
+        <Eyebrow layer={{ id: "badge", role: "badge" }} color={ATALA_TOKENS.amber} style={{ position: "absolute", top: 162, left: EDGE, maxWidth: 600, whiteSpace: "nowrap", overflow: "hidden" }}>
           {eyebrow}
         </Eyebrow>
       ) : null}
@@ -120,7 +126,10 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
           alignItems: "center",
         }}
       >
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: 0,
             fontSize: qSize,
@@ -133,11 +142,14 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {question}
-        </p>
+        </Layer>
       </div>
 
       {/* Lengkung tanda tanya; titiknya adalah foto bulat */}
-      <svg
+      <Layer
+        id="path-question-mark"
+        role="path"
+        as="svg"
         aria-hidden
         width={420}
         height={460}
@@ -151,7 +163,7 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
           strokeWidth={72}
           strokeLinecap="round"
         />
-      </svg>
+      </Layer>
       <div
         style={{
           position: "absolute",
@@ -169,7 +181,9 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
       </div>
 
       {answer ? (
-        <div
+        <Layer
+          id="body"
+          role="body"
           style={{
             position: "absolute",
             top: ANSWER_BOX.top,
@@ -203,11 +217,13 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
           >
             {answer}
           </p>
-        </div>
+        </Layer>
       ) : null}
 
       {cta ? (
-        <div
+        <Layer
+          id="cta"
+          role="cta"
           style={{
             position: "absolute",
             top: 928,
@@ -226,7 +242,7 @@ function QuestionHook({ text, photos, showSafeArea }: TemplateRenderProps) {
         >
           <span style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{cta}</span>
           <ArrowRight size={28} strokeWidth={2.6} style={{ flexShrink: 0 }} />
-        </div>
+        </Layer>
       ) : null}
 
       {showSafeArea ? <SafeAreaGuide {...SAFE_AREA.feed} /> : null}
@@ -245,4 +261,19 @@ export const questionHookTemplate: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto bulat (titik tanda tanya)", aspect: 1 }],
   fields: FIELDS,
   Component: QuestionHook,
+  motion: {
+    defaultPresetId: "mesin-ketik",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-glow", role: "decor" },
+      { id: "decor-rings", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      { id: "path-question-mark", role: "path" },
+      { id: "photo", role: "photo" },
+      { id: "body", role: "body" },
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

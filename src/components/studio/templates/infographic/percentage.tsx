@@ -1,5 +1,6 @@
 import { Percent } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, FONT_STACK, PhotoFrame, SafeAreaGuide } from "../primitives";
 import { FEED, SAMPLE_SOURCE, SourceLine, Pill, clampLines, fitSize, formatNumber, parsePercent, readFields } from "./shared";
 
@@ -94,6 +95,14 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
   );
   const explanationSize = t.explanation.length <= 110 ? 28 : 26;
   const arc = pct == null ? 0 : (CIRC * pct) / 100;
+  // Atribut geometri busur diteruskan <Layer as="circle"> apa adanya ke elemen <circle>.
+  const arcGeometry = {
+    cx: RING / 2,
+    cy: RING / 2,
+    r: R,
+    strokeDasharray: `${arc} ${CIRC}`,
+    transform: `rotate(-90 ${RING / 2} ${RING / 2})`,
+  };
 
   return (
     <Canvas
@@ -124,6 +133,7 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
             background={ATALA_TOKENS.amber}
             icon={<Percent size={26} strokeWidth={2.8} aria-hidden style={{ flexShrink: 0 }} />}
             style={{ maxWidth: 520 }}
+            layer={{ id: "badge", role: "badge" }}
           >
             {t.eyebrow}
           </Pill>
@@ -150,16 +160,15 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
             strokeDasharray={pct == null ? "18 18" : undefined}
           />
           {arc > 0 ? (
-            <circle
-              cx={RING / 2}
-              cy={RING / 2}
-              r={R}
+            <Layer
+              id="path-ring"
+              role="path"
+              as="circle"
+              {...arcGeometry}
               fill="none"
               stroke={ATALA_TOKENS.teal}
               strokeWidth={STROKE}
               strokeLinecap={pct! >= 100 ? "butt" : "round"}
-              strokeDasharray={`${arc} ${CIRC}`}
-              transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
             />
           ) : null}
           {/* Titik awal agar 0% tetap terbaca sebagai cincin kosong */}
@@ -183,11 +192,19 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
             </>
           ) : (
             <>
-              <span style={{ fontSize: pctSize, fontWeight: 900, lineHeight: 1, letterSpacing: "-0.04em", whiteSpace: "nowrap" }}>
+              <Layer
+                id="number"
+                role="number"
+                as="span"
+                style={{ fontSize: pctSize, fontWeight: 900, lineHeight: 1, letterSpacing: "-0.04em", whiteSpace: "nowrap" }}
+              >
                 {pctText}
-              </span>
+              </Layer>
               {t.ringLabel ? (
-                <span
+                <Layer
+                  id="body-2"
+                  role="body"
+                  as="span"
                   style={{
                     marginTop: 14,
                     maxWidth: 280,
@@ -199,7 +216,7 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
                   }}
                 >
                   {t.ringLabel}
-                </span>
+                </Layer>
               ) : null}
             </>
           )}
@@ -228,15 +245,30 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
             style={{ width: COL_WIDTH, height: 180, flexShrink: 0, marginBottom: 28, border: "4px solid rgba(255,255,255,0.9)" }}
           />
         ) : (
-          <div aria-hidden style={{ width: 96, height: 10, borderRadius: 999, background: ATALA_TOKENS.amber, marginBottom: 28, flexShrink: 0 }} />
+          // Tanpa foto, garis aksen menempati posisi foto dan memakai id lapisan `photo`
+          // agar daftar lapisan sama dengan atau tanpa foto (kontrak MT-11).
+          <Layer
+            id="photo"
+            role="photo"
+            aria-hidden
+            style={{ width: 96, height: 10, borderRadius: 999, background: ATALA_TOKENS.amber, marginBottom: 28, flexShrink: 0 }}
+          />
         )}
         {t.headline ? (
-          <p style={{ margin: 0, fontSize: headlineSize, fontWeight: 800, lineHeight: 1.14, letterSpacing: "-0.01em", ...clampLines(5) }}>
+          <Layer
+            id="headline"
+            role="headline"
+            as="p"
+            style={{ margin: 0, fontSize: headlineSize, fontWeight: 800, lineHeight: 1.14, letterSpacing: "-0.01em", ...clampLines(5) }}
+          >
             {t.headline}
-          </p>
+          </Layer>
         ) : null}
         {t.explanation ? (
-          <p
+          <Layer
+            id="body"
+            role="body"
+            as="p"
             style={{
               margin: t.headline ? "20px 0 0" : 0,
               fontSize: explanationSize,
@@ -247,14 +279,14 @@ function Percentage({ text, photos, showSafeArea }: TemplateRenderProps) {
             }}
           >
             {t.explanation}
-          </p>
+          </Layer>
         ) : null}
       </div>
 
       {/* Sumber */}
       {t.source ? (
         <div style={{ position: "absolute", left: EDGE, right: EDGE, bottom: EDGE, zIndex: 1 }}>
-          <SourceLine color="rgba(255,255,255,0.7)">Sumber: {t.source}</SourceLine>
+          <SourceLine color="rgba(255,255,255,0.7)" layer={{ id: "body-3", role: "body" }}>Sumber: {t.source}</SourceLine>
         </div>
       ) : null}
 
@@ -274,4 +306,19 @@ export const FEED_INFO_PERCENTAGE: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto pendukung (opsional)", aspect: COL_WIDTH / 180 }],
   fields: FIELDS,
   Component: Percentage,
+  motion: {
+    defaultPresetId: "hitung",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "path-ring", role: "path" },
+      { id: "number", role: "number" },
+      { id: "body-2", role: "body" },
+      { id: "photo", role: "photo" },
+      { id: "headline", role: "headline" },
+      { id: "body", role: "body" },
+      { id: "body-3", role: "body" },
+    ],
+  },
 };

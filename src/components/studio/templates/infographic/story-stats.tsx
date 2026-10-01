@@ -1,5 +1,6 @@
 import { ArrowRight, ChartColumn } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, SafeAreaGuide } from "../primitives";
 import { SAMPLE_SOURCE, STORY_H, STORY_W, SourceLine, Pill, clampLines, fitSize, readFields } from "./shared";
 
@@ -13,6 +14,7 @@ import { SAMPLE_SOURCE, STORY_H, STORY_W, SourceLine, Pill, clampLines, fitSize,
 const SAFE = SAFE_AREA.story;
 const BLOCK_H = 240;
 const NUMBER_COL = 340;
+const STAT_COUNT = 3;
 
 const BLOCK_TONES = [
   { accent: ATALA_TOKENS.cyan, strip: ATALA_TOKENS.teal },
@@ -73,7 +75,20 @@ const FIELDS: TemplateField[] = [
   },
 ];
 
-function StatBlock({ index, value, label, note }: { index: number; value: string; label: string; note: string }) {
+function StatBlock({
+  index,
+  value,
+  label,
+  note,
+  layerId,
+}: {
+  index: number;
+  value: string;
+  label: string;
+  note: string;
+  /** Id lapisan motion blok (role `list-item`); angka, label, dan catatan bergerak bersama. */
+  layerId: string;
+}) {
   const tone = BLOCK_TONES[index % BLOCK_TONES.length];
   // Kolom angka 340 px (isi 280 px): 8 karakter lebar (mis. "1.250,5%") harus tetap muat.
   const valueSize = fitSize(
@@ -89,7 +104,9 @@ function StatBlock({ index, value, label, note }: { index: number; value: string
   const labelSize = label.length <= 30 ? 36 : 32;
   const empty = !value && !label && !note;
   return (
-    <div
+    <Layer
+      id={layerId}
+      role="list-item"
       style={{
         position: "relative",
         height: BLOCK_H,
@@ -136,7 +153,7 @@ function StatBlock({ index, value, label, note }: { index: number; value: string
           <span style={{ fontSize: 26, fontWeight: 500, lineHeight: 1.35, color: "rgba(255,255,255,0.75)", ...clampLines(3) }}>{note}</span>
         ) : null}
       </div>
-    </div>
+    </Layer>
   );
 }
 
@@ -164,12 +181,19 @@ function StoryStats({ text, showSafeArea }: TemplateRenderProps) {
       style={{ color: ATALA_TOKENS.paper }}
     >
       {/* Pita dekoratif di luar area aman */}
-      <svg aria-hidden viewBox="0 0 300 300" style={{ position: "absolute", left: -60, bottom: -40, width: 420, height: 420, opacity: 0.16 }}>
+      <Layer
+        id="decor-ribbon"
+        role="decor"
+        as="svg"
+        aria-hidden
+        viewBox="0 0 300 300"
+        style={{ position: "absolute", left: -60, bottom: -40, width: 420, height: 420, opacity: 0.16 }}
+      >
         <g fill="none" strokeLinecap="round" strokeWidth="34">
           <path d="M40 280 L150 40" stroke={ATALA_TOKENS.teal} />
           <path d="M170 30 L280 270" stroke={ATALA_TOKENS.amber} />
         </g>
-      </svg>
+      </Layer>
 
       <div
         style={{
@@ -191,13 +215,17 @@ function StoryStats({ text, showSafeArea }: TemplateRenderProps) {
               background={ATALA_TOKENS.cyan}
               icon={<ChartColumn size={26} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />}
               style={{ maxWidth: 520 }}
+              layer={{ id: "badge", role: "badge" }}
             >
               {t.eyebrow}
             </Pill>
           ) : null}
         </div>
 
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: "36px 0 0",
             fontSize: titleSize,
@@ -209,17 +237,20 @@ function StoryStats({ text, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {t.title}
-        </p>
+        </Layer>
 
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 24 }}>
           {stats.map((s, i) => (
-            <StatBlock key={i} index={i} {...s} />
+            <StatBlock key={i} index={i} layerId={`item-${i + 1}`} {...s} />
           ))}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, flexShrink: 0 }}>
           {t.cta ? (
-            <span
+            <Layer
+              id="cta"
+              role="cta"
+              as="span"
               style={{
                 alignSelf: "flex-start",
                 maxWidth: "100%",
@@ -239,9 +270,9 @@ function StoryStats({ text, showSafeArea }: TemplateRenderProps) {
             >
               <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{t.cta}</span>
               <ArrowRight size={34} strokeWidth={2.8} aria-hidden style={{ flexShrink: 0 }} />
-            </span>
+            </Layer>
           ) : null}
-          {t.source ? <SourceLine color="rgba(255,255,255,0.65)">Sumber: {t.source}</SourceLine> : null}
+          {t.source ? <SourceLine color="rgba(255,255,255,0.65)" layer={{ id: "body", role: "body" }}>Sumber: {t.source}</SourceLine> : null}
         </div>
       </div>
 
@@ -261,4 +292,17 @@ export const STORY_INFO_STATS: TemplateDefinition = {
   slots: [],
   fields: FIELDS,
   Component: StoryStats,
+  motion: {
+    defaultPresetId: "tumpuk-kartu",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-ribbon", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      ...Array.from({ length: STAT_COUNT }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "cta", role: "cta" },
+      { id: "body", role: "body" },
+    ],
+  },
 };

@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide } from "../primitives";
+import { Layer } from "../../motion/layer";
 import { EDGE, FEED_SIZE, WRAP, clampLines, fitSize, linesFor, textReader } from "./shared";
 
 /**
@@ -64,7 +65,9 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={FEED_SIZE} height={FEED_SIZE} background="#FFFFFF">
       {/* Bidang lembut di belakang angka */}
-      <div
+      <Layer
+        id="decor-panel"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -80,6 +83,7 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
       <BrandMark size={64} style={{ position: "absolute", top: EDGE, left: EDGE }} />
       {eyebrow ? (
         <Eyebrow
+          layer={{ id: "badge", role: "badge" }}
           color={ATALA_TOKENS.violet}
           background="#EDE0FB"
           style={{ position: "absolute", top: EDGE + 6, right: EDGE, maxWidth: 600, whiteSpace: "nowrap", overflow: "hidden", boxSizing: "border-box" }}
@@ -100,7 +104,10 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
           overflow: "hidden",
         }}
       >
-        <span
+        <Layer
+          id="number"
+          role="number"
+          as="span"
           style={{
             fontSize: numberSize,
             fontWeight: 800,
@@ -111,11 +118,14 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {number}
-        </span>
+        </Layer>
       </div>
 
       {context ? (
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             position: "absolute",
             top: CONTEXT_BOX.top,
@@ -132,11 +142,16 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {context}
-        </p>
+        </Layer>
       ) : null}
 
       {/* Pita foto tipis selebar kanvas */}
-      <div aria-hidden style={{ position: "absolute", top: BAND.top - 10, left: 0, width: FEED_SIZE, height: 10, background: ATALA_TOKENS.amber }} />
+      <Layer
+        id="decor-strip"
+        role="decor"
+        aria-hidden
+        style={{ position: "absolute", top: BAND.top - 10, left: 0, width: FEED_SIZE, height: 10, background: ATALA_TOKENS.amber }}
+      />
       <PhotoFrame
         photo={photos.band}
         fallbackTone="plum"
@@ -145,7 +160,9 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
       />
 
       {source ? (
-        <div
+        <Layer
+          id="body"
+          role="body"
           style={{
             position: "absolute",
             top: 944,
@@ -160,7 +177,7 @@ function Statistic({ text, photos, showSafeArea }: TemplateRenderProps) {
         >
           <Info size={26} strokeWidth={2.2} color={ATALA_TOKENS.plum} style={{ flexShrink: 0 }} />
           <p style={{ margin: 0, fontSize: 22, fontWeight: 600, lineHeight: 1.3, ...WRAP, ...clampLines(2) }}>{source}</p>
-        </div>
+        </Layer>
       ) : null}
 
       {showSafeArea ? <SafeAreaGuide {...SAFE_AREA.feed} /> : null}
@@ -179,4 +196,18 @@ export const statisticTemplate: TemplateDefinition = {
   slots: [{ id: "band", label: "Foto pita tipis", aspect: FEED_SIZE / BAND.height }],
   fields: FIELDS,
   Component: Statistic,
+  motion: {
+    defaultPresetId: "hitung",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-panel", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "number", role: "number" },
+      { id: "headline", role: "headline" },
+      { id: "decor-strip", role: "decor" },
+      { id: "photo", role: "photo" },
+      { id: "body", role: "body" },
+    ],
+  },
 };

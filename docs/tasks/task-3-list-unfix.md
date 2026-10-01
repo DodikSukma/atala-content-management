@@ -51,8 +51,8 @@ Branch per tugas tetap ada secara lokal sebagai jejak: `at/qa-fixes`, `f2/01-bas
 | MT-08 | Belum | ≥ 16 Story di `templates/story-pack/` + area stiker (hanya pratinjau). |
 | MT-09 | Belum | ≥ 8 set carousel (1:1 dan 4:5), nomor halaman otomatis lewat `pageIndex`/`pageCount`. Butuh F2-07. |
 | MT-10 | Selesai (1 Oktober 2026) | — |
-| MT-11 | Belum | `src/components/studio/motion/layer.tsx` (`<Layer id role split>`: tanpa konteks render apa adanya; `split` memecah ke span `data-sublayer`), bungkus semua template, uji snapshot PNG tidak berubah. |
-| MT-12 | Sebagian (di main) | Resep + validator ada; tambahkan uji "setiap resep × setiap template kompatibel" setelah MT-11, dan sembunyikan resep yang `requiresRoles`-nya tidak ada. |
+| MT-11 | Selesai (1 Oktober 2026, branch `mt/11-layers`) | Untuk 20 template rilis ini: `<Layer>` + `MotionFrameProvider` di `src/components/studio/motion/`, lapisan di semua template, PNG identik piksel (`tests/e2e/layer-parity.mjs`). Template MT-05..MT-09 ditunda; template baru langsung memakai `<Layer>`. `templates:check` menunggu MT-04. |
+| MT-12 | Selesai (1 Oktober 2026, branch `mt/11-layers`) | `tests/motion-templates.test.ts`: 236 pasangan resep x template dengan lapisan terukur, 0 error; resep tanpa peran wajib tersembunyi. Mesin kini memperkecil `rise` di zona Story dan menurunkan pecah kata bila tidak muat. Celah: tidak ada template Story dengan lapisan `number`, jadi "Hitung Mundur" belum bisa dipakai di template mana pun. |
 | MT-13 | Belum | `compositor.ts` (rasterisasi lapisan sekali lalu komposisi per frame), fallback `motionRender: "dom"`, `player.tsx`; frame terakhir = PNG (selisih ≤ 0,5%), ≥ 30 fps. |
 | MT-14 | Belum | Tab Motion di Studio (galeri resep, durasi, fps, Ken Burns, loop, override lapisan, timeline dengan snap 50 ms, peringatan validator, "Kembalikan ke resep"). |
 | MT-15 | Belum | Motion Story/Reels (7 dtk / 10 dtk), sampling 100 ms area aman, area stiker kosong. |

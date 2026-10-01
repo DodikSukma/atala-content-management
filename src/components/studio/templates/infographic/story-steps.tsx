@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowRight, Footprints } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, SafeAreaGuide } from "../primitives";
 import { ACCENTS, STORY_H, STORY_W, Pill, clampLines, fitSize, parseMilestones, readFields } from "./shared";
 
@@ -79,7 +80,9 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
   return (
     <Canvas width={STORY_W} height={STORY_H} background={ATALA_TOKENS.paper}>
       {/* Latar: bidang lembut di sisi kiri di belakang jalur simpul */}
-      <div
+      <Layer
+        id="decor-panel"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -90,12 +93,19 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
           background: `linear-gradient(180deg, #E0ECFF 0%, ${ATALA_TOKENS.mist} 100%)`,
         }}
       />
-      <svg aria-hidden viewBox="0 0 300 300" style={{ position: "absolute", right: -80, top: -60, width: 420, height: 420, opacity: 0.12 }}>
+      <Layer
+        id="decor-ribbon"
+        role="decor"
+        as="svg"
+        aria-hidden
+        viewBox="0 0 300 300"
+        style={{ position: "absolute", right: -80, top: -60, width: 420, height: 420, opacity: 0.12 }}
+      >
         <g fill="none" strokeLinecap="round" strokeWidth="34">
           <path d="M40 280 L150 40" stroke={ATALA_TOKENS.blue} />
           <path d="M170 30 L280 270" stroke={ATALA_TOKENS.teal} />
         </g>
-      </svg>
+      </Layer>
 
       <div
         style={{
@@ -116,6 +126,7 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
               background={ATALA_TOKENS.blue}
               icon={<Footprints size={26} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />}
               style={{ maxWidth: 560 }}
+              layer={{ id: "badge", role: "badge" }}
             >
               {t.eyebrow}
             </Pill>
@@ -125,7 +136,10 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
           <BrandMark size={56} color={ATALA_TOKENS.navy} style={{ flexShrink: 0 }} />
         </div>
 
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: "30px 0 0",
             fontSize: titleSize,
@@ -138,7 +152,7 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {t.title}
-        </p>
+        </Layer>
 
         {/* Alur langkah */}
         <div style={{ flex: 1, minHeight: 0, marginTop: 36, display: "flex", flexDirection: "column" }}>
@@ -172,7 +186,12 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
               const accent = ACCENTS[i % ACCENTS.length];
               const last = i === n - 1;
               return (
-                <div key={i} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxHeight: 260 }}>
+                <Layer
+                  key={i}
+                  id={`item-${i + 1}`}
+                  role="list-item"
+                  style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", maxHeight: 260 }}
+                >
                   <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "stretch", gap: 28 }}>
                     <div style={{ width: NODE, flexShrink: 0, display: "flex", alignItems: "center" }}>
                       <span
@@ -237,14 +256,16 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
                       <ArrowDown size={30} strokeWidth={3} color={ACCENTS[(i + 1) % ACCENTS.length]} aria-hidden />
                     </div>
                   ) : null}
-                </div>
+                </Layer>
               );
             })
           )}
         </div>
 
         {t.cta ? (
-          <div
+          <Layer
+            id="cta"
+            role="cta"
             style={{
               marginTop: 32,
               flexShrink: 0,
@@ -266,7 +287,7 @@ function StorySteps({ text, showSafeArea }: TemplateRenderProps) {
           >
             <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{t.cta}</span>
             <ArrowRight size={34} strokeWidth={2.8} color={ATALA_TOKENS.amber} aria-hidden style={{ flexShrink: 0 }} />
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -286,4 +307,17 @@ export const STORY_INFO_STEPS: TemplateDefinition = {
   slots: [],
   fields: FIELDS,
   Component: StorySteps,
+  motion: {
+    defaultPresetId: "daftar",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "decor-panel", role: "decor" },
+      { id: "decor-ribbon", role: "decor" },
+      { id: "badge", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "headline", role: "headline" },
+      ...Array.from({ length: MAX_STEPS }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

@@ -238,7 +238,7 @@ Aturan ini ditegakkan oleh `validate.ts` (MT-12). Pelanggaran menjadi peringatan
 
   Bergantung pada F2-06.
 
-- [ ] **MT-11 — Kontrak lapisan pada template.**
+- [x] **MT-11 — Kontrak lapisan pada template.**
   - Buat komponen `<Layer id role split>` di `src/components/studio/motion/layer.tsx`:
     - tanpa konteks motion, render anak apa adanya (PNG tidak berubah);
     - dengan konteks, terapkan gaya dari `evaluate`;
@@ -248,7 +248,9 @@ Aturan ini ditegakkan oleh `validate.ts` (MT-12). Pelanggaran menjadi peringatan
 
   **Selesai jika:** setiap template punya minimal lapisan latar, judul, dan logo; PNG setiap template tidak berubah piksel sebelum dan sesudah pembungkusan (uji snapshot); dan `templates:check` tetap lulus. Bergantung pada MT-10, MT-04.
 
-- [ ] **MT-12 — Pustaka resep motion dan validator kualitas.**
+  Catatan 1 Oktober 2026: dicentang untuk 20 template rilis ini (14 Feed, 6 Story). Template MT-05 sampai MT-09 ditunda (keputusan pemilik), jadi bagian itu berlaku saat paketnya dikerjakan dan template baru langsung memakai `<Layer>`. `templates:check` belum ada (bagian MT-04); karena PNG ke-20 template identik piksel dengan sebelum pembungkusan, hasil pemeriksa itu tidak dapat berubah. Bukti di PROGRESS.md.
+
+- [x] **MT-12 — Pustaka resep motion dan validator kualitas.**
   - Buat minimal 16 resep di `presets.ts`. Setiap resep punya nama Indonesia, deskripsi satu kalimat, dan pemetaan `role → entrance`:
     - **Tenang:** fade + rise, stagger lembut.
     - **Minimal:** fade 600 ms saja.
@@ -270,6 +272,8 @@ Aturan ini ditegakkan oleh `validate.ts` (MT-12). Pelanggaran menjadi peringatan
   - Tambahkan uji yang menjalankan setiap resep terhadap setiap template yang kompatibel.
 
   **Selesai jika:** semua resep lulus validator pada semua template kompatibel, dan resep yang tidak cocok dengan suatu template (misalnya "Hitung" tanpa lapisan angka) otomatis disembunyikan untuk template itu. Bergantung pada MT-10, MT-11.
+
+  Catatan 1 Oktober 2026: diuji pada 236 pasangan resep x template kompatibel dari 20 template rilis ini memakai lapisan yang diukur di Chrome (`tests/motion-templates.test.ts`).
 
 - [ ] **MT-13 — Compositor dan pemutar pratinjau.**
   - **`compositor.ts`:**

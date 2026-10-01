@@ -1,5 +1,6 @@
 import { ArrowRight, Check } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide, splitList } from "../primitives";
 import { EDGE, FEED_SIZE, WRAP, clampLines, defaultsOf, fitSize, longest, readText } from "./shared";
 
@@ -86,7 +87,9 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
         fallbackTone="blue"
         style={{ position: "absolute", top: 0, left: 0, right: 0, height: STRIP_HEIGHT }}
       />
-      <div
+      <Layer
+        id="decor-scrim"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -112,13 +115,21 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
       >
         <BrandMark size={60} color={ATALA_TOKENS.paper} style={{ flexShrink: 0 }} />
         {eyebrow ? (
-          <Eyebrow color={ATALA_TOKENS.ink} background={ATALA_TOKENS.amber} style={{ whiteSpace: "nowrap", overflow: "hidden", minWidth: 0 }}>
+          <Eyebrow
+            layer={{ id: "badge", role: "badge" }}
+            color={ATALA_TOKENS.ink}
+            background={ATALA_TOKENS.amber}
+            style={{ whiteSpace: "nowrap", overflow: "hidden", minWidth: 0 }}
+          >
             {eyebrow}
           </Eyebrow>
         ) : null}
       </div>
 
-      <p
+      <Layer
+        id="headline"
+        role="headline"
+        as="p"
         style={{
           position: "absolute",
           top: 164,
@@ -135,7 +146,7 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
         }}
       >
         {title}
-      </p>
+      </Layer>
 
       {/* Kartu kertas */}
       <div
@@ -167,7 +178,7 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {items.map((item, index) => (
-            <li key={index} style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+            <Layer key={index} id={`item-${index + 1}`} role="list-item" as="li" style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
               <span
                 style={{
                   width: TILE,
@@ -196,12 +207,14 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
               >
                 <span style={{ ...clampLines(2) }}>{item}</span>
               </span>
-            </li>
+            </Layer>
           ))}
         </ul>
 
         {cta ? (
-          <div
+          <Layer
+            id="cta"
+            role="cta"
             style={{
               marginTop: "auto",
               paddingTop: 24,
@@ -216,7 +229,7 @@ function Checklist({ text, photos, showSafeArea }: TemplateRenderProps) {
               {cta}
             </span>
             <ArrowRight size={28} color={ATALA_TOKENS.blue} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -236,4 +249,17 @@ export const CHECKLIST: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto pita atas", aspect: FEED_SIZE / STRIP_HEIGHT }],
   fields: FIELDS,
   Component: Checklist,
+  motion: {
+    defaultPresetId: "daftar",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "photo", role: "photo" },
+      { id: "decor-scrim", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      ...Array.from({ length: MAX_ITEMS }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

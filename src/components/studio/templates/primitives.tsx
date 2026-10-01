@@ -1,6 +1,8 @@
 /* eslint-disable @next/next/no-img-element -- template dirender ke PNG oleh html-to-image; <img> biasa wajib agar sumber bisa disematkan. */
 import type { CSSProperties, ReactNode } from "react";
+import type { LayerRole } from "@/lib/motion/types";
 import { ATALA_TOKENS, type TemplatePhoto } from "@/lib/studio/types";
+import { Layer } from "../motion/layer";
 
 /**
  * Primitif bersama untuk semua template Studio.
@@ -19,7 +21,14 @@ export function splitList(value: string, max = 6): string[] {
     .slice(0, max);
 }
 
-/** Kanvas akar template. `data-template-root` dipakai editor untuk ekspor. */
+/**
+ * Kanvas akar template. `data-template-root` dipakai editor untuk ekspor.
+ *
+ * Latar digambar oleh lapisan motion `background` (MT-11): elemen absolut selebar kanvas
+ * dengan `z-index: -1` di dalam akar yang ber-`isolation: isolate`, sehingga tetap dilukis
+ * di bawah semua isi (juga isi yang tidak diposisikan) dan PNG identik dengan latar di akar.
+ * Akar sendiri transparan agar compositor (MT-13) bisa merasterisasi lapisan lain tanpa latar.
+ */
 export function Canvas({
   width,
   height,
@@ -41,12 +50,13 @@ export function Canvas({
         width,
         height,
         overflow: "hidden",
-        background,
+        isolation: "isolate",
         fontFamily: FONT_STACK,
         color: ATALA_TOKENS.ink,
         ...style,
       }}
     >
+      <Layer id="background" role="background" aria-hidden style={{ position: "absolute", inset: 0, zIndex: -1, background }} />
       {children}
     </div>
   );
@@ -62,16 +72,19 @@ export function PhotoFrame({
   radius = 0,
   fallbackTone = "blue",
   label,
+  layerId = "photo",
 }: {
   photo: TemplatePhoto | undefined;
   style?: CSSProperties;
   radius?: number;
   fallbackTone?: "blue" | "teal" | "amber" | "plum" | "navy";
   label?: string;
+  /** Id lapisan motion (role `photo`); bedakan bila satu template punya beberapa foto. */
+  layerId?: string;
 }) {
   const crop = photo?.crop ?? { x: 50, y: 50, zoom: 1 };
   return (
-    <div style={{ position: "relative", overflow: "hidden", borderRadius: radius, ...style }}>
+    <Layer id={layerId} role="photo" style={{ position: "relative", overflow: "hidden", borderRadius: radius, ...style }}>
       {photo?.src ? (
         <img
           src={photo.src}
@@ -92,7 +105,7 @@ export function PhotoFrame({
       ) : (
         <GraphicFallback tone={fallbackTone} />
       )}
-    </div>
+    </Layer>
   );
 }
 
@@ -135,15 +148,18 @@ export function BrandMark({
   subtitle = "Atala Project",
   showName = true,
   style,
+  layerId = "logo",
 }: {
   size?: number;
   color?: string;
   subtitle?: string;
   showName?: boolean;
   style?: CSSProperties;
+  /** Id lapisan motion (role `logo`). */
+  layerId?: string;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: size * 0.28, ...style }}>
+    <Layer id={layerId} role="logo" style={{ display: "flex", alignItems: "center", gap: size * 0.28, ...style }}>
       <div
         style={{
           width: size,
@@ -162,34 +178,49 @@ export function BrandMark({
       {showName ? (
         <span style={{ fontSize: size * 0.42, fontWeight: 800, letterSpacing: "-0.01em", color, lineHeight: 1 }}>{subtitle}</span>
       ) : null}
-    </div>
+    </Layer>
   );
 }
 
 /** Label kecil kapital (kategori/eyebrow). */
-export function Eyebrow({ children, color, background, style }: { children: ReactNode; color: string; background?: string; style?: CSSProperties }) {
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        fontSize: 26,
-        fontWeight: 800,
-        letterSpacing: "0.14em",
-        textTransform: "uppercase",
-        color,
-        background,
-        // Tanpa latar: ruang 4 px di kiri/kanan (diimbangi margin negatif) agar
-        // glyph tebal di tepi tidak terpotong saat pemanggil memakai overflow hidden.
-        padding: background ? "12px 22px" : "0 4px",
-        marginLeft: background ? undefined : -4,
-        borderRadius: 999,
-        lineHeight: 1,
-        ...style,
-      }}
-    >
-      {children}
-    </span>
-  );
+export function Eyebrow({
+  children,
+  color,
+  background,
+  style,
+  layer,
+}: {
+  children: ReactNode;
+  color: string;
+  background?: string;
+  style?: CSSProperties;
+  /** Jadikan label ini lapisan motion (biasanya role `badge`). */
+  layer?: { id: string; role: LayerRole };
+}) {
+  const css: CSSProperties = {
+    display: "inline-block",
+    fontSize: 26,
+    fontWeight: 800,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color,
+    background,
+    // Tanpa latar: ruang 4 px di kiri/kanan (diimbangi margin negatif) agar
+    // glyph tebal di tepi tidak terpotong saat pemanggil memakai overflow hidden.
+    padding: background ? "12px 22px" : "0 4px",
+    marginLeft: background ? undefined : -4,
+    borderRadius: 999,
+    lineHeight: 1,
+    ...style,
+  };
+  if (layer) {
+    return (
+      <Layer id={layer.id} role={layer.role} as="span" style={css}>
+        {children}
+      </Layer>
+    );
+  }
+  return <span style={css}>{children}</span>;
 }
 
 /** Garis panduan area aman — hanya pratinjau (editor tidak meneruskannya saat ekspor). */

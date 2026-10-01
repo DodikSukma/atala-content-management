@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowRight, Check, X, type LucideIcon } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide } from "../primitives";
 import { EDGE, FEED_SIZE, WRAP, clampLines, defaultsOf, fitSize, readText } from "./shared";
 
@@ -75,16 +76,21 @@ function Column({
   label,
   icon: Icon,
   tone,
+  layerId,
   children,
 }: {
   label: string;
   icon: LucideIcon;
   tone: "myth" | "fact";
+  /** Id lapisan motion kartu kolom (role `list-item`). */
+  layerId: string;
   children: ReactNode;
 }) {
   const isFact = tone === "fact";
   return (
-    <div
+    <Layer
+      id={layerId}
+      role="list-item"
       style={{
         flex: 1,
         minWidth: 0,
@@ -127,7 +133,7 @@ function Column({
         </span>
       </div>
       {children}
-    </div>
+    </Layer>
   );
 }
 
@@ -163,11 +169,19 @@ function MythVsFact({ text, photos, showSafeArea }: TemplateRenderProps) {
       {/* Kepala */}
       <div style={{ position: "absolute", top: EDGE, left: EDGE, right: EDGE + PHOTO_SIZE + 32 }}>
         {eyebrow ? (
-          <Eyebrow color={ATALA_TOKENS.paper} background={ATALA_TOKENS.navy} style={{ maxWidth: "100%", whiteSpace: "nowrap", overflow: "hidden" }}>
+          <Eyebrow
+            layer={{ id: "badge", role: "badge" }}
+            color={ATALA_TOKENS.paper}
+            background={ATALA_TOKENS.navy}
+            style={{ maxWidth: "100%", whiteSpace: "nowrap", overflow: "hidden" }}
+          >
             {eyebrow}
           </Eyebrow>
         ) : null}
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: eyebrow ? "24px 0 0" : 0,
             fontSize: titleSize,
@@ -180,7 +194,7 @@ function MythVsFact({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {title}
-        </p>
+        </Layer>
       </div>
 
       <div
@@ -212,14 +226,17 @@ function MythVsFact({ text, photos, showSafeArea }: TemplateRenderProps) {
           gap: COLUMN_GAP,
         }}
       >
-        <Column label="Mitos" icon={X} tone="myth">
+        <Column label="Mitos" icon={X} tone="myth" layerId="item-1">
           <p style={{ ...bodyStyle, color: ATALA_TOKENS.inkSoft }}>{myth}</p>
         </Column>
-        <Column label="Fakta" icon={Check} tone="fact">
+        <Column label="Fakta" icon={Check} tone="fact" layerId="item-2">
           <p style={{ ...bodyStyle, color: ATALA_TOKENS.paper }}>{fact}</p>
         </Column>
 
-        <span
+        <Layer
+          id="badge-2"
+          role="badge"
+          as="span"
           aria-hidden
           style={{
             position: "absolute",
@@ -242,7 +259,7 @@ function MythVsFact({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           VS
-        </span>
+        </Layer>
       </div>
 
       {/* Kaki */}
@@ -261,12 +278,12 @@ function MythVsFact({ text, photos, showSafeArea }: TemplateRenderProps) {
       >
         <BrandMark size={FOOTER_HEIGHT} color={ATALA_TOKENS.ink} style={{ flexShrink: 0 }} />
         {cta ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          <Layer id="cta" role="cta" style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3, color: ATALA_TOKENS.navy, minWidth: 0, ...WRAP, ...clampLines(1) }}>
               {cta}
             </span>
             <ArrowRight size={28} color={ATALA_TOKENS.navy} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -286,4 +303,18 @@ export const MYTH_VS_FACT: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto pendukung (bulat)", aspect: 1 }],
   fields: FIELDS,
   Component: MythVsFact,
+  motion: {
+    defaultPresetId: "tegas",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      { id: "photo", role: "photo" },
+      { id: "item-1", role: "list-item" },
+      { id: "item-2", role: "list-item" },
+      { id: "badge-2", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

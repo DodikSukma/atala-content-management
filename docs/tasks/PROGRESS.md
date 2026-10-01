@@ -416,3 +416,89 @@ Hasil: kriteria "Selesai jika" MT-10 terpenuhi.
 Kendala/keputusan: penyimpanan motion belum punya UI (MT-14) dan belum dirender (MT-13).
 Langkah berikutnya: MT-11 (komponen Layer + lapisan pada 20 template).
 ```
+
+```text
+Tanggal (Asia/Makassar): 1 Oktober 2026
+Tugas: MT-11
+Status: selesai untuk 20 template rilis ini (14 Feed, 6 Story)
+Cakupan: keputusan pemilik 1 Oktober 2026 membatasi template rilis ini ke 20 template yang ada. Template
+  MT-05..MT-09 ditunda, jadi bagian "semua template MT-05 sampai MT-09" tidak berlaku untuk rilis ini;
+  template paket baru wajib langsung memakai <Layer>.
+Perubahan:
+- src/components/studio/motion/layer.tsx: <Layer id role split as style className>. Tanpa konteks merender
+  tepat satu elemen `as` (tag dan gaya sama, tanpa pembungkus) + data-layer, data-layer-role, data-layer-split.
+  Dengan konteks: opacity (dikalikan), transform translate/scale/rotate (di depan transform bawaan), blur,
+  clip-path inset. Pecah kata/baris: span inline-block data-sublayer="<id>#<i>"; baris diukur dari offsetTop
+  kata setelah tata letak; kembali ke teks utuh saat semua sublapisan diam. Typewriter: sisa huruf
+  visibility:hidden (tanpa reflow). Count-up: angka pertama diinterpolasi di atas teks akhir tak terlihat.
+  Draw: stroke-dasharray garis SVG (menghormati dasharray yang sudah ada, mis. busur persentase).
+  Highlight-sweep: background-size elemen [data-highlight]. Identitas = markup statis.
+- src/components/studio/motion/context.tsx: MotionFrameContext/MotionFrameProvider, motionFrameAt(timeline, t),
+  timelineLayerMeta. split.ts (helper murni), measure.ts (collectLayerInfo: kotak, kata, baris dari DOM).
+- primitives.tsx: Canvas menggambar latar sebagai lapisan `background` (absolut, z-index -1, akar
+  isolation:isolate, akar transparan); PhotoFrame = lapisan `photo`; BrandMark = lapisan `logo`;
+  Eyebrow menerima prop layer.
+- 20 template dibungkus (judul, isi, butir, badge, CTA, angka, dekor, garis) dan definisinya berisi
+  motion.defaultPresetId + motion.layers. TimelineItem kini membawa `split` (word/line).
+- Halaman QA internal /showcase/template?id=..&photo=1[&preset=..&t=..] merender template ukuran asli lewat
+  exportNodeToPng dan mengekspos lapisan terukur untuk skrip.
+Bukti uji:
+- tests/e2e/layer-parity.mjs: acuan PNG diambil dari kode sebelum pembungkusan (MODE=baseline, salinan
+  folder template di test-results/parity-src). Setelah pembungkusan 20 template x {foto, tanpa-foto} =
+  40 PNG: 0 piksel berbeda, delta 0 (identik). Frame akhir motion (resep bawaan, t = durasi) juga 0 piksel
+  berbeda pada 20 template; frame t = 0 berbeda 13,7%-99,3% (lapisan memang menerima gaya). 83/83 lulus.
+- Pemeriksaan visual frame tengah: Mesin Ketik (question-hook), Hitung (percentage, statistic), Daftar
+  draw busur (percentage), Editorial pecah baris (quote-educator), Kinetik pecah kata (fact-focus).
+- tests/template-layers.test.ts (81): 20 template, setiap template punya latar+judul+logo, lapisan markup =
+  motion.layers (isi penuh, dengan/tanpa foto), konteks identitas tidak mengubah markup.
+- tests/motion-layer.test.ts (17): render tanpa/dengan konteks, split, typewriter, count-up, helper.
+- npm run check: check:colors lulus, typecheck 0, lint 0, vitest 34 berkas / 1211 uji lulus. npm run build lulus.
+- next start mode fixture (data baru): flows.mjs 31/31, export-templates.mjs VARIANTS=foto 20/20.
+Kendala/keputusan:
+- `templates:check` belum ada (bagian MT-04). Karena PNG identik piksel, hasil pemeriksa overflow tidak
+  dapat berubah; export-templates.mjs (pemeriksa yang ada) tetap 20/20 dengan catatan informatif yang sama.
+- Wadah yang berisi lapisan lain dibiarkan statis agar lapisan tidak bersarang (mis. panel biru fact-focus,
+  cincin foto question-hook/testimonial). Tanpa foto, garis aksen percentage memakai id `photo`.
+- Lapisan `path` pada busur percentage menerima opacity dari resep; transform CSS akan menimpa atribut
+  transform SVG, jadi override yang menggeser lapisan path SVG tidak disarankan.
+Langkah pemulihan: <Layer> tanpa konteks setara elemen asli; bila ada template yang berbeda, ganti <Layer>
+  di template itu kembali ke tag asli dan jalankan layer-parity.mjs. Acuan baru: MODE=baseline.
+Langkah berikutnya: MT-13 memakai MotionFrameProvider + collectLayerInfo (lihat catatan MT-12).
+```
+
+```text
+Tanggal (Asia/Makassar): 1 Oktober 2026
+Tugas: MT-12
+Status: selesai untuk 20 template rilis ini
+Perubahan:
+- tests/motion-templates.test.ts: setiap resep x setiap template kompatibel (presetsFor(format, peran
+  motion.layers)) divalidasi dengan lapisan NYATA (tests/fixtures/template-layers.json: kotak, kata, baris
+  diukur di Chrome oleh layer-parity.mjs) dan dengan daftar lapisan penuh (butir sampai maxItems), masing-
+  masing pada spesifikasi bawaan, loop mulus, 60 fps, durasi terpendek (Feed 4 dtk, Story 5 dtk), dan Ken
+  Burns maksimum. Fixture dicek sama dengan markup template (id dan peran).
+- Resep yang butuh peran yang tidak ada disembunyikan (diuji pada semua 20 template x 16 resep).
+- Temuan dari uji nyata, diperbaiki di mesin (aturan tidak dilonggarkan):
+  * Story: lapisan isi yang berakhir tepat di batas bawah area aman (y + h = 1580) dan badge di y 255-258
+    bergerak masuk dari zona UI Instagram (story-safe-zone, 9 kasus). Timeline kini memperkecil jarak `rise`
+    resep agar tetap di area aman, dan bila ruang < 24 px menggantinya dengan fade (semua resep sudah
+    memakai fade, jadi jenis masuk tetap <= 3). Override pengguna tidak diubah; validator tetap menolak.
+  * Kinetik pada feed-testimonial 4 dtk: fase masuk 1720 ms > 40%. Bila kompresi tidak cukup, pecah kata
+    bawaan diturunkan ke pecah baris lalu tanpa pecah; pecah dari override tidak diubah.
+  * MOTION_CANVAS dan STORY_UNSAFE_ZONE dipindah ke types.ts (dipakai timeline dan validator).
+Bukti uji:
+- 236 pasangan resep x template (14 Feed: 10-12 resep, 6 Story: 12-14 resep) x 5 varian x 2 daftar lapisan:
+  0 error. Resep bawaan setiap template termasuk yang kompatibel.
+- tests/motion-presets.test.ts 127 uji (tambahan: penurunan pecah kata, jarak rise Story diperkecil/fade,
+  validator tetap menolak timeline yang turun dari zona atas). tests/motion-engine.test.ts: uji 20.000
+  sublapisan kini memakai override pecah kata (tanpa override mesin menurunkannya).
+- npm run check dan npm run build lulus (lihat MT-11).
+Kendala/keputusan:
+- Tidak ada template Story dengan lapisan `number`, jadi resep "Hitung Mundur" tersembunyi di semua template
+  rilis ini; "Hitung" hanya tersedia di feed-statistic dan feed-info-percentage.
+- Catatan untuk MT-13: ukur lapisan dengan collectLayerInfo(root) pada render statis (tanpa konteks), bangun
+  timeline dengan buildTimeline(spec, layers, preset, { format }), lalu bungkus template dengan
+  <MotionFrameProvider value={motionFrameAt(timeline, t)}>. Kunci gaya: id lapisan atau "<id>#<i>"
+  untuk kata/baris. Latar ada di lapisan `background`; akar template transparan. loopMix belum diterapkan
+  di DOM (tugas compositor).
+Langkah berikutnya: MT-13 (compositor dan pemutar pratinjau).
+```

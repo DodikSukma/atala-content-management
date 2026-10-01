@@ -4,7 +4,9 @@ import { getPreset } from "./presets";
 import { READING_ORDER, buildTimeline } from "./timeline";
 import {
   IDENTITY,
+  MOTION_CANVAS,
   MOTION_LIMITS,
+  STORY_UNSAFE_ZONE,
   type EasingName,
   type EntranceRule,
   type EntranceType,
@@ -134,15 +136,7 @@ export const KEN_BURNS_FOKUS_PRESET_ID = "fokus";
 /** Easing yang boleh dipakai untuk masuk (aturan 4). Linear hanya untuk Ken Burns. */
 export const ENTRANCE_EASINGS: readonly EasingName[] = ["out-cubic", "out-expo", "out-quint"];
 
-/** Ukuran kanvas asli per format (piksel). */
-export const MOTION_CANVAS: Readonly<Record<MotionFormat, { width: number; height: number }>> = Object.freeze({
-  feed: { width: 1080, height: 1080 },
-  portrait: { width: 1080, height: 1350 },
-  story: { width: 1080, height: 1920 },
-});
-
-/** Zona Story yang tertutup UI Instagram; selaras dengan SAFE_AREA.story (src/lib/studio/types.ts). */
-export const STORY_UNSAFE_ZONE = Object.freeze({ top: 250, bottom: 340 });
+// MOTION_CANVAS dan STORY_UNSAFE_ZONE didefinisikan di types.ts (dipakai juga oleh timeline).
 
 /** Rentang durasi anjuran; di luar rentang menjadi peringatan, di atas 60 detik menjadi error. */
 export const RECOMMENDED_DURATION_MS: Readonly<Record<MotionFormat, { min: number; max: number }>> = Object.freeze({

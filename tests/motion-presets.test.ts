@@ -615,11 +615,32 @@ describe("aturan 5: gerak kecil", () => {
     expect(issue).toMatchObject({ layerId: "ajakan", severity: "error" });
     expect(issue?.message).toContain("bawah");
 
-    // Badge Pengumuman menempel di batas atas lalu turun dari zona atas.
+    // Badge Pengumuman menempel di batas atas: mesin mengganti "turun dari atas" dengan memudar
+    // (ruang < 24 px) sehingga resep tetap lulus ...
     const pengumuman = getPreset("pengumuman")!;
     const top = base.map((l) => (l.id === "lencana" ? { ...l, box: box(72, 256, 260, 64) } : l));
     const topResult = validateMotion(specFor(pengumuman, "story"), top, "story");
-    expect(findIssue(topResult, 5, "story-safe-zone")).toMatchObject({ layerId: "lencana", severity: "error" });
+    expect(findIssue(topResult, 5, "story-safe-zone")).toBeUndefined();
+    const topTimeline = buildTimeline(specFor(pengumuman, "story"), top, pengumuman, { format: "story" });
+    expect(topTimeline.items.find((i) => i.layerId === "lencana")?.entrance.type).toBe("fade");
+    // ... tetapi validator tetap menolak timeline yang benar-benar turun dari zona atas.
+    const forced: Timeline = {
+      ...topTimeline,
+      items: topTimeline.items.map((i) =>
+        i.layerId === "lencana" ? { ...i, entrance: { ...i.entrance, type: "rise", distancePx: -32 } } : i,
+      ),
+    };
+    expect(
+      findIssue(validateTimeline(forced, { layers: top, presetId: pengumuman.id }), 5, "story-safe-zone"),
+    ).toMatchObject({ layerId: "lencana", severity: "error" });
+    // Ruang cukup (badge 40 px di bawah batas): jarak diperkecil, bukan dibuang.
+    const roomy = base.map((l) => (l.id === "lencana" ? { ...l, box: box(72, 290, 260, 64) } : l));
+    const roomyTimeline = buildTimeline(specFor(pengumuman, "story"), roomy, pengumuman, { format: "story" });
+    expect(roomyTimeline.items.find((i) => i.layerId === "lencana")?.entrance).toMatchObject({ type: "rise", distancePx: -32 });
+    const tight = base.map((l) => (l.id === "lencana" ? { ...l, box: box(72, 278, 260, 64) } : l));
+    const tightTimeline = buildTimeline(specFor(pengumuman, "story"), tight, pengumuman, { format: "story" });
+    expect(tightTimeline.items.find((i) => i.layerId === "lencana")?.entrance).toMatchObject({ type: "rise", distancePx: -28 });
+    expect(findIssue(validateMotion(specFor(pengumuman, "story"), tight, "story"), 5, "story-safe-zone")).toBeUndefined();
 
     // Lapisan yang memang berada di zona tertutup dan bergerak: peringatan.
     const inZone = base.map((l) => (l.id === "logo" ? { ...l, box: box(808, 1600, 200, 80) } : l));
@@ -813,5 +834,35 @@ describe("determinisme validator", () => {
     expect(now).not.toHaveBeenCalled();
     expect(random).not.toHaveBeenCalled();
     expect(perf).not.toHaveBeenCalled();
+  });
+});
+
+describe("mesin menurunkan pecah kata bila jadwal tidak muat (MT-12)", () => {
+  const kinetik = getPreset("kinetik")!;
+  const longHeadline = (format: MotionFormat) =>
+    fullLayout(format).map((l) => (l.role === "headline" ? { ...l, wordCount: 28, lineCount: 4 } : l));
+
+  it("Kinetik dengan judul 28 kata pada 4 detik: pecah baris, tanpa error", () => {
+    const layers = longHeadline("feed");
+    const spec = specFor(kinetik, "feed", { durationMs: 4000 });
+    const tl = buildTimeline(spec, layers, kinetik, { format: "feed" });
+    const headline = tl.items.filter((i) => i.role === "headline");
+    expect(headline.map((i) => i.split)).toEqual(["line", "line", "line", "line"]);
+    expect(errors(validateMotion(spec, layers, "feed"))).toEqual([]);
+  });
+
+  it("pada durasi bawaan pecah kata resep tetap dipakai", () => {
+    const layers = fullLayout("feed");
+    const tl = buildTimeline(specFor(kinetik, "feed"), layers, kinetik, { format: "feed" });
+    expect(tl.items.filter((i) => i.role === "headline").every((i) => i.split === "word")).toBe(true);
+  });
+
+  it("pecah kata dari override pengguna tidak diturunkan; pelanggaran dilaporkan", () => {
+    const layers = longHeadline("feed");
+    const judul = layers.find((l) => l.role === "headline")!.id;
+    const spec = withOverrides(specFor(kinetik, "feed", { durationMs: 4000 }), { [judul]: { split: "word" } });
+    const tl = buildTimeline(spec, layers, kinetik, { format: "feed" });
+    expect(tl.items.filter((i) => i.layerId === judul)).toHaveLength(28);
+    expect(findIssue(validateMotion(spec, layers, "feed"), 3, "entrance-phase")).toBeDefined();
   });
 });

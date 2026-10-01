@@ -1,5 +1,6 @@
 import { Check, Scale, X, type LucideIcon } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, SafeAreaGuide } from "../primitives";
 import { FEED, SAMPLE_SOURCE, SourceLine, Pill, clampLines, fitSize, parsePercent, readFields, splitLines } from "./shared";
 
@@ -128,7 +129,20 @@ const VIVID: Tone = {
   iconColor: ATALA_TOKENS.paper,
 };
 
-function Column({ side, tone, metric, align }: { side: Side; tone: Tone; metric: string; align: "left" | "right" }) {
+function Column({
+  side,
+  tone,
+  metric,
+  align,
+  layerId,
+}: {
+  side: Side;
+  tone: Tone;
+  metric: string;
+  align: "left" | "right";
+  /** Id lapisan motion kolom (role `list-item`); seluruh kolom bergerak bersama. */
+  layerId: string;
+}) {
   const pct = side.value.includes("%") ? parsePercent(side.value) : null;
   const valueSize = fitSize(
     side.value,
@@ -142,7 +156,9 @@ function Column({ side, tone, metric, align }: { side: Side; tone: Tone; metric:
   const pointSize = longestPoint <= 30 ? 26 : longestPoint <= 40 ? 24 : 22;
   const Icon = tone.icon;
   return (
-    <div
+    <Layer
+      id={layerId}
+      role="list-item"
       style={{
         position: "absolute",
         top: COL_TOP,
@@ -212,7 +228,7 @@ function Column({ side, tone, metric, align }: { side: Side; tone: Tone; metric:
           </div>
         ))}
       </div>
-    </div>
+    </Layer>
   );
 }
 
@@ -242,6 +258,7 @@ function Comparison({ text, showSafeArea }: TemplateRenderProps) {
               background="rgba(122,42,92,0.1)"
               icon={<Scale size={26} strokeWidth={2.6} aria-hidden style={{ flexShrink: 0 }} />}
               style={{ maxWidth: 600 }}
+              layer={{ id: "badge", role: "badge" }}
             >
               {t.eyebrow}
             </Pill>
@@ -250,7 +267,10 @@ function Comparison({ text, showSafeArea }: TemplateRenderProps) {
           )}
           <BrandMark size={52} color={ATALA_TOKENS.navy} style={{ flexShrink: 0 }} />
         </div>
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: "30px 0 0",
             fontSize: titleSize,
@@ -262,9 +282,12 @@ function Comparison({ text, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {t.title}
-        </p>
+        </Layer>
         {t.metric && !metricInColumns ? (
-          <p
+          <Layer
+            id="body"
+            role="body"
+            as="p"
             style={{
               margin: "12px 0 0",
               maxWidth: 860,
@@ -277,15 +300,17 @@ function Comparison({ text, showSafeArea }: TemplateRenderProps) {
             }}
           >
             {t.metric}
-          </p>
+          </Layer>
         ) : null}
       </div>
 
-      <Column side={left} tone={MUTED} metric={metricInColumns ? t.metric : ""} align="left" />
-      <Column side={right} tone={VIVID} metric={metricInColumns ? t.metric : ""} align="right" />
+      <Column side={left} tone={MUTED} metric={metricInColumns ? t.metric : ""} align="left" layerId="item-1" />
+      <Column side={right} tone={VIVID} metric={metricInColumns ? t.metric : ""} align="right" layerId="item-2" />
 
       {/* Lencana VS */}
-      <div
+      <Layer
+        id="badge-2"
+        role="badge"
         style={{
           position: "absolute",
           top: COL_TOP + 70,
@@ -307,12 +332,12 @@ function Comparison({ text, showSafeArea }: TemplateRenderProps) {
         }}
       >
         VS
-      </div>
+      </Layer>
 
       {/* Sumber */}
       {t.source ? (
         <div style={{ position: "absolute", left: EDGE, right: EDGE, bottom: EDGE, height: 58, display: "flex", alignItems: "flex-end" }}>
-          <SourceLine color={ATALA_TOKENS.inkSoft}>Sumber: {t.source}</SourceLine>
+          <SourceLine color={ATALA_TOKENS.inkSoft} layer={{ id: "body-2", role: "body" }}>Sumber: {t.source}</SourceLine>
         </div>
       ) : null}
 
@@ -332,4 +357,18 @@ export const FEED_INFO_COMPARISON: TemplateDefinition = {
   slots: [],
   fields: FIELDS,
   Component: Comparison,
+  motion: {
+    defaultPresetId: "tegas",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "badge", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "headline", role: "headline" },
+      { id: "body", role: "body" },
+      { id: "item-1", role: "list-item" },
+      { id: "item-2", role: "list-item" },
+      { id: "badge-2", role: "badge" },
+      { id: "body-2", role: "body" },
+    ],
+  },
 };

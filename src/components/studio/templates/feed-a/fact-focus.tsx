@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
+import { Layer } from "../../motion/layer";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide } from "../primitives";
 import { EDGE, FEED_SIZE, WRAP, clampLines, defaultsOf, fitSize, readText } from "./shared";
 
@@ -71,7 +72,9 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
       <PhotoFrame photo={photos.photo} label="Foto utama" fallbackTone="teal" style={{ position: "absolute", inset: 0 }} />
 
       {/* Scrim atas agar merek terbaca di atas foto terang. */}
-      <div
+      <Layer
+        id="decor-scrim"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -97,6 +100,7 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
       >
         {eyebrow ? (
           <Eyebrow
+            layer={{ id: "badge", role: "badge" }}
             color={ATALA_TOKENS.ink}
             background={ATALA_TOKENS.amber}
             style={{
@@ -113,7 +117,10 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
           </Eyebrow>
         ) : null}
 
-        <p
+        <Layer
+          id="headline"
+          role="headline"
+          as="p"
           style={{
             margin: 0,
             fontSize: headlineSize,
@@ -126,10 +133,13 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {headline}
-        </p>
+        </Layer>
 
         {body ? (
-          <p
+          <Layer
+            id="body"
+            role="body"
+            as="p"
             style={{
               margin: "24px 0 0",
               fontSize: bodySize,
@@ -141,11 +151,11 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
             }}
           >
             {body}
-          </p>
+          </Layer>
         ) : null}
 
         {cta ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 36 }}>
+          <Layer id="cta" role="cta" style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 36 }}>
             <span
               style={{
                 width: 56,
@@ -172,7 +182,7 @@ function FactFocus({ text, photos, showSafeArea }: TemplateRenderProps) {
             >
               {cta}
             </span>
-          </div>
+          </Layer>
         ) : null}
       </div>
 
@@ -192,4 +202,17 @@ export const FACT_FOCUS: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto latar penuh", aspect: 1 }],
   fields: FIELDS,
   Component: FactFocus,
+  motion: {
+    defaultPresetId: "fokus",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "photo", role: "photo" },
+      { id: "decor-scrim", role: "decor" },
+      { id: "logo", role: "logo" },
+      { id: "badge", role: "badge" },
+      { id: "headline", role: "headline" },
+      { id: "body", role: "body" },
+      { id: "cta", role: "cta" },
+    ],
+  },
 };

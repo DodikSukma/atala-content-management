@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarDays, CircleCheck } from "lucide-react";
 import { ATALA_TOKENS, SAFE_AREA, type TemplateDefinition, type TemplateField, type TemplateRenderProps } from "@/lib/studio/types";
 import { BrandMark, Canvas, Eyebrow, PhotoFrame, SafeAreaGuide, splitList } from "../primitives";
+import { Layer } from "../../motion/layer";
 import { EDGE, FEED_SIZE, WRAP, clampLines, fitSize, linesFor, longest, sizeForLength, textReader } from "./shared";
 
 /**
@@ -96,7 +97,9 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
         style={{ position: "absolute", top: 0, left: 0, width: FEED_SIZE, height: PHOTO_HEIGHT }}
       />
       {/* Gradasi atas agar label dan logo tetap terbaca di atas foto terang */}
-      <div
+      <Layer
+        id="decor-gradient"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -110,6 +113,7 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
 
       {eyebrow ? (
         <Eyebrow
+          layer={{ id: "badge", role: "badge" }}
           color={ATALA_TOKENS.blue}
           background="#FFFFFF"
           style={{ position: "absolute", top: EDGE + 6, left: EDGE, maxWidth: 620, whiteSpace: "nowrap", overflow: "hidden", boxSizing: "border-box" }}
@@ -120,7 +124,9 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
       <BrandMark size={64} color="#FFFFFF" style={{ position: "absolute", top: EDGE, right: EDGE }} />
 
       {/* Panel putih melengkung */}
-      <div
+      <Layer
+        id="decor-panel"
+        role="decor"
         aria-hidden
         style={{
           position: "absolute",
@@ -145,7 +151,10 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
           alignItems: "flex-end",
         }}
       >
-        <h2
+        <Layer
+          id="headline"
+          role="headline"
+          as="h2"
           style={{
             margin: 0,
             fontSize: programSize,
@@ -158,11 +167,14 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {program}
-        </h2>
+        </Layer>
       </div>
 
       {tagline ? (
-        <p
+        <Layer
+          id="body"
+          role="body"
+          as="p"
           style={{
             position: "absolute",
             top: TAGLINE_BOX.top,
@@ -179,7 +191,7 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {tagline}
-        </p>
+        </Layer>
       ) : null}
 
       {benefits.length ? (
@@ -196,8 +208,10 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
           }}
         >
           {benefits.map((item, index) => (
-            <div
+            <Layer
               key={`${index}-${item}`}
+              id={`item-${index + 1}`}
+              role="list-item"
               style={{
                 boxSizing: "border-box",
                 padding: 22,
@@ -224,13 +238,15 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
               >
                 {item}
               </p>
-            </div>
+            </Layer>
           ))}
         </div>
       ) : null}
 
       {schedule || cta ? (
-        <div
+        <Layer
+          id="cta"
+          role="cta"
           style={{
             position: "absolute",
             top: BAR_BOX.top,
@@ -285,7 +301,7 @@ function ProgramHighlight({ text, photos, showSafeArea }: TemplateRenderProps) {
               <ArrowRight size={26} strokeWidth={2.6} style={{ flexShrink: 0 }} />
             </div>
           ) : null}
-        </div>
+        </Layer>
       ) : null}
 
       {showSafeArea ? <SafeAreaGuide {...SAFE_AREA.feed} /> : null}
@@ -304,4 +320,19 @@ export const programHighlightTemplate: TemplateDefinition = {
   slots: [{ id: "photo", label: "Foto program", aspect: FEED_SIZE / PHOTO_HEIGHT }],
   fields: FIELDS,
   Component: ProgramHighlight,
+  motion: {
+    defaultPresetId: "tirai",
+    layers: [
+      { id: "background", role: "background" },
+      { id: "photo", role: "photo" },
+      { id: "decor-gradient", role: "decor" },
+      { id: "badge", role: "badge" },
+      { id: "logo", role: "logo" },
+      { id: "decor-panel", role: "decor" },
+      { id: "headline", role: "headline" },
+      { id: "body", role: "body" },
+      ...Array.from({ length: 3 }, (_, i) => ({ id: `item-${i + 1}`, role: "list-item" as const })),
+      { id: "cta", role: "cta" },
+    ],
+  },
 };
