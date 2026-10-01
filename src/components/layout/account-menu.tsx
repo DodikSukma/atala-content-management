@@ -57,8 +57,16 @@ export function AccountMenu({ username }: { username: string }) {
     <div
       ref={containerRef}
       className="relative"
-      onBlur={(event) => {
-        if (open && !event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      onBlur={() => {
+        // Klik label (mis. pilihan tema) memindahkan fokus lewat <body> dulu (relatedTarget null)
+        // sebelum ke input di dalam menu. Periksa fokus setelah perpindahan selesai, bukan saat blur,
+        // agar menu tidak tertutup sebelum klik tercatat. Klik di luar tetap ditangani pointerdown.
+        if (!open) return;
+        window.setTimeout(() => {
+          const container = containerRef.current;
+          const active = document.activeElement;
+          if (container && active && active !== document.body && !container.contains(active)) setOpen(false);
+        }, 0);
       }}
     >
       <button

@@ -63,6 +63,19 @@ try {
     await page.keyboard.press("Escape");
   });
 
+  await report.run("klik Terang lalu Gelap di menu akun menerapkan tema tanpa menutup menu", async () => {
+    await page.getByRole("button", { name: /Menu akun/ }).click();
+    const menuGroup = page.getByRole("radiogroup", { name: "Tema tampilan" });
+    await menuGroup.waitFor();
+    await menuGroup.getByText("Terang", { exact: true }).click();
+    await waitBg(page, LIGHT_BG);
+    assert(await menuGroup.isVisible(), "menu akun tertutup setelah memilih Terang");
+    await menuGroup.getByText("Gelap", { exact: true }).click();
+    await waitBg(page, DARK_BG);
+    assert(await menuGroup.isVisible(), "menu akun tertutup setelah memilih Gelap");
+    await page.keyboard.press("Escape");
+  });
+
   await report.run("tanpa kedip: HTML server sudah memuat data-theme=dark (cache mati)", async () => {
     const res = await page.request.get("/dashboard");
     const html = await res.text();
